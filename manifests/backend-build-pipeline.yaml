@@ -15,7 +15,7 @@ spec:
     contextDir: build
     git:
       ref: master
-      uri: 
+      uri: https://gitlab.com/ocp-demo/backend_quarkus.git
     # sourceSecret:
     #   name: gogs-secret
     type: Git
