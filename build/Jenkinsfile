@@ -32,7 +32,7 @@ pipeline {
     //mvnCmd = "source /usr/local/bin/scl_enable && mvn "
     // Images and Projects
     imageName = "backend"
-    devProject = "dev"
+    devProject = "ci-cd"
     prodProject = ""
     // Tags
     devTag = "0.0-0"
@@ -123,16 +123,6 @@ pipeline {
               def bc = openshift.selector("bc/${imageName}").object()
               bc.spec.strategy.dockerStrategy.dockerfilePath = "src/main/docker/Dockerfile.jvm"
               openshift.apply(bc)
-              // def template = 'https://gitlab.com/ocp-demo/backend_quarkus/raw/master/manifests/backend-bc-dev.yaml'
-              // openshift.apply(
-              //   openshift.process(
-              //     "-f", template,
-              //     // "-p", "IMAGE_NAMESPACE=${imageNamespace}", 
-              //     // "-p", "IMAGE_VERSION=${imageVersion}", 
-              //     // "-p", "APP_VERSION=${version}",
-              //     "-p", "APP_VERSION=${devTag}"
-              //   )
-              // )
             }
           }
         }
@@ -149,59 +139,54 @@ pipeline {
                   "--from-dir=.",
                   "--wait"
                 )
+                openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
               }
             }
           }
         }
       }
     }
-    // stage('Deploy to Dev') {
-    //   steps {
-    //     dir('openshift-tasks') {
-    //       echo "Deploying container image to Development Project with image ${imageName}:${devTag}"
-
-    //       // script {
-
-    //       //   // TBD: Deploy to development Project
-    //       //   //      Set Image, Set VERSION
-    //       //   //      (Re-) Create ConfigMap
-    //       //   //      Make sure the application is running and ready before proceeding
-
-    //       // }
-    //       script {
-    //         openshift.withCluster() {
-    //           openshift.withProject("${devProject}") {
-    //             // OpenShift 4
-    //             openshift.set(
-    //               "image",
-    //               "dc/tasks",
-    //               "tasks=image-registry.openshift-image-registry.svc:5000/${devProject}/${imageName}:${devTag}"
-    //             )
-    //             openshift.selector('configmap', 'tasks-config').delete()
-    //             def configmap = openshift.create('configmap', 'tasks-config', '--from-file=./configuration/application-users.properties', '--from-file=./configuration/application-roles.properties')
-
-    //             // Deploy the development application.
-    //             openshift.selector("dc", "tasks").rollout().latest();
-
-    //             // Wait for application to be deployed
-    //             def dc = openshift.selector("dc", "tasks").object()
-    //             def dc_version = dc.status.latestVersion
-    //             def rc = openshift.selector("rc", "tasks-${dc_version}").object()
-
-    //             echo "Waiting for ReplicationController tasks-${dc_version} to be ready"
-    //             while (rc.spec.replicas != rc.status.readyReplicas) {
-    //               sleep 5
-    //               rc = openshift.selector("rc", "tasks-${dc_version}").object()
-    //             }
-    //           }
-    //         }
-    //       }
-
-    //     }
-    //   }
-    // }
-
-
+    stage('Create Deployment Config - Dev') {
+      when {
+        expression {
+          openshift.withCluster() {
+            openshift.withProject("${devProject}") {
+              return !openshift.selector("dc", "${imageName}").exists()
+            }
+          }
+        }
+      }
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject("${CICD}") {
+              def template = 'https://gitlab.com/ocp-demo/frontend-quarkus/raw/master/manifests/backend-dc-dev.yaml"
+              openshift.process(
+                  "-f", template,
+                  "-p", "APP_VERSION=latest"
+              )
+            }
+          }
+        }
+      }
+    }
+    stage('Deploy to Dev') {
+      steps {
+        dir('code') {
+          script {
+            openshift.withCluster() {
+              openshift.withProject("${devProject}") {
+                openshift.set(
+                  "image",
+                  "dc/${imageName}",
+                  "tasks=image-registry.openshift-image-registry.svc:5000/${CICD}/${imageName}:${devTag}"
+                )
+                openshift.selector("dc", "tasks").rollout().latest();
+              }
+            }
+        }
+      }
+    }
     //Publish the built war file to Nexus
     // stage('Publish to Nexus') {
     //   steps {
@@ -209,23 +194,6 @@ pipeline {
     //       echo "Publish to Nexus"
     //       // TBD: Publish to Nexus
     //       sh "${mvnCmd} deploy -DskipTests=true -DaltDeploymentRepository=nexus::default::${nexusSvc}"
-    //     }
-    //   }
-    // }
-    //Build the OpenShift Image in OpenShift and tag it.
-    // stage('Build and Tag OpenShift Image') {
-    //   steps {
-    //     dir('openshift-tasks') {
-    //       echo "Building OpenShift container image ${imageName}:${devTag} in project ${devProject}."
-    //       script {
-    //         openshift.withCluster() {
-    //           openshift.withProject("${devProject}") {
-    //             openshift.selector("bc", "tasks").startBuild("--from-file=./target/openshift-tasks.war", "--wait=true")
-    //             // Recheck tag for dev
-    //             openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
-    //           }
-    //         }
-    //       }
     //     }
     //   }
     // }
