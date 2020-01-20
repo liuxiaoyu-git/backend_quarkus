@@ -1,6 +1,6 @@
-def CICD ="ci-cd"
-def JENKINS_SLAVE_IMAGE="mvn-with-skopeo"
-def SOURCE_CODE_DIR="code"
+def CICD = "ci-cd"
+def JENKINS_SLAVE_IMAGE = "mvn-with-skopeo"
+def SOURCE_CODE_DIR = "code"
 pipeline {
   agent {
     kubernetes {
@@ -99,24 +99,24 @@ pipeline {
         }
       }
     }
-    stage('Create Image Builder'){
-      when{
-        expression{
-          openshift.withCluster(){
-            openshift.withProject("${CICD}"){
-              return !openshift.selector("bc","${imageName}").exists()
+    stage('Create Image Builder') {
+      when {
+        expression {
+          openshift.withCluster() {
+            openshift.withProject("${CICD}") {
+              return !openshift.selector("bc", "${imageName}").exists()
             }
           }
         }
       }
       steps {
         script {
-          openshift.withCluster(){
+          openshift.withCluster() {
             openshift.withProject("${CICD}") {
-              def template = 'https://gitlab.com/ocp-demo/backend_quarkus/raw/master/manifests/backend-build-pipeline.yaml'
+              def template = 'https://gitlab.com/ocp-demo/backend_quarkus/raw/master/manifests/backend-bc-dev.yaml.yaml'
               openshift.apply(
                 openshift.process(
-                  "-f", template, 
+                  "-f", template,
                   // "-p", "IMAGE_NAMESPACE=${imageNamespace}", 
                   // "-p", "IMAGE_VERSION=${imageVersion}", 
                   // "-p", "APP_VERSION=${version}",
@@ -124,7 +124,23 @@ pipeline {
                 )
               )
             }
-            
+          }
+        }
+      }
+    }
+    stage('Build Image') {
+      steps {
+        dir('code') {
+          script {
+            openshift.withCluster() {
+              openshift.withProject("${CICD}") {
+                openshift.startBuild(
+                  "${imageName}",
+                  "--from-dir=.",
+                  "--wait"
+                )
+              }
+            }
           }
         }
       }
@@ -174,7 +190,7 @@ pipeline {
     //     }
     //   }
     // }
-   
+
 
     //Publish the built war file to Nexus
     // stage('Publish to Nexus') {
@@ -265,6 +281,6 @@ pipeline {
     //       }
     //     }
     //   }
-     }
+  }
 
 }
