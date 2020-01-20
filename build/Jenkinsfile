@@ -99,6 +99,36 @@ pipeline {
         }
       }
     }
+    stage('Create Image Builder'){
+      when{
+        expression{
+          openshift.withCluster(){
+            openshift.withProject("${CICD}"){
+              return !openshift.selector("bc","${appName}").exists()
+            }
+          }
+        }
+      }
+      steps {
+        script {
+          openshift.withCluster(){
+            openshift.withProject("${CICD}") {
+              def template = 'https://gitlab.com/ocp-demo/frontend-js-cicd/raw/master/templates/deploy-dev/deploymentConfig.yml'
+              openshift.apply(
+                openshift.process(
+                  "-f", template, 
+                  // "-p", "IMAGE_NAMESPACE=${imageNamespace}", 
+                  // "-p", "IMAGE_VERSION=${imageVersion}", 
+                  // "-p", "APP_VERSION=${version}",
+                  "-p", "APP_VERSION=${devTag}"
+                )
+              )
+            }
+            
+          }
+        }
+      }
+    }
     // stage('Deploy to Dev') {
     //   steps {
     //     dir('openshift-tasks') {

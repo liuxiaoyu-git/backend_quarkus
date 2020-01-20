@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: backend-build-config-template
+objects:
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      build: backend
+    name: backend
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: backend:${APP_VERSION}
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      binary: {}
+      type: Binary
+    strategy:
+      dockerStrategy:
+        dockerfilePath: src/main/docker/Dockerfile.jvm
+      type: Docker
+    successfulBuildsHistoryLimit: 5
+parameters:
+- displayName: Application version
+  description: Version of application
+  name: APP_VERSION
+  required: true
+  value: ${APP_VERSION}
+
