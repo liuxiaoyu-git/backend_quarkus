@@ -28,8 +28,8 @@ pipeline {
     nexusSvc = "http://homework-nexus.gpte-hw-cicd.svc.cluster.local:8081/repository/releases"
     nexusContainerSvc = "docker://homework-nexus-registry.gpte-hw-cicd.svc.cluster.local:5000"
     nexusURL = "https://homework-nexus.apps.shared.na.openshift.opentlc.com"
-    //mvnCmd = "source /usr/local/bin/scl_enable && mvn -s ./nexus_settings.xml"
-    mvnCmd = "source /usr/local/bin/scl_enable && mvn "
+    mvnCmd = "source /usr/local/bin/scl_enable && mvn -s ./nexus_settings.xml"
+    //mvnCmd = "source /usr/local/bin/scl_enable && mvn "
     // Images and Projects
     imageName = "backend"
     devProject = "dev"
@@ -99,7 +99,51 @@ pipeline {
         }
       }
     }
+    // stage('Deploy to Dev') {
+    //   steps {
+    //     dir('openshift-tasks') {
+    //       echo "Deploying container image to Development Project with image ${imageName}:${devTag}"
 
+    //       // script {
+
+    //       //   // TBD: Deploy to development Project
+    //       //   //      Set Image, Set VERSION
+    //       //   //      (Re-) Create ConfigMap
+    //       //   //      Make sure the application is running and ready before proceeding
+
+    //       // }
+    //       script {
+    //         openshift.withCluster() {
+    //           openshift.withProject("${devProject}") {
+    //             // OpenShift 4
+    //             openshift.set(
+    //               "image",
+    //               "dc/tasks",
+    //               "tasks=image-registry.openshift-image-registry.svc:5000/${devProject}/${imageName}:${devTag}"
+    //             )
+    //             openshift.selector('configmap', 'tasks-config').delete()
+    //             def configmap = openshift.create('configmap', 'tasks-config', '--from-file=./configuration/application-users.properties', '--from-file=./configuration/application-roles.properties')
+
+    //             // Deploy the development application.
+    //             openshift.selector("dc", "tasks").rollout().latest();
+
+    //             // Wait for application to be deployed
+    //             def dc = openshift.selector("dc", "tasks").object()
+    //             def dc_version = dc.status.latestVersion
+    //             def rc = openshift.selector("rc", "tasks-${dc_version}").object()
+
+    //             echo "Waiting for ReplicationController tasks-${dc_version} to be ready"
+    //             while (rc.spec.replicas != rc.status.readyReplicas) {
+    //               sleep 5
+    //               rc = openshift.selector("rc", "tasks-${dc_version}").object()
+    //             }
+    //           }
+    //         }
+    //       }
+
+    //     }
+    //   }
+    // }
    
 
     //Publish the built war file to Nexus
