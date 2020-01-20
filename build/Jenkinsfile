@@ -28,7 +28,8 @@ pipeline {
     nexusSvc = "http://homework-nexus.gpte-hw-cicd.svc.cluster.local:8081/repository/releases"
     nexusContainerSvc = "docker://homework-nexus-registry.gpte-hw-cicd.svc.cluster.local:5000"
     nexusURL = "https://homework-nexus.apps.shared.na.openshift.opentlc.com"
-    mvnCmd = "source /usr/local/bin/scl_enable && mvn -s ./nexus_settings.xml"
+    //mvnCmd = "source /usr/local/bin/scl_enable && mvn -s ./nexus_settings.xml"
+    mvnCmd = "source /usr/local/bin/scl_enable && mvn "
     // Images and Projects
     imageName = "backend"
     devProject = "dev"
