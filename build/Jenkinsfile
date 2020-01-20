@@ -49,7 +49,7 @@ pipeline {
         echo "devProject: ${devProject}"
         //echo "prodProject: ${prodProject}"
         checkout scm
-        dir(${SOURCE_CODE_DIR}) {
+        dir('code') {
           script {
             def pom = readMavenPom file: 'pom.xml'
             def version = pom.version
@@ -69,7 +69,7 @@ pipeline {
     // Using Maven run the unit tests
     stage('Unit Tests') {
       steps {
-        dir('${SOURCE_CODE_DIR}') {
+        dir('code') {
           echo "Running Unit Tests"
           sh "${mvnCmd} test"
           step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
@@ -80,7 +80,7 @@ pipeline {
     // Build the JAR
     stage('Build Binary') {
       steps {
-        dir('${SOURCE_CODE_DIR}') {
+        dir('code') {
           echo "Building version ${devTag}"
           script {
             sh "${mvnCmd} clean package -DskipTests=true"
