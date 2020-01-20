@@ -1,0 +1,133 @@
+package com.example.quarkus;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
+@Path("/")
+public class ExampleResource {
+    @ConfigProperty(name = "app.version", defaultValue="1.0.0-SNAPSHOT")
+    String version;
+
+    @ConfigProperty(name = "app.backend", defaultValue="http://localhost:8080/version")
+    String backend;
+
+    @ConfigProperty(name = "app.message", defaultValue="Hello, World")
+    String message;
+
+    @GET
+    @Path("/")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response callBackend() throws IOException {
+        if (ApplicationConfig.IS_ALIVE.get() && ApplicationConfig.IS_READY.get()) {
+            URL url;
+            String inputLine = "";
+            try {
+                url = new URL(backend);
+                final HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setRequestMethod("GET");
+                int returnCode = con.getResponseCode();
+                // final BufferedReader in = new BufferedReader(
+                //     new InputStreamReader(con.getInputStream()));
+                //     final StringBuffer content = new StringBuffer();
+                //     while ((inputLine = in .readLine()) != null) {
+                //     content.append(inputLine);
+                // } 
+                // in.close();
+                //return String.valueOf(returnCode);
+                //String msg = "Backend:" + version + ",Response Code:" + returnCode;
+                return Response.status(returnCode).encoding("text/plain").entity(generateMessage(message, Integer.toString(returnCode))).build();
+                //return Response.ok().entity(generateMessage(msg, "200")).build();
+                //Backend version:v2,Response:200,Host:backend-v2-7655885b8c-5spv4, Message: Hello World!!
+                //Backend: http://backend:8080, Response: 200, Body: Backend version:v2,Response:200,Host:backend-v2-7655885b8c-5spv4, Message: Hello World!!
+            } catch (final IOException e) {
+                return Response.status(503).encoding("text/plain").entity(generateMessage(e.getMessage(), "503")).build();
+            }
+        } else {
+            return Response.status(503).encoding("text/plain").entity(generateMessage("Application is stopped", "503")).build();
+        }
+    }
+    @GET
+    @Path("/version")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response version() {
+        return Response.ok().encoding("text/plain").entity(generateMessage("", "200")).build();
+    }
+
+    @GET
+    @Path("/stop")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response stopApp() {
+        ApplicationConfig.IS_ALIVE.set(false);
+        return Response.ok().encoding("text/plain").entity(generateMessage("Liveness: " + ApplicationConfig.IS_ALIVE.get(), "200")).build();
+    }
+
+    @GET
+    @Path("/not_ready")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response notReadyApp() {
+        ApplicationConfig.IS_READY.set(false);
+        return Response.ok().encoding("text/plain").entity(generateMessage("Readiness: " + ApplicationConfig.IS_READY.get(), "200")).build();
+    }
+
+    @GET
+    @Path("/start")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response startApp() {
+        if (!ApplicationConfig.IS_ALIVE.get())
+            ApplicationConfig.IS_ALIVE.set(true);
+            return Response.ok().encoding("text/plain").entity(generateMessage("Liveness: " + ApplicationConfig.IS_ALIVE.get(), "200")).build();
+    }
+
+    @GET
+    @Path("/ready")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response readyApp() {
+        ApplicationConfig.IS_READY.set(true);
+        return Response.ok().encoding("text/plain").entity(generateMessage("Readiness: " + ApplicationConfig.IS_READY.get(), "200")).build();
+    }
+
+    @GET
+    @Path("/status")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response statusApp() {
+        String msg = "Liveness="+ApplicationConfig.IS_ALIVE.get()+
+                     " Readiness="+ApplicationConfig.IS_READY.get();
+        return Response.ok().entity(generateMessage(msg, "200")).build();
+    }
+
+    private String generateMessage(String msg,String status){
+        return "Backend: "+version+
+        ",Hotname: "+getLocalHostname()+
+        ", Status: "+status+
+        ", Message: "+msg;
+    }
+    private String getLocalHostname() {
+        InetAddress inetAddr;
+        String hostname = "";
+        try {
+                inetAddr = InetAddress.getLocalHost();
+                hostname = inetAddr.getHostName();
+        } catch (UnknownHostException e) {
+                //logger.error("Error get local hostname");
+                //logger.error(e.getMessage());
+                e.printStackTrace();
+        }
+        return hostname;
+
+
+}
+}
