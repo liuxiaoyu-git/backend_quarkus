@@ -104,7 +104,7 @@ pipeline {
         expression{
           openshift.withCluster(){
             openshift.withProject("${CICD}"){
-              return !openshift.selector("bc","${appName}").exists()
+              return !openshift.selector("bc","${imageName}").exists()
             }
           }
         }
@@ -113,7 +113,7 @@ pipeline {
         script {
           openshift.withCluster(){
             openshift.withProject("${CICD}") {
-              def template = 'https://gitlab.com/ocp-demo/frontend-js-cicd/raw/master/templates/deploy-dev/deploymentConfig.yml'
+              def template = 'https://gitlab.com/ocp-demo/backend_quarkus/raw/master/manifests/backend-build-pipeline.yaml'
               openshift.apply(
                 openshift.process(
                   "-f", template, 
