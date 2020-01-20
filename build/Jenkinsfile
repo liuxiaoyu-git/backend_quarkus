@@ -68,37 +68,37 @@ pipeline {
       }
     }
     // Using Maven run the unit tests
-    // stage('Unit Tests') {
-    //   steps {
-    //     dir('code') {
-    //       echo "Running Unit Tests"
-    //       sh "${mvnCmd} test"
-    //       step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
-    //     }
-    //   }
-    // }
+    stage('Unit Tests') {
+      steps {
+        dir('code') {
+          echo "Running Unit Tests"
+          sh "${mvnCmd} test"
+          step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
+        }
+      }
+    }
     // Using Maven call SonarQube for Code Analysis
-    // stage('Code Analysis') {
-    //   steps {
-    //     dir('code') {
-    //       script {
-    //         echo "Running Code Analysis"
-    //         sh "${mvnCmd} sonar:sonar -Dsonar.host.url=${sonarURL} -Dsonar.projectName=${JOB_BASE_NAME}-${devTag} -Dsonar.projectVersion=${devTag}"
-    //       }
-    //     }
-    //   }
-    // }
+    stage('Code Analysis') {
+      steps {
+        dir('code') {
+          script {
+            echo "Running Code Analysis"
+            sh "${mvnCmd} sonar:sonar -Dsonar.host.url=${sonarURL} -Dsonar.projectName=${JOB_BASE_NAME}-${devTag} -Dsonar.projectVersion=${devTag}"
+          }
+        }
+      }
+    }
     // Build the JAR
-    // stage('Build Binary') {
-    //   steps {
-    //     dir('code') {
-    //       echo "Building version ${devTag}"
-    //       script {
-    //         sh "${mvnCmd} clean package -DskipTests=true"
-    //       }
-    //     }
-    //   }
-    // }
+    stage('Build Binary') {
+      steps {
+        dir('code') {
+          echo "Building version ${devTag}"
+          script {
+            sh "${mvnCmd} clean package -DskipTests=true"
+          }
+        }
+      }
+    }
     stage('Create Image Builder') {
       when {
         expression {
@@ -138,23 +138,23 @@ pipeline {
         }
       }
     }
-    // stage('Build Image') {
-    //   steps {
-    //     dir('code') {
-    //       script {
-    //         openshift.withCluster() {
-    //           openshift.withProject("${CICD}") {
-    //             openshift.startBuild(
-    //               "${imageName}",
-    //               "--from-dir=.",
-    //               "--wait"
-    //             )
-    //           }
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
+    stage('Build Image') {
+      steps {
+        dir('code') {
+          script {
+            openshift.withCluster() {
+              openshift.withProject("${CICD}") {
+                openshift.startBuild(
+                  "${imageName}",
+                  "--from-dir=.",
+                  "--wait"
+                )
+              }
+            }
+          }
+        }
+      }
+    }
     // stage('Deploy to Dev') {
     //   steps {
     //     dir('openshift-tasks') {
