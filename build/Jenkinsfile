@@ -113,7 +113,7 @@ pipeline {
         script {
           openshift.withCluster() {
             openshift.withProject("${CICD}") {
-              def template = 'https://gitlab.com/ocp-demo/backend_quarkus/raw/master/manifests/backend-bc-dev.yaml.yaml'
+              def template = 'https://gitlab.com/ocp-demo/backend_quarkus/raw/master/manifests/backend-bc-dev.yaml'
               openshift.apply(
                 openshift.process(
                   "-f", template,
