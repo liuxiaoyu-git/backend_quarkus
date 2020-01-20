@@ -24,7 +24,7 @@ pipeline {
   environment {
     // NOTE: Somehow an inline pod template in a declarative pipeline
     //       needs the "scl_enable" before calling maven.
-    sonarURL = "http://homework-sonarqube.apps.shared.na.openshift.opentlc.com"
+    sonarURL = "http://sonarqube:9000"
     nexusSvc = "http://homework-nexus.gpte-hw-cicd.svc.cluster.local:8081/repository/releases"
     nexusContainerSvc = "docker://homework-nexus-registry.gpte-hw-cicd.svc.cluster.local:5000"
     nexusURL = "https://homework-nexus.apps.shared.na.openshift.opentlc.com"
