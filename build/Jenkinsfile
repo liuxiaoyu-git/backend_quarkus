@@ -28,8 +28,8 @@ pipeline {
     nexusSvc = "http://homework-nexus.gpte-hw-cicd.svc.cluster.local:8081/repository/releases"
     nexusContainerSvc = "docker://homework-nexus-registry.gpte-hw-cicd.svc.cluster.local:5000"
     nexusURL = "https://homework-nexus.apps.shared.na.openshift.opentlc.com"
-    //mvnCmd = "source /usr/local/bin/scl_enable && mvn -s ./nexus_settings.xml"
-    mvnCmd = "source /usr/local/bin/scl_enable && mvn "
+    mvnCmd = "source /usr/local/bin/scl_enable && mvn -s ./nexus_settings.xml"
+    //mvnCmd = "source /usr/local/bin/scl_enable && mvn "
     // Images and Projects
     imageName = "backend"
     devProject = "dev"
@@ -92,17 +92,17 @@ pipeline {
 
    
     // Using Maven call SonarQube for Code Analysis
-    // stage('Code Analysis') {
-    //   steps {
-    //     dir('openshift-tasks') {
-    //       script {
-    //         echo "Running Code Analysis"
-    //         sh "${mvnCmd} sonar:sonar -Dsonar.host.url=${sonarURL} -Dsonar.projectName=${GUID}-${JOB_BASE_NAME}-${devTag} -Dsonar.projectVersion=${devTag}"
-    //       }
-    //     }
-    //   }
-    // }
-    // Publish the built war file to Nexus
+    stage('Code Analysis') {
+      steps {
+        dir('code') {
+          script {
+            echo "Running Code Analysis"
+            sh "${mvnCmd} sonar:sonar -Dsonar.host.url=${sonarURL} -Dsonar.projectName=${GUID}-${JOB_BASE_NAME}-${devTag} -Dsonar.projectVersion=${devTag}"
+          }
+        }
+      }
+    }
+    //Publish the built war file to Nexus
     // stage('Publish to Nexus') {
     //   steps {
     //     dir('openshift-tasks') {
