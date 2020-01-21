@@ -188,7 +188,7 @@ pipeline {
           script {
             openshift.withCluster() {
               openshift.withProject(env.DEV_PROJECT) {
-                openshift.selector("dc", "${imageName}").rollout().pause();
+                //openshift.selector("dc", "${imageName}").rollout().pause();
                 openshift.set(
                   "image",
                   "dc/${imageName}",
