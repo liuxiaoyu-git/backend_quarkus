@@ -22,17 +22,17 @@ spec:
   strategy:
     jenkinsPipelineStrategy:
       jenkinsfilePath: Jenkinsfile
-    env:
-      - name: DEV_PROJECT
-        value: dev
-      - name: CICD_PROJECT
-        value: ci-cd
-      # - name: BACKEND_URL
-      #   value: https://httpbin.org/status/200
-      - name: PRIVATE_REGISTRY
-        value: http://nexus3:8081/repository/
-      - name: REGISTRY
-        value: http://nexus3:8081/repository/npm-group
+      env:
+        - name: DEV_PROJECT
+          value: dev
+        - name: CICD_PROJECT
+          value: ci-cd
+        # - name: BACKEND_URL
+        #   value: https://httpbin.org/status/200
+        - name: PRIVATE_REGISTRY
+          value: http://nexus3:8081/repository/
+        - name: REGISTRY
+          value: http://nexus3:8081/repository/npm-group
     type: JenkinsPipeline
   successfulBuildsHistoryLimit: 5
   triggers: []
