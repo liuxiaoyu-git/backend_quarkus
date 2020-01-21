@@ -68,15 +68,15 @@ pipeline {
       }
     }
     // Using Maven run the unit tests
-    stage('Unit Tests') {
-      steps {
-        dir('code') {
-          echo "Running Unit Tests"
-          sh "${mvnCmd} test"
-          step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
-        }
-      }
-    }
+    // stage('Unit Tests') {
+    //   steps {
+    //     dir('code') {
+    //       echo "Running Unit Tests"
+    //       sh "${mvnCmd} test"
+    //       step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
+    //     }
+    //   }
+    // }
     // Using Maven call SonarQube for Code Analysis
     // stage('Code Analysis') {
     //   steps {
@@ -89,16 +89,6 @@ pipeline {
     //   }
     // }
     // Build the JAR
-    stage('Build Binary') {
-      steps {
-        dir('code') {
-          echo "Building version ${devTag}"
-          script {
-            sh "${mvnCmd} clean package -DskipTests=true"
-          }
-        }
-      }
-    }
     stage('Create Image Builder') {
       when {
         expression {
@@ -128,7 +118,17 @@ pipeline {
         }
       }
     }
-    stage('Build Image') {
+    stage('Build Binary') {
+      steps {
+        dir('code') {
+          echo "Building version ${devTag}"
+          script {
+            sh "${mvnCmd} clean package -DskipTests=true"
+          }
+        }
+      }
+    }
+    stage('Build Container Image') {
       steps {
         dir('code') {
           script {
@@ -158,21 +158,23 @@ pipeline {
       }
       steps {
         // dir('code') {
-          echo "Create deployment config: ${devProject}"
-          script {
-            
-            openshift.withCluster() {
-              openshift.withProject("${devProject}") {
-                //def template = 'https://gitlab.com/ocp-demo/backend_quarkus/raw/master/manifests/backend-dc-dev.yaml'
-                def template = './manifests/backend-dc-dev.yaml'
+        echo "Create deployment config: ${devProject}"
+        script {
+
+          openshift.withCluster() {
+            openshift.withProject("${devProject}") {
+              //def template = 'https://gitlab.com/ocp-demo/backend_quarkus/raw/master/manifests/backend-dc-dev.yaml'
+              def template = './manifests/backend-dc-dev.yaml'
+              openshift.apply(
                 openshift.process(
                   "-f", template,
                   "-p", "APP_VERSION=latest"
                 )
-                openshift.selector("dc", "${imageName}").rollout().pause();
-              }
+              )
+              openshift.selector("dc", "${imageName}").rollout().pause();
             }
           }
+        }
         // }
       }
     }
