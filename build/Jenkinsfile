@@ -78,10 +78,10 @@ pipeline {
       steps {
         dir('code') {
           echo "Building ${imageName}:${devTag}"
-          echo "${mvnCmd} -v"
+          // echo "${mvnCmd} -v"
           script {
-            sh "${mvnCmd} clean "
-            sh "${mvnCmd} package -DskipTests=true"
+            sh "${mvnCmd} clean package -DskipTests=true"
+            
           }
         }
       }
