@@ -89,10 +89,10 @@ pipeline {
     //   }
     // }
     // Build the JAR
-        stage('Build Binary') {
+    stage('Build Binary') {
       steps {
         dir('code') {
-          echo "Building version ${devTag}"
+          echo "Building ${imageName}:${devTag}"
           script {
             sh "${mvnCmd} clean package -DskipTests=true"
           }
