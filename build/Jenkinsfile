@@ -24,7 +24,8 @@ pipeline {
   }
   environment {
     //mvnCmd = "source /usr/local/bin/scl_enable && mvn -s ./nexus_settings.xml"
-    mvnCmd ="mvn -s ./nexus_settings.xml "
+    // mvnCmd ="mvn -s ./nexus_settings.xml "
+    mvnCmd = "mvn "
     imageName = "backend"    
     devTag = "0.0-0"
   }
