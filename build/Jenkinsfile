@@ -69,15 +69,15 @@ pipeline {
       }
     }
     // Using Maven run the unit tests
-    stage('Unit Tests') {
-      steps {
-        dir('code') {
-          echo "Running Unit Tests"
-          sh "${mvnCmd} test"
-          step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
-        }
-      }
-    }
+    // stage('Unit Tests') {
+    //   steps {
+    //     dir('code') {
+    //       echo "Running Unit Tests"
+    //       sh "${mvnCmd} test"
+    //       step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
+    //     }
+    //   }
+    // }
     // Using Maven call SonarQube for Code Analysis
     // stage('Code Analysis') {
     //   steps {
@@ -152,15 +152,15 @@ pipeline {
       }
     }
     stage('Create Deployment Config - Dev') {
-      when {
-        expression {
-          openshift.withCluster() {
-            openshift.withProject(env.DEV_PROJECT) {
-              return !openshift.selector("dc", "${imageName}").exists()
-            }
-          }
-        }
-      }
+      // when {
+      //   expression {
+      //     openshift.withCluster() {
+      //       openshift.withProject(env.DEV_PROJECT) {
+      //         return !openshift.selector("dc", "${imageName}").exists()
+      //       }
+      //     }
+      //   }
+      // }
       steps {
         // dir('code') {
         echo "Create deployment config: env.DEV_PROJECT"
@@ -171,7 +171,7 @@ pipeline {
               openshift.apply(
                 openshift.process(
                   "-f", template,
-                  "-p", "APP_VERSION=latest"
+                  "-p", "APP_VERSION=${devTag}"
                 )
               )
               //openshift.selector("dc", "${imageName}").rollout().pause();
@@ -181,32 +181,32 @@ pipeline {
         // }
       }
     }
-    stage('Deploy to Dev') {
-      steps {
-        dir('code') {
-          script {
-            openshift.withCluster() {
-              openshift.withProject(env.DEV_PROJECT) {
-                //openshift.selector("dc", "${imageName}").rollout().pause();
-                openshift.set(
-                  "image",
-                  "dc/${imageName}",
-                  "${imageName}=image-registry.openshift-image-registry.svc:5000/${env.CICD_PROJECT}/${imageName}:${devTag}"
-                )
-                openshift.selector("dc", "${imageName}").rollout().latest();
-                // def dc = openshift.selector("dc", "${imageName}").object()
-                // def dc_version = dc.status.latestVersion
-                // def rc = openshift.selector("rc", "${imageName}-dc_version").object()
-                // echo "Waiting for ReplicationController ${imageName}-dc_version to be ready"
-                // while (rc.spec.replicas != rc.status.readyReplicas) {
-                //   sleep 5
-                //   rc = openshift.selector("rc", "${imageName}").object()
-                // }
-              }
-            }
-          }
-        }
-      }
+    // stage('Deploy to Dev') {
+    //   steps {
+    //     dir('code') {
+    //       script {
+    //         openshift.withCluster() {
+    //           openshift.withProject(env.DEV_PROJECT) {
+    //             //openshift.selector("dc", "${imageName}").rollout().pause();
+    //             openshift.set(
+    //               "image",
+    //               "dc/${imageName}",
+    //               "${imageName}=image-registry.openshift-image-registry.svc:5000/${env.CICD_PROJECT}/${imageName}:${devTag}"
+    //             )
+    //             openshift.selector("dc", "${imageName}").rollout().latest();
+    //             // def dc = openshift.selector("dc", "${imageName}").object()
+    //             // def dc_version = dc.status.latestVersion
+    //             // def rc = openshift.selector("rc", "${imageName}-dc_version").object()
+    //             // echo "Waiting for ReplicationController ${imageName}-dc_version to be ready"
+    //             // while (rc.spec.replicas != rc.status.readyReplicas) {
+    //             //   sleep 5
+    //             //   rc = openshift.selector("rc", "${imageName}").object()
+    //             // }
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
       //Publish the built war file to Nexus
       // stage('Publish to Nexus') {
       //   steps {
