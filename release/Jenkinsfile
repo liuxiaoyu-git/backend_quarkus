@@ -1,0 +1,193 @@
+import java.text.SimpleDateFormat
+def imageName = "backend"
+def imageNamespace = "ci-cd"
+def baseImageVersion
+def releaseTag
+def version
+def CICD = "ci-cd"
+def JENKINS_SLAVE_IMAGE = "mvn-with-skopeo"
+
+pipeline {
+  agent {
+    kubernetes {
+      label "${JENKINS_SLAVE_IMAGE}"
+      cloud "openshift"
+      inheritFrom "maven"
+      containerTemplate {
+        name "jnlp"
+        image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
+        resourceRequestMemory "1Gi"
+        resourceLimitMemory "2Gi"
+        resourceRequestCpu "1"
+        resourceLimitCpu "2"
+      }
+    }
+  }
+  options {
+    // set a timeout of 20 minutes for this pipeline
+    timeout(time: 20, unit: 'MINUTES')
+  }
+  environment {
+    def dateFormat = new SimpleDateFormat("MMdd")
+    def date = new Date()
+    def releaseDate = (dateFormat.format(date))
+    releaseTag = releaseDate + "-" + env.BUILD_NUMBER
+
+    sonarURL = "http://sonarqube:9000"
+    nexusSvc = "http://homework-nexus.gpte-hw-cicd.svc.cluster.local:8081/repository/releases"
+    nexusContainerSvc = "docker://homework-nexus-registry.gpte-hw-cicd.svc.cluster.local:5000"
+    nexusURL = "https://homework-nexus.apps.shared.na.openshift.opentlc.com"
+    //mvnCmd = "source /usr/local/bin/scl_enable && mvn -s ./nexus_settings.xml"
+    mvnCmd = "source /usr/local/bin/scl_enable && mvn "
+    // Images and Projects
+    imageName = "backend"
+    devProject = env.DEV_PROJECT
+    // Tags
+    devTag = "0.0-0"
+    prodTag = "0.0"
+
+  }
+  stages {
+    stage('Prepare Git') {
+      steps {
+        git branch: 'release', url: 'https://gitlab.com/ocp-demo/frontend-js.git'
+        sh(script: 'git config --local user.email \'jenkins@example.com\'')
+        sh(script: 'git config --local user.name \'jenkins\'')
+        script {
+          version = sh(script: 'npm run version|tail -n 1', returnStdout: true)
+          version = version.trim()
+          println "version: ${version}"
+          println "releaseTag: ${releaseTag}"
+        }
+      }
+    }
+    stage('Prepare NPM') {
+      steps {
+        script {
+          sh(script: 'npm install --save-dev jest')
+          sh(script: 'npm install --save-dev supertest')
+        }
+      }
+    }
+    stage('Test') {
+      parallel {
+        stage('Unit Test') {
+          steps {
+            sh(script: 'npm test')
+          }
+        }
+        stage('Audit NPM') {
+          steps {
+            sh(script: 'npm audit')
+          }
+        }
+      }
+    }
+    stage('Create Image Builder') {
+      when {
+        expression {
+          openshift.withCluster() {
+            openshift.withProject(env.CICD_PROJECT) {
+              return !openshift.selector("bc", "${appName}").exists()
+            }
+          }
+        }
+      }
+      steps {
+        script {
+          openshift.withCluster() {
+            def template = 'https://gitlab.com/ocp-demo/frontend-js-cicd/raw/master/templates/build/buildConfig.yml'
+            openshift.withProject(env.CICD_PROJECT) {
+              openshift.newBuild(
+                "--name=${appName}",
+                "--to=${imageNamespace}/${appName}:${version}-${imageVersion}",
+                "--image-stream=nodejs:${baseImageVersion}",
+                "--binary=true"
+              )
+            }
+          }
+        }
+      }
+    }
+    stage('Build Image') {
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.CICD_PROJECT) {
+              openshift.startBuild(
+                "${appName}",
+                "--from-dir=.",
+                "--wait"
+              )
+            }
+          }
+        }
+      }
+    }
+    stage('Release Image') {
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.CICD_PROJECT) {
+              println "Releasing image  ${version} ${releaseTag} to ${env.CICD_PROJECT}"
+              def tagStr = "oc tag " + env.CICD_PROJECT + "/" + appName + ":latest " + env.CICD_PROJECT + "/" + appName + ":" + version + "-" + releaseTag
+              println tagStr
+              //openshift.tag(tagStr)
+              sh(script: tagStr)
+            }
+          }
+        }
+      }
+    }
+    stage('Publish to Nexus') {
+      steps {
+        script {
+          // echo -n 'admin:*****!' | openssl base64
+          sh(script: 'echo "registry=http://nexus3:8081/repository/npm-group/" > ./.npmrc')
+          sh(script: 'echo "_auth=YWRtaW46cjNkaDR0MSE=" >> ./.npmrc')
+          sh(script: 'echo "always-auth=true" >> ./.npmrc')
+          sh(script: 'echo "email=jenkins@example.com" >> ./.npmrc')
+          sh(script: 'echo "strict-ssl = false" >> ./.npmrc')
+          sh(script: 'echo "loglevel = silly" >> ./.npmrc')
+          sh(script: 'npm install -g json')
+          sh(script: 'json -I -f package.json -e \'this.publishConfig={"registry":"http://nexus3:8081/repository/npm-private/"}\'')
+          sh(script: 'npm publish')
+        }
+      }
+    }
+
+    stage('Tear-Down Stage') {
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.STAGE_PROJECT) {
+              println "Tear-Down project ${env.STAGE_PROJECT}"
+              openshift.raw("delete all -l app=${appName}")
+            }
+          }
+        }
+      }
+    }
+    stage('Deploy Staging') {
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.STAGE_PROJECT) {
+              println "Deploy project ${env.STAGE_PROJECT}"
+              def template = "${basePath}/templates/deploy-sit/frontend-sit-template.yml"
+              openshift.apply(
+                openshift.process(
+                  "-f", template,
+                  "-p", "IMAGE_NAMESPACE=${imageNamespace}",
+                  "-p", "IMAGE_VERSION=${version}-${releaseTag}",
+                  "-p", "APP_VERSION=${version}",
+                  "-p", "BACKEND_URL=${backendURL}"
+                )
+              )
+            }
+          }
+        }
+      }
+    }
+  }
+}

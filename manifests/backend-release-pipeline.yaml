@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  labels:
+    build: backend-release-pipeline
+  name: backend-release-pipeline
+spec:
+  nodeSelector: {}
+  output: {}
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    contextDir: release
+    git:
+      ref: master
+      uri: https://gitlab.com/ocp-demo/backend_quarkus.git
+    type: Git
+  strategy:
+    jenkinsPipelineStrategy:
+      env:
+      - name: STAGE_PROJECT
+        value: sit
+      - name: CICD_PROJECT
+        value: ci-cd
+      - name: BACKEND_URL
+        value: https://httpbin.org/status/200
+      - name: PRIVATE_REGISTRY
+        value: http://nexus3:8081/repository/npm-registry
+      - name: REGISTRY
+        value: http://nexus3:8081/repository/npm-group
+      jenkinsfilePath: Jenkinsfile
+    type: JenkinsPipeline

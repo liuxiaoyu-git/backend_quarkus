@@ -18,7 +18,7 @@ oc policy add-role-to-group system:image-puller system:serviceaccounts:${UAT} -n
 oc policy add-role-to-group system:image-puller system:serviceaccounts:${PROD} -n ${CI_CD}
 
 echo "Set ${CI_CD} to manage $DEV,$STAGE,$UAT,$PROD"
-oc policy add-role-to-user edit system:serviceaccount:${CI_CD} -n ${DEV}
-oc policy add-role-to-user edit system:serviceaccount:${CI_CD} -n ${STAGE}
-oc policy add-role-to-user edit system:serviceaccount:${CI_CD} -n ${UAT}
-oc policy add-role-to-user edit system:serviceaccount:${CI_CD} -n ${PROD}
+oc policy add-role-to-user edit system:serviceaccount:${CI_CD}:jenkins -n ${DEV}
+oc policy add-role-to-user edit system:serviceaccount:${CI_CD}:jenkins -n ${STAGE}
+oc policy add-role-to-user edit system:serviceaccount:${CI_CD}:jenkins -n ${UAT}
+oc policy add-role-to-user edit system:serviceaccount:${CI_CD}:jenkins -n ${PROD}

@@ -165,7 +165,6 @@ pipeline {
         // dir('code') {
         echo "Create deployment config: env.DEV_PROJECT"
         script {
-
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
               def template = './manifests/backend-dc-dev.yaml'
@@ -195,14 +194,14 @@ pipeline {
                   "${imageName}=image-registry.openshift-image-registry.svc:5000/${env.CICD_PROJECT}/${imageName}:${devTag}"
                 )
                 openshift.selector("dc", "${imageName}").rollout().latest();
-                def dc = openshift.selector("dc", "${imageName}").object()
-                def dc_version = dc.status.latestVersion
-                def rc = openshift.selector("rc", "${imageName}").object()
-                echo "Waiting for ReplicationController ${imageName} to be ready"
-                while (rc.spec.replicas != rc.status.readyReplicas) {
-                  sleep 5
-                  rc = openshift.selector("rc", "${imageName}").object()
-                }
+                // def dc = openshift.selector("dc", "${imageName}").object()
+                // def dc_version = dc.status.latestVersion
+                // def rc = openshift.selector("rc", "${imageName}-dc_version").object()
+                // echo "Waiting for ReplicationController ${imageName}-dc_version to be ready"
+                // while (rc.spec.replicas != rc.status.readyReplicas) {
+                //   sleep 5
+                //   rc = openshift.selector("rc", "${imageName}").object()
+                // }
               }
             }
           }
