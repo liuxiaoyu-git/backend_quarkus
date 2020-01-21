@@ -114,7 +114,7 @@ pipeline {
           openshift.withCluster() {
             openshift.withProject("${CICD}") {
               openshift.newBuild(
-                "--name=${imageName}", 
+                "--name=${imageName}",
                 "--to=${imageName}:latest",
                 "--strategy=docker",
                 // "--image-stream=nodejs:${baseImageVersion}", 
@@ -157,14 +157,18 @@ pipeline {
         }
       }
       steps {
-        script {
-          openshift.withCluster() {
-            openshift.withProject("${CICD}") {
-              def template = 'https://gitlab.com/ocp-demo/backend_quarkus/raw/master/manifests/backend-dc-dev.yaml'
-              openshift.process(
+        dir('code') {
+          script {
+            openshift.withCluster() {
+              openshift.withProject("${devProject}") {
+                //def template = 'https://gitlab.com/ocp-demo/backend_quarkus/raw/master/manifests/backend-dc-dev.yaml'
+                def template = './manifests/backend-dc-dev.yaml'
+                openshift.process(
                   "-f", template,
                   "-p", "APP_VERSION=latest"
-              )
+                )
+                openshift.selector("dc", "${imageName}").rollout().pause();
+              }
             }
           }
         }
@@ -181,84 +185,84 @@ pipeline {
                   "dc/${imageName}",
                   "tasks=image-registry.openshift-image-registry.svc:5000/${CICD}/${imageName}:${devTag}"
                 )
-                openshift.selector("dc", "tasks").rollout().latest();
+                openshift.selector("dc", "${imageName}").rollout().latest();
               }
             }
+          }
         }
       }
+      //Publish the built war file to Nexus
+      // stage('Publish to Nexus') {
+      //   steps {
+      //     dir('openshift-tasks') {
+      //       echo "Publish to Nexus"
+      //       // TBD: Publish to Nexus
+      //       sh "${mvnCmd} deploy -DskipTests=true -DaltDeploymentRepository=nexus::default::${nexusSvc}"
+      //     }
+      //   }
+      // }
+      // Deploy the built image to the Development Environment.
+      // stage('Deploy to Dev') {
+      //   steps {
+      //     dir('openshift-tasks') {
+      //       echo "Deploying container image to Development Project with image ${imageName}:${devTag}"
+
+      //       // script {
+
+      //       //   // TBD: Deploy to development Project
+      //       //   //      Set Image, Set VERSION
+      //       //   //      (Re-) Create ConfigMap
+      //       //   //      Make sure the application is running and ready before proceeding
+
+      //       // }
+      //       script {
+      //         openshift.withCluster() {
+      //           openshift.withProject("${devProject}") {
+      //             // OpenShift 4
+      //             openshift.set(
+      //               "image",
+      //               "dc/tasks",
+      //               "tasks=image-registry.openshift-image-registry.svc:5000/${devProject}/${imageName}:${devTag}"
+      //             )
+      //             openshift.selector('configmap', 'tasks-config').delete()
+      //             def configmap = openshift.create('configmap', 'tasks-config', '--from-file=./configuration/application-users.properties', '--from-file=./configuration/application-roles.properties')
+
+      //             // Deploy the development application.
+      //             openshift.selector("dc", "tasks").rollout().latest();
+
+      //             // Wait for application to be deployed
+      //             def dc = openshift.selector("dc", "tasks").object()
+      //             def dc_version = dc.status.latestVersion
+      //             def rc = openshift.selector("rc", "tasks-${dc_version}").object()
+
+      //             echo "Waiting for ReplicationController tasks-${dc_version} to be ready"
+      //             while (rc.spec.replicas != rc.status.readyReplicas) {
+      //               sleep 5
+      //               rc = openshift.selector("rc", "tasks-${dc_version}").object()
+      //             }
+      //           }
+      //         }
+      //       }
+
+      //     }
+      //   }
+      // }
+
+      // Copy Image to Nexus Container Registry
+      // stage('Copy Image to Nexus Container Registry') {
+      //   steps {
+      //     echo "Copy image to Nexus Container Registry"
+      //     script {
+      //       sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds admin:redhat docker://image-registry.openshift-image-registry.svc.cluster.local:5000/${devProject}/${imageName}:${devTag} ${nexusContainerSvc}/${imageName}:${devTag}"
+
+      //       // Tag the built image with the production tag.
+      //       openshift.withCluster() {
+      //         openshift.withProject("${prodProject}") {
+      //           openshift.tag("${devProject}/${imageName}:${devTag}", "${devProject}/${imageName}:${prodTag}")
+      //         }
+      //       }
+      //     }
+      //   }
     }
-    //Publish the built war file to Nexus
-    // stage('Publish to Nexus') {
-    //   steps {
-    //     dir('openshift-tasks') {
-    //       echo "Publish to Nexus"
-    //       // TBD: Publish to Nexus
-    //       sh "${mvnCmd} deploy -DskipTests=true -DaltDeploymentRepository=nexus::default::${nexusSvc}"
-    //     }
-    //   }
-    // }
-    // Deploy the built image to the Development Environment.
-    // stage('Deploy to Dev') {
-    //   steps {
-    //     dir('openshift-tasks') {
-    //       echo "Deploying container image to Development Project with image ${imageName}:${devTag}"
-
-    //       // script {
-
-    //       //   // TBD: Deploy to development Project
-    //       //   //      Set Image, Set VERSION
-    //       //   //      (Re-) Create ConfigMap
-    //       //   //      Make sure the application is running and ready before proceeding
-
-    //       // }
-    //       script {
-    //         openshift.withCluster() {
-    //           openshift.withProject("${devProject}") {
-    //             // OpenShift 4
-    //             openshift.set(
-    //               "image",
-    //               "dc/tasks",
-    //               "tasks=image-registry.openshift-image-registry.svc:5000/${devProject}/${imageName}:${devTag}"
-    //             )
-    //             openshift.selector('configmap', 'tasks-config').delete()
-    //             def configmap = openshift.create('configmap', 'tasks-config', '--from-file=./configuration/application-users.properties', '--from-file=./configuration/application-roles.properties')
-
-    //             // Deploy the development application.
-    //             openshift.selector("dc", "tasks").rollout().latest();
-
-    //             // Wait for application to be deployed
-    //             def dc = openshift.selector("dc", "tasks").object()
-    //             def dc_version = dc.status.latestVersion
-    //             def rc = openshift.selector("rc", "tasks-${dc_version}").object()
-
-    //             echo "Waiting for ReplicationController tasks-${dc_version} to be ready"
-    //             while (rc.spec.replicas != rc.status.readyReplicas) {
-    //               sleep 5
-    //               rc = openshift.selector("rc", "tasks-${dc_version}").object()
-    //             }
-    //           }
-    //         }
-    //       }
-
-    //     }
-    //   }
-    // }
-
-    // Copy Image to Nexus Container Registry
-    // stage('Copy Image to Nexus Container Registry') {
-    //   steps {
-    //     echo "Copy image to Nexus Container Registry"
-    //     script {
-    //       sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds admin:redhat docker://image-registry.openshift-image-registry.svc.cluster.local:5000/${devProject}/${imageName}:${devTag} ${nexusContainerSvc}/${imageName}:${devTag}"
-
-    //       // Tag the built image with the production tag.
-    //       openshift.withCluster() {
-    //         openshift.withProject("${prodProject}") {
-    //           openshift.tag("${devProject}/${imageName}:${devTag}", "${devProject}/${imageName}:${prodTag}")
-    //         }
-    //       }
-    //     }
-    //   }
-  }
   }
 }
