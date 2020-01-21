@@ -166,7 +166,7 @@ pipeline {
         script {
 
           openshift.withCluster() {
-            openshift.withProject(env.CICD_PROJECT) {
+            openshift.withProject(env.DEV_PROJECT) {
               //def template = 'https://gitlab.com/ocp-demo/backend_quarkus/raw/master/manifests/backend-dc-dev.yaml'
               def template = './manifests/backend-dc-dev.yaml'
               openshift.apply(
