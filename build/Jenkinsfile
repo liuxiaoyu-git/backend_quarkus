@@ -104,7 +104,7 @@ pipeline {
       when {
         expression {
           openshift.withCluster() {
-            openshift.withProject("${CICD}") {
+            openshift.withProject(env.CICD_PROJECT) {
               return !openshift.selector("bc", "${imageName}").exists()
             }
           }
@@ -114,7 +114,7 @@ pipeline {
         echo "Create build config ${imageName}"
         script {
           openshift.withCluster() {
-            openshift.withProject("${CICD}") {
+            openshift.withProject(env.CICD_PROJECT) {
               openshift.newBuild(
                 "--name=${imageName}",
                 "--to=${imageName}:latest",
@@ -137,7 +137,7 @@ pipeline {
         dir('code') {
           script {
             openshift.withCluster() {
-              openshift.withProject("${CICD}") {
+              openshift.withProject(env.CICD_PROJECT) {
                 openshift.startBuild(
                   "${imageName}",
                   "--from-dir=.",
@@ -154,7 +154,7 @@ pipeline {
       when {
         expression {
           openshift.withCluster() {
-            openshift.withProject("${devProject}") {
+            openshift.withProject(env.CICD_PROJECT) {
               return !openshift.selector("dc", "${imageName}").exists()
             }
           }
@@ -166,7 +166,7 @@ pipeline {
         script {
 
           openshift.withCluster() {
-            openshift.withProject("${devProject}") {
+            openshift.withProject(env.CICD_PROJECT) {
               //def template = 'https://gitlab.com/ocp-demo/backend_quarkus/raw/master/manifests/backend-dc-dev.yaml'
               def template = './manifests/backend-dc-dev.yaml'
               openshift.apply(
@@ -187,13 +187,21 @@ pipeline {
         dir('code') {
           script {
             openshift.withCluster() {
-              openshift.withProject("${devProject}") {
+              openshift.withProject(env.DEV_PROJECT) {
                 openshift.set(
                   "image",
                   "dc/${imageName}",
                   "${imageName}=image-registry.openshift-image-registry.svc:5000/${CICD}/${imageName}:${devTag}"
                 )
                 openshift.selector("dc", "${imageName}").rollout().latest();
+                def dc = openshift.selector("dc", "${imageName}").object()
+                def dc_version = dc.status.latestVersion
+                def rc = openshift.selector("rc", "${imageName}").object()
+                echo "Waiting for ReplicationController ${imageName} to be ready"
+                while (rc.spec.replicas != rc.status.readyReplicas) {
+                  sleep 5
+                  rc = openshift.selector("rc", "${imageName}").object()
+                }
               }
             }
           }
