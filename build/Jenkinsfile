@@ -163,7 +163,7 @@ pipeline {
       }
       steps {
         // dir('code') {
-        echo "Create deployment config: ${devProject}"
+        echo "Create deployment config: env.DEV_PROJECT"
         script {
 
           openshift.withCluster() {
