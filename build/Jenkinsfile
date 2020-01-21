@@ -172,7 +172,7 @@ pipeline {
                   "-p", "APP_VERSION=latest"
                 )
               )
-              openshift.selector("dc", "${imageName}").rollout().pause();
+              //openshift.selector("dc", "${imageName}").rollout().pause();
             }
           }
         }
@@ -190,7 +190,7 @@ pipeline {
                   "dc/${imageName}",
                   "${imageName}=image-registry.openshift-image-registry.svc:5000/${CICD}/${imageName}:${devTag}"
                 )
-                //openshift.selector("dc", "${imageName}").rollout().latest();
+                openshift.selector("dc", "${imageName}").rollout().latest();
               }
             }
           }
