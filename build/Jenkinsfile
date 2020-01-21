@@ -154,7 +154,7 @@ pipeline {
       when {
         expression {
           openshift.withCluster() {
-            openshift.withProject(env.CICD_PROJECT) {
+            openshift.withProject(env.DEV_PROJECT) {
               return !openshift.selector("dc", "${imageName}").exists()
             }
           }
