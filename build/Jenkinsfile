@@ -78,16 +78,16 @@ pipeline {
       }
     }
     // Using Maven call SonarQube for Code Analysis
-    stage('Code Analysis') {
-      steps {
-        dir('code') {
-          script {
-            echo "Running Code Analysis"
-            sh "${mvnCmd} sonar:sonar -Dsonar.host.url=${sonarURL} -Dsonar.projectName=${JOB_BASE_NAME}-${devTag} -Dsonar.projectVersion=${devTag}"
-          }
-        }
-      }
-    }
+    // stage('Code Analysis') {
+    //   steps {
+    //     dir('code') {
+    //       script {
+    //         echo "Running Code Analysis"
+    //         sh "${mvnCmd} sonar:sonar -Dsonar.host.url=${sonarURL} -Dsonar.projectName=${JOB_BASE_NAME}-${devTag} -Dsonar.projectVersion=${devTag}"
+    //       }
+    //     }
+    //   }
+    // }
     // Build the JAR
     stage('Build Binary') {
       steps {
@@ -157,8 +157,10 @@ pipeline {
         }
       }
       steps {
-        dir('code') {
+        // dir('code') {
+          echo "Create deployment config: ${devProject}"
           script {
+            
             openshift.withCluster() {
               openshift.withProject("${devProject}") {
                 //def template = 'https://gitlab.com/ocp-demo/backend_quarkus/raw/master/manifests/backend-dc-dev.yaml'
@@ -171,7 +173,7 @@ pipeline {
               }
             }
           }
-        }
+        // }
       }
     }
     stage('Deploy to Dev') {
