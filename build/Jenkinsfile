@@ -23,7 +23,8 @@ pipeline {
     timeout(time: 30, unit: 'MINUTES')
   }
   environment {
-    mvnCmd = "source /usr/local/bin/scl_enable && mvn -s ./nexus_settings.xml"
+    //mvnCmd = "source /usr/local/bin/scl_enable && mvn -s ./nexus_settings.xml"
+    mvmnCmd ="mvn "
     imageName = "backend"    
     devTag = "0.0-0"
   }
