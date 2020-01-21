@@ -89,16 +89,16 @@ pipeline {
     //   }
     // }
     // Build the JAR
-    stage('Build Binary') {
-      steps {
-        dir('code') {
-          echo "Building ${imageName}:${devTag}"
-          script {
-            sh "${mvnCmd} clean package -DskipTests=true"
-          }
-        }
-      }
-    }
+    // stage('Build Binary') {
+    //   steps {
+    //     dir('code') {
+    //       echo "Building ${imageName}:${devTag}"
+    //       script {
+    //         sh "${mvnCmd} clean package -DskipTests=true"
+    //       }
+    //     }
+    //   }
+    // }
     stage('Create Image Builder') {
       when {
         expression {
@@ -129,24 +129,24 @@ pipeline {
       }
     }
 
-    stage('Build Container Image') {
-      steps {
-        dir('code') {
-          script {
-            openshift.withCluster() {
-              openshift.withProject("${CICD}") {
-                openshift.startBuild(
-                  "${imageName}",
-                  "--from-dir=.",
-                  "--wait"
-                )
-                openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
-              }
-            }
-          }
-        }
-      }
-    }
+    // stage('Build Container Image') {
+    //   steps {
+    //     dir('code') {
+    //       script {
+    //         openshift.withCluster() {
+    //           openshift.withProject("${CICD}") {
+    //             openshift.startBuild(
+    //               "${imageName}",
+    //               "--from-dir=.",
+    //               "--wait"
+    //             )
+    //             openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
     stage('Create Deployment Config - Dev') {
       when {
         expression {
