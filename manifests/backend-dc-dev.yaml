@@ -8,6 +8,7 @@ objects:
   metadata:
     labels:
       app: backend
+      version: ${APP_VERSION}
       app.kubernetes.io/component: backend
       app.kubernetes.io/instance: backend
       app.kubernetes.io/name: backend
