@@ -68,15 +68,15 @@ pipeline {
       }
     }
     // Using Maven run the unit tests
-    // stage('Unit Tests') {
-    //   steps {
-    //     dir('code') {
-    //       echo "Running Unit Tests"
-    //       sh "${mvnCmd} test"
-    //       step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
-    //     }
-    //   }
-    // }
+    stage('Unit Tests') {
+      steps {
+        dir('code') {
+          echo "Running Unit Tests"
+          sh "${mvnCmd} test"
+          step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
+        }
+      }
+    }
     // Using Maven call SonarQube for Code Analysis
     // stage('Code Analysis') {
     //   steps {
@@ -89,17 +89,17 @@ pipeline {
     //   }
     // }
     // Build the JAR
-    // stage('Build Binary') {
-    //   steps {
-    //     dir('code') {
-    //       echo "Building ${imageName}:${devTag}"
-    //       script {
-    //         sh "${mvnCmd} clean package -DskipTests=true"
-    //       }
-    //     }
-    //   }
-    // }
-    stage('Create Image Builder') {
+    stage('Build Binary - JAR') {
+      steps {
+        dir('code') {
+          echo "Building ${imageName}:${devTag}"
+          script {
+            sh "${mvnCmd} clean package -DskipTests=true"
+          }
+        }
+      }
+    }
+    stage('Create Build Config') {
       when {
         expression {
           openshift.withCluster() {
@@ -110,6 +110,7 @@ pipeline {
         }
       }
       steps {
+        echo "Create build config ${imageName}"
         script {
           openshift.withCluster() {
             openshift.withProject("${CICD}") {
@@ -127,26 +128,25 @@ pipeline {
           }
         }
       }
+    } stage('Build Container Image') {
+      steps {
+        echo "Build Container Image ${imageName}"
+        dir('code') {
+          script {
+            openshift.withCluster() {
+              openshift.withProject("${CICD}") {
+                openshift.startBuild(
+                  "${imageName}",
+                  "--from-dir=.",
+                  "--wait"
+                )
+                openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
+              }
+            }
+          }
+        }
+      }
     }
-
-    // stage('Build Container Image') {
-    //   steps {
-    //     dir('code') {
-    //       script {
-    //         openshift.withCluster() {
-    //           openshift.withProject("${CICD}") {
-    //             openshift.startBuild(
-    //               "${imageName}",
-    //               "--from-dir=.",
-    //               "--wait"
-    //             )
-    //             openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
-    //           }
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
     stage('Create Deployment Config - Dev') {
       when {
         expression {
