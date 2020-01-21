@@ -99,6 +99,7 @@ pipeline {
         }
       }
     }
+    // Create Build Config
     stage('Create Build Config') {
       when {
         expression {
@@ -128,7 +129,9 @@ pipeline {
           }
         }
       }
-    } stage('Build Container Image') {
+    }
+    // Build Container Image
+    stage('Build Container Image') {
       steps {
         echo "Build Container Image ${imageName}"
         dir('code') {
