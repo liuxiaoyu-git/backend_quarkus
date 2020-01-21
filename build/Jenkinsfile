@@ -75,19 +75,19 @@ pipeline {
     //   }
     // }
     // Build the JAR
-    stage('Build Binary') {
-      steps {
-        dir('code') {
-          echo "Building ${imageName}:${devTag}"
-          // echo "${mvnCmd} -v"
-          script {
-            sh "rm -rf /home/jenkins/.m2/repository/*"
-            sh "${mvnCmd} clean package -DskipTests=true"
+    // stage('Build Binary') {
+    //   steps {
+    //     dir('code') {
+    //       echo "Building ${imageName}:${devTag}"
+    //       // echo "${mvnCmd} -v"
+    //       script {
+    //         // sh "rm -rf /home/jenkins/.m2/repository/*"
+    //         sh "${mvnCmd} package -DskipTests=true"
             
-          }
-        }
-      }
-    }
+    //       }
+    //     }
+    //   }
+    // }
     // Create Build Config
     stage('Create Build Config') {
       when {
