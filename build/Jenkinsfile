@@ -20,7 +20,7 @@ pipeline {
   }
   options {
     // set a timeout of 30 minutes for this pipeline
-    timeout(time: 30, unit: 'MINUTES')
+    timeout(time: 40, unit: 'MINUTES')
   }
   environment {
     //mvnCmd = "source /usr/local/bin/scl_enable && mvn -s ./nexus_settings.xml"

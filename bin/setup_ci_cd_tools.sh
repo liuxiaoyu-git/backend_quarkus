@@ -6,7 +6,7 @@ oc expose svc nexus
 oc rollout pause dc nexus
 oc patch dc nexus --patch='{ "spec": { "strategy": { "type": "Recreate" }}}'
 oc set resources dc nexus --limits=memory=2Gi,cpu=2 --requests=memory=1Gi,cpu=500m
-oc set volume dc/nexus --add --overwrite --name=nexus-pv-1 --mount-path=/nexus-data/ --type persistentVolumeClaim --claim-name=nexus-pvc --claim-size=2Gi
+oc set volume dc/nexus --add --overwrite --name=nexus-pv-1 --mount-path=/nexus-data/ --type persistentVolumeClaim --claim-name=nexus-pvc --claim-size=4Gi
 oc set probe dc/nexus --liveness --failure-threshold 3 --initial-delay-seconds 60 -- echo ok
 oc set probe dc/nexus --readiness --failure-threshold 3 --initial-delay-seconds 60 --get-url=http://:8081/
 oc rollout resume dc nexus 
