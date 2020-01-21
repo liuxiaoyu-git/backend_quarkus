@@ -188,7 +188,7 @@ pipeline {
                 openshift.set(
                   "image",
                   "dc/${imageName}",
-                  "tasks=image-registry.openshift-image-registry.svc:5000/${CICD}/${imageName}:${devTag}"
+                  "${imageName}=image-registry.openshift-image-registry.svc:5000/${CICD}/${imageName}:${devTag}"
                 )
                 openshift.selector("dc", "${imageName}").rollout().latest();
               }
