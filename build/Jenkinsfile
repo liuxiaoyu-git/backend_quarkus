@@ -1,19 +1,22 @@
 def JENKINS_SLAVE_IMAGE = "mvn-with-skopeo"
 pipeline {
+  // agent {
+  //   kubernetes {
+  //     label "${JENKINS_SLAVE_IMAGE}"
+  //     cloud "openshift"
+  //     inheritFrom "maven"
+  //     containerTemplate {
+  //       name "jnlp"
+  //       image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
+  //       resourceRequestMemory "1Gi"
+  //       resourceLimitMemory "2Gi"
+  //       resourceRequestCpu "1"
+  //       resourceLimitCpu "2"
+  //     }
+  //   }
+  // }
   agent {
-    kubernetes {
-      label "${JENKINS_SLAVE_IMAGE}"
-      cloud "openshift"
-      inheritFrom "maven"
-      containerTemplate {
-        name "jnlp"
-        image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
-        resourceRequestMemory "1Gi"
-        resourceLimitMemory "2Gi"
-        resourceRequestCpu "1"
-        resourceLimitCpu "2"
-      }
-    }
+    label 'maven'
   }
   options {
     // set a timeout of 30 minutes for this pipeline
