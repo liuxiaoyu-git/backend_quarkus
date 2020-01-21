@@ -20,14 +20,16 @@ spec:
     jenkinsPipelineStrategy:
       env:
       - name: STAGE_PROJECT
-        value: sit
+        value: stage
       - name: CICD_PROJECT
         value: ci-cd
-      - name: BACKEND_URL
-        value: https://httpbin.org/status/200
-      - name: PRIVATE_REGISTRY
-        value: http://nexus3:8081/repository/npm-registry
-      - name: REGISTRY
-        value: http://nexus3:8081/repository/npm-group
+      - name: DEV_PROJECT
+        value: dev
+      # - name: BACKEND_URL
+      #   value: https://httpbin.org/status/200
+      # - name: PRIVATE_REGISTRY
+      #   value: http://nexus3:8081/repository/npm-registry
+      # - name: REGISTRY
+      #   value: http://nexus3:8081/repository/npm-group
       jenkinsfilePath: Jenkinsfile
     type: JenkinsPipeline

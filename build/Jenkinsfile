@@ -74,6 +74,7 @@ pipeline {
       steps {
         dir('code') {
           echo "Building ${imageName}:${devTag}"
+          echo "m${mvnCmd} -v"
           script {
             sh "${mvnCmd} clean package -DskipTests=true"
           }

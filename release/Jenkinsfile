@@ -42,6 +42,7 @@ pipeline {
     imageName = "backend"
     // Tags
     devTag = ""
+    currentImage = ""
 
 
   }
@@ -73,6 +74,10 @@ pipeline {
         script {
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
+                 currentImage = openshift.selector("dc/${imageName}").object().spec.template.spec.containers[0].image
+                 echo "Current Image: ${currentImage}"
+                //spec.template.spec.containers[0].image
+                //def activeApp = openshift.selector("route", "tasks").object().spec.to.name
             }
         }
       }
