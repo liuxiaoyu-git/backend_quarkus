@@ -47,7 +47,8 @@ pipeline {
     stage('Checkout Source') {
       steps {
         echo "imageName: ${imageName}"
-        echo "devProject: ${devProject}"
+        echo "CICD Project: ${env.CICD_PROJECT}"
+        echo "Dev Project: ${env.DEV_PROJECT}"
         //echo "prodProject: ${prodProject}"
         checkout scm
         dir('code') {
@@ -167,7 +168,6 @@ pipeline {
 
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
-              //def template = 'https://gitlab.com/ocp-demo/backend_quarkus/raw/master/manifests/backend-dc-dev.yaml'
               def template = './manifests/backend-dc-dev.yaml'
               openshift.apply(
                 openshift.process(
@@ -188,10 +188,11 @@ pipeline {
           script {
             openshift.withCluster() {
               openshift.withProject(env.DEV_PROJECT) {
+                openshift.selector("dc", "${imageName}").rollout().pause();
                 openshift.set(
                   "image",
                   "dc/${imageName}",
-                  "${imageName}=image-registry.openshift-image-registry.svc:5000/${CICD}/${imageName}:${devTag}"
+                  "${imageName}=image-registry.openshift-image-registry.svc:5000/${env.CICD_PROJECT}/${imageName}:${devTag}"
                 )
                 openshift.selector("dc", "${imageName}").rollout().latest();
                 def dc = openshift.selector("dc", "${imageName}").object()
