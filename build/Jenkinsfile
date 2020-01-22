@@ -77,8 +77,9 @@ pipeline {
     // Build the JAR
     stage('Build Binary') {
       steps {
+        def mvnVersion = sh(script: '${mvnCmd} -v', returnStdout: true)
         dir('code') {
-          def mvnVersion = sh(script: '${mvnCmd} -v', returnStdout: true)
+          
           echo "Building ${imageName}:${devTag}"
           echo "Maven Version: ${mvnVersion}"
           // echo "${mvnCmd} -v"
