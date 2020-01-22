@@ -78,7 +78,9 @@ pipeline {
     stage('Build Binary') {
       steps {
         dir('code') {
+          mvnVersion = sh(script: '${mvnCmd} -v', returnStdout: true)
           echo "Building ${imageName}:${devTag}"
+          echo "Maven Version: ${mvnVersion}"
           // echo "${mvnCmd} -v"
           script {
             // sh "rm -rf /home/jenkins/.m2/repository/*"
