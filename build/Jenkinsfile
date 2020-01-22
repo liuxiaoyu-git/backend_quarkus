@@ -77,15 +77,17 @@ pipeline {
     // Build the JAR
     stage('Build Binary') {
       steps {
-        def mvnVersion = sh(script: '${mvnCmd} -v', returnStdout: true)
+       
         dir('code') {
           
           echo "Building ${imageName}:${devTag}"
-          echo "Maven Version: ${mvnVersion}"
+         
           // echo "${mvnCmd} -v"
           script {
             // sh "rm -rf /home/jenkins/.m2/repository/*"
             //sh "${mvnCmd} clean compile"
+            def mvnVersion = sh(script: '${mvnCmd} -v', returnStdout: true)
+             echo "Maven Version: ${mvnVersion}"
             sh "${mvnCmd} clean package -DskipTests=true"
           }
         }
