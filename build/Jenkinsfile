@@ -86,7 +86,7 @@ pipeline {
           script {
             // sh "rm -rf /home/jenkins/.m2/repository/*"
             //sh "${mvnCmd} clean compile"
-            def mvnVersion = sh(script: '${mvnCmd} -v', returnStdout: true)
+            def mvnVersion = sh(script: '${mvnCmd} -version', returnStdout: true)
             def mvnLocation = sh(script: 'whereis ${mvnCmd}', returnStdout: true)
             echo "Maven Version: ${mvnVersion}"
             echo "Maven Location: ${mvnLocation}"

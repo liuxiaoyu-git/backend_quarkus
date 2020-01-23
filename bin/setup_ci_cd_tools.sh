@@ -41,7 +41,7 @@ oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-
    DISABLES="--disablerepo=rhel-server-extras --disablerepo=rhel-server --disablerepo=rhel-fast-datapath --disablerepo=rhel-server-optional --disablerepo=rhel-server-ose --disablerepo=rhel-server-rhscl" && \ \n
    yum $DISABLES -y --setopt=tsflags=nodocs install skopeo && yum clean all\n
    USER 1001' --name=mvn-with-skopeo
-echo "********** Jenkins URL = "$(oc get route jenkins -n ci-cd -o jsonpath='{.spec.host}')"
+echo "********** Jenkins URL = $(oc get route jenkins -n ci-cd -o jsonpath='{.spec.host}')"
 echo "********** NEXUS URL = $(oc get route nexus -n ci-cd -o jsonpath='{.spec.host}') "
 echo "********** NEXUS Password = ${NEXUS_PASSWORD} **************************"
 echo "********** Record this password and change it via web console **********"
