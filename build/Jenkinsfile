@@ -52,7 +52,7 @@ pipeline {
     //       }
     //     }
     //   }
-    }
+    // }
     // Using Maven run the unit tests
     // stage('Unit Tests') {
     //   steps {
