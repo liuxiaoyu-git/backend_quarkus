@@ -10,7 +10,7 @@ FROM  quay.io/openshift/origin-jenkins-agent-maven:4.1.0
 #       io.openshift.tags="openshift,jenkins,agent,maven,jfrog,sonar-scanner,jmeter,golang"
 
 ENV MAVEN_VERSION=3.6.3 \
-    MAVEN_PATH=$HOME/apache-maven/bin
+    MAVEN_PATH=$HOME/apache-maven-3.6.3/bin
     # SONAR_VERSION_1001=3.3.0.1492 \
     # JMETER_VERSION_1001=5.1.1 \
     # JMETER_PATH=$HOME/apache-jmeter \
@@ -18,16 +18,16 @@ ENV MAVEN_VERSION=3.6.3 \
     # SONAR_PATH=$HOME/sonar-scanner
     # http://us.mirrors.quenda.co/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
 
-ENV PATH=/bin:$PATH
+ENV PATH=${MAVEN_PATH}:/bin:$PATH
 
 WORKDIR /home/jenkins
 
-RUN curl -L  -o /tmp/maven.tar.gz http://us.mirrors.quenda.co/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz && \
-    tar -xf /tmp/maven.tar.gz && \
-    mv apache-maven-${MAVEN_VERSION} $HOME/apache-maven && \
-    chmod 755 $HOME/apache-maven && \
-    rm -rf /tmp/apache-maven-* && \
-    ln -s $HOME/apache-maven/bin/mvn /bin/mvn
+RUN curl -L  -o $HOME/apache-maven-3.6.3-bin.tar.gz \
+    http://us.mirrors.quenda.co/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz && \
+    tar -xf $HOME/apache-maven-3.6.3-bin.tar.gz && \
+    #mv /tmp/apache-maven-3.6.3 $HOME/apache-maven && \
+    chmod 755 $HOME/apache-maven-3.6.3 && \
+    rm -rf $HOME/apache-maven-3.6.3-bin.tar.gz
 
     
 
