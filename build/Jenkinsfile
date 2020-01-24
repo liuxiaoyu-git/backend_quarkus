@@ -21,7 +21,7 @@ pipeline {
   }
   environment {
     //mvnCmd = "source /usr/local/bin/scl_enable && mvn -s ./nexus_settings.xml"
-    mvnCmd = "source /usr/local/bin/scl_enable && mvn "
+    mvnCmd = "source /usr/local/bin/scl_enable && /opt/apache-maven-3.6.3/bin/mvn "
     // mvnCmd ="mvn -s ./nexus_settings.xml "
     //mvnCmd = "mvn "
     imageName = "backend"
@@ -82,8 +82,8 @@ pipeline {
 
           // echo "${mvnCmd} -v"
           script {
-            def check = sh(script: 'ls -ltr /opt/apache-maven-3.6.3/bin', returnStdout: true)
-            echo "Check: ${check}"
+            // def check = sh(script: 'ls -ltr /opt/apache-maven-3.6.3/bin', returnStdout: true)
+            // echo "Check: ${check}"
             def mvnVersion = sh(script: '${mvnCmd} -version', returnStdout: true)
             //def mvnLocation = sh(script: 'which ${mvnCmd}', returnStdout: true)
             echo "Maven Version: ${mvnVersion}"
