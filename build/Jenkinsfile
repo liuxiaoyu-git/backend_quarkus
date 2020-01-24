@@ -1,10 +1,10 @@
-def JENKINS_SLAVE_IMAGE = "mvn-with-skopeo"
+def JENKINS_SLAVE_IMAGE = "maven36"
 pipeline {
   agent {
     kubernetes {
       label "${JENKINS_SLAVE_IMAGE}"
       cloud "openshift"
-      inheritFrom "maven36"
+      inheritFrom "maven"
       containerTemplate {
         name "jnlp"
         image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
@@ -25,7 +25,7 @@ pipeline {
   environment {
     //mvnCmd = "source /usr/local/bin/scl_enable && mvn -s ./nexus_settings.xml"
     // mvnCmd ="mvn -s ./nexus_settings.xml "
-    mvnCmd = "/home/jenkins/apache-maven-3.6.3/bin/mvn "
+    mvnCmd = "mvn "
     imageName = "backend"
     devTag = "0.0-0"
   }
