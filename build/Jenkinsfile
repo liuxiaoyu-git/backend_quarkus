@@ -25,7 +25,7 @@ pipeline {
   environment {
     //mvnCmd = "source /usr/local/bin/scl_enable && mvn -s ./nexus_settings.xml"
     // mvnCmd ="mvn -s ./nexus_settings.xml "
-    mvnCmd = "mvn "
+    mvnCmd = "/home/jenkins/apache-maven-3.6.36/bin/mvn "
     imageName = "backend"
     devTag = "0.0-0"
   }
