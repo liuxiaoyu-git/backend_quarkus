@@ -11,8 +11,6 @@ oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-
    curl http://mirror.centos.org/centos-7/7/os/x86_64/RPM-GPG-KEY-CentOS-7 -o /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 && \ \n
    curl -L -o /tmp/apache-maven-3.6.3-bin.zip https://www-eu.apache.org/dist/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.zip && \ \n
    unzip /tmp/apache-maven-3.6.3-bin.zip \ \n
-   mv /tmp/apache-maven-3.6.3 /opt \ \n
-   rm -f /tmp/aapche-maven-3.6.3-bin.zip \ \n 
    DISABLES="--disablerepo=rhel-server-extras --disablerepo=rhel-server --disablerepo=rhel-fast-datapath --disablerepo=rhel-server-optional --disablerepo=rhel-server-ose --disablerepo=rhel-server-rhscl" && \ \n
    yum $DISABLES -y --setopt=tsflags=nodocs install skopeo && yum clean all\n
    USER 1001' --name=${JENKINS_SLAVE}

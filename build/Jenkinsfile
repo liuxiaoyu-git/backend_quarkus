@@ -82,7 +82,7 @@ pipeline {
 
           // echo "${mvnCmd} -v"
           script {
-            def check = sh(script: 'ls -ltr /opt/apache-maven-3.6.3/bin/mvn', returnStdout: true)
+            def check = sh(script: 'ls -ltr /tmp/apache-maven-3.6.3/bin/mvn', returnStdout: true)
             echo "Check: ${check}"
             def mvnVersion = sh(script: '${mvnCmd} -version', returnStdout: true)
             //def mvnLocation = sh(script: 'which ${mvnCmd}', returnStdout: true)
