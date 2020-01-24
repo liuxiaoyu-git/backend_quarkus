@@ -85,12 +85,13 @@ pipeline {
           // echo "${mvnCmd} -v"
           script {
             // sh "rm -rf /home/jenkins/.m2/repository/*"
-            def home = sh(script: 'ls -l /home/jenkins', returnStdout: true)
+            def home = sh(script: 'ls -l /home/jenkins/apache-maven-3.6.3', returnStdout: true)
+            echo "HOME: ${home}"
             def mvnVersion = sh(script: '${mvnCmd} -version', returnStdout: true)
             def mvnLocation = sh(script: 'which ${mvnCmd}', returnStdout: true)
             echo "Maven Version: ${mvnVersion}"
             echo "Maven Location: ${mvnLocation}"
-            echo "HOME: ${home}"
+           
             sh "${mvnCmd} clean package -DskipTests=true"
           }
         }
