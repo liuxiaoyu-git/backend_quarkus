@@ -25,7 +25,7 @@ pipeline {
   environment {
     //mvnCmd = "source /usr/local/bin/scl_enable && mvn -s ./nexus_settings.xml"
     // mvnCmd ="mvn -s ./nexus_settings.xml "
-    mvnCmd = "mvn "
+    mvnCmd = "/home/jenkins/apache-maven/bin/mvn "
     imageName = "backend"
     devTag = "0.0-0"
   }
@@ -85,9 +85,9 @@ pipeline {
           // echo "${mvnCmd} -v"
           script {
             // sh "rm -rf /home/jenkins/.m2/repository/*"
-            def home = sh(script: 'ls /home/jenkins', returnStdout: true)
+            def home = sh(script: 'ls -l /home/jenkins', returnStdout: true)
             def mvnVersion = sh(script: '${mvnCmd} -version', returnStdout: true)
-            def mvnLocation = sh(script: 'whereis ${mvnCmd}', returnStdout: true)
+            def mvnLocation = sh(script: 'which ${mvnCmd}', returnStdout: true)
             echo "Maven Version: ${mvnVersion}"
             echo "Maven Location: ${mvnLocation}"
             echo "HOME: ${home}"
