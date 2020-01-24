@@ -1,23 +1,23 @@
 def JENKINS_SLAVE_IMAGE = "mvn-with-skopeo"
 pipeline {
-  // agent {
-  //   kubernetes {
-  //     label "${JENKINS_SLAVE_IMAGE}"
-  //     cloud "openshift"
-  //     inheritFrom "maven"
-  //     containerTemplate {
-  //       name "jnlp"
-  //       image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
-  //       resourceRequestMemory "1Gi"
-  //       resourceLimitMemory "2Gi"
-  //       resourceRequestCpu "1"
-  //       resourceLimitCpu "2"
-  //     }
-  //   }
-  // }
   agent {
-    label 'maven'
+    kubernetes {
+      label "${JENKINS_SLAVE_IMAGE}"
+      cloud "openshift"
+      inheritFrom "maven36"
+      containerTemplate {
+        name "jnlp"
+        image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
+        resourceRequestMemory "1Gi"
+        resourceLimitMemory "2Gi"
+        resourceRequestCpu "1"
+        resourceLimitCpu "2"
+      }
+    }
   }
+  // agent {
+  //   label 'maven36'
+  // }
   options {
     // set a timeout of 30 minutes for this pipeline
     timeout(time: 40, unit: 'MINUTES')
@@ -85,11 +85,12 @@ pipeline {
           // echo "${mvnCmd} -v"
           script {
             // sh "rm -rf /home/jenkins/.m2/repository/*"
-            //sh "${mvnCmd} clean compile"
+            def home = sh(script: 'ls /home/jenkins', returnStdout: true)
             def mvnVersion = sh(script: '${mvnCmd} -version', returnStdout: true)
             def mvnLocation = sh(script: 'whereis ${mvnCmd}', returnStdout: true)
             echo "Maven Version: ${mvnVersion}"
             echo "Maven Location: ${mvnLocation}"
+            echo "HOME: ${home}"
             sh "${mvnCmd} clean package -DskipTests=true"
           }
         }
