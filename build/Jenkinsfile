@@ -25,7 +25,7 @@ pipeline {
   environment {
     //mvnCmd = "source /usr/local/bin/scl_enable && mvn -s ./nexus_settings.xml"
     // mvnCmd ="mvn -s ./nexus_settings.xml "
-    mvnCmd = "/home/jenkins/apache-maven-3.6.36/bin/mvn "
+    mvnCmd = "/home/jenkins/apache-maven-3.6.3/bin/mvn "
     imageName = "backend"
     devTag = "0.0-0"
   }
@@ -84,7 +84,8 @@ pipeline {
 
           // echo "${mvnCmd} -v"
           script {
-            
+            def check = sh(script: 'ls -l /home/jenkins/apache-maven-3.6.36/bin/mvn', returnSrtdout: true)
+            echo "Check: ${check}"
             def mvnVersion = sh(script: '${mvnCmd} -version', returnStdout: true)
             //def mvnLocation = sh(script: 'which ${mvnCmd}', returnStdout: true)
             echo "Maven Version: ${mvnVersion}"
