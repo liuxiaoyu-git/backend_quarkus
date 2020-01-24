@@ -10,7 +10,9 @@ FROM  quay.io/openshift/origin-jenkins-agent-maven:4.1.0
 #       io.openshift.tags="openshift,jenkins,agent,maven,jfrog,sonar-scanner,jmeter,golang"
 
 ENV MAVEN_VERSION=3.6.3 \
-    MAVEN_PATH=/home/jenkins/apache-maven-3.6.3/bin
+    HOME=/home/jenkins \
+    MAVEN_PATH=${HOME}/apache-maven-3.6.3/bin \
+
     # SONAR_VERSION_1001=3.3.0.1492 \
     # JMETER_VERSION_1001=5.1.1 \
     # JMETER_PATH=$HOME/apache-jmeter \
@@ -21,15 +23,24 @@ ENV MAVEN_VERSION=3.6.3 \
 ENV PATH=${MAVEN_PATH}:/bin:$PATH
 
 WORKDIR /home/jenkins
+#WORKDIR /opt
+
+# RUN curl -L  -o /home/jenkins/apache-maven-3.6.3-bin.tar.gz \
+#     http://us.mirrors.quenda.co/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz && \
+#     tar -xf /home/jenkins/apache-maven-3.6.3-bin.tar.gz && \
+#     #mv /tmp/apache-maven-3.6.3 $HOME/apache-maven && \
+#     chmod 755 /home/jenkins/apache-maven-3.6.3
+#     #rm -rf /home/jenkins/apache-maven-3.6.3-bin.tar.gz
+
 
 RUN curl -L  -o /home/jenkins/apache-maven-3.6.3-bin.tar.gz \
     http://us.mirrors.quenda.co/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz && \
-    tar -xf /home/jenkins/apache-maven-3.6.3-bin.tar.gz && \
+    gzip -d /home/jenkins/apache-maven-3.6.3-bin.tar.gz && \
+    tar -xf /home/jenkins/apache-maven-3.6.3-bin.tar && \
     #mv /tmp/apache-maven-3.6.3 $HOME/apache-maven && \
-    chmod 755 /home/jenkins/apache-maven-3.6.3
-    #rm -rf /home/jenkins/apache-maven-3.6.3-bin.tar.gz
-
-    
+    #chmod -R 755 /opt/apache-maven-3.6.3
+    #chown -R 1001:0 /opt/apache-maven-3.6.3
+    rm -rf /home/jenkins/apache-maven-3.6.3-bin.tar  
 
 
 #RUN curl https://copr.fedorainfracloud.org/coprs/alsadi/dumb-init/repo/epel-7/alsadi-dumb-init-epel-7.repo -o /etc/yum.repos.d/alsadi-dumb-init-epel-7.repo && \ 
