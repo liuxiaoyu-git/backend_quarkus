@@ -26,8 +26,8 @@ RUN curl -L  -o /home/jenkins/apache-maven-3.6.3-bin.tar.gz \
     http://us.mirrors.quenda.co/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz && \
     tar -xf /home/jenkins/apache-maven-3.6.3-bin.tar.gz && \
     #mv /tmp/apache-maven-3.6.3 $HOME/apache-maven && \
-    chmod 755 /home/jenkins/apache-maven-3.6.3 && \
-    rm -rf /home/jenkins/apache-maven-3.6.3-bin.tar.gz
+    chmod 755 /home/jenkins/apache-maven-3.6.3
+    #rm -rf /home/jenkins/apache-maven-3.6.3-bin.tar.gz
 
     
 
