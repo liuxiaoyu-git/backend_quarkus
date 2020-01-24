@@ -90,7 +90,7 @@ pipeline {
             def mvnLocation = sh(script: 'whereis ${mvnCmd}', returnStdout: true)
             echo "Maven Version: ${mvnVersion}"
             echo "Maven Location: ${mvnLocation}"
-            //sh "${mvnCmd} clean package -DskipTests=true"
+            sh "${mvnCmd} clean package -DskipTests=true"
           }
         }
       }

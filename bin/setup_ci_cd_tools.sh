@@ -1,5 +1,4 @@
 #!/bin/bash
-set -x
 oc new-project ci-cd --display-name="CI/CD Tools"
 oc new-app sonatype/nexus3:latest --name=nexus
 oc expose svc nexus
