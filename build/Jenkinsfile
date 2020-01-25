@@ -29,28 +29,28 @@ pipeline {
   }
   stages {
     // Checkout Source Code.
-    // stage('Checkout Source') {
-    //   steps {
-    //     echo "imageName: ${imageName}"
-    //     echo "CICD Project: ${env.CICD_PROJECT}"
-    //     echo "Dev Project: ${env.DEV_PROJECT}"
-    //     //echo "prodProject: ${prodProject}"
-    //     checkout scm
-    //     dir('code') {
-    //       script {
-    //         def pom = readMavenPom file: 'pom.xml'
-    //         def version = pom.version
-    //         echo "version: ${version}"
-    //         // Set the tag for the development image: version + build number
-    //         devTag = "${version}-" + currentBuild.number
-    //         echo "devTag: ${devTag}"
+    stage('Checkout Source') {
+      steps {
+        echo "imageName: ${imageName}"
+        echo "CICD Project: ${env.CICD_PROJECT}"
+        echo "Dev Project: ${env.DEV_PROJECT}"
+        //echo "prodProject: ${prodProject}"
+        checkout scm
+        dir('code') {
+          script {
+            def pom = readMavenPom file: 'pom.xml'
+            def version = pom.version
+            echo "version: ${version}"
+            // Set the tag for the development image: version + build number
+            devTag = "${version}-" + currentBuild.number
+            echo "devTag: ${devTag}"
 
-    //         // Patch Source artifactId to include GUID
-    //         //sh "sed -i 's/GUID/${GUID}/g' ./pom.xml"
-    //       }
-    //     }
-    //   }
-    // }
+            // Patch Source artifactId to include GUID
+            //sh "sed -i 's/GUID/${GUID}/g' ./pom.xml"
+          }
+        }
+      }
+    }
     // Using Maven run the unit tests
     // stage('Unit Tests') {
     //   steps {
@@ -84,12 +84,12 @@ pipeline {
           script {
             // def check = sh(script: 'ls -ltr /opt/apache-maven-3.6.3/bin', returnStdout: true)
             // echo "Check: ${check}"
-            def mvnVersion = sh(script: '${mvnCmd} -version', returnStdout: true)
+            //def mvnVersion = sh(script: '${mvnCmd} -version', returnStdout: true)
             //def mvnLocation = sh(script: 'which ${mvnCmd}', returnStdout: true)
-            echo "Maven Version: ${mvnVersion}"
+            //echo "Maven Version: ${mvnVersion}"
             //echo "Maven Location: ${mvnLocation}"
            
-            //sh "${mvnCmd} clean package -DskipTests=true"
+            sh "${mvnCmd} clean package -DskipTests=true"
           }
         }
       }
