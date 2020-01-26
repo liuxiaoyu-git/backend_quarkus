@@ -55,7 +55,7 @@ objects:
             memory: 100Mi
           env:
             - name: BACKEND_URL
-              value: https://httpbin.org/status/200
+              value: ${BACEND_URL}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
         dnsPolicy: ClusterFirst
