@@ -130,7 +130,7 @@ pipeline {
         echo "Create deployment config: env.STAGE_PROJECT"
         script {
           openshift.withCluster() {
-            openshift.withProject(env.DEV_PROJECT) {
+            openshift.withProject(env.STAGE_PROJECT) {
               def template = './manifests/backend-dc-stage.yaml'
               openshift.apply(
                 openshift.process(
