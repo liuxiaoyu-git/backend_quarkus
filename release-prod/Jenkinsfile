@@ -205,7 +205,7 @@ pipeline {
                             openshift.apply(dc)
                             // Set config map here
                             // Deploy Inactive App
-                            openshift.selector("dc", "${destApp}").rollout().latest();
+                            //openshift.selector("dc", "${destApp}").rollout().latest();
                             // Wait for app to deploy
                             def dc_prod = openshift.selector("dc", "${destApp}").object()
                             def dc_version = dc_prod.status.latestVersion
@@ -219,10 +219,22 @@ pipeline {
                     }
                 }
             }
-
-
+        }
+        stage('Switch over to new Version') {
+      steps {
+        echo "Switching Production application to ${destApp}."
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.PROD_PROJECT) {
+              def route = openshift.selector("route/${imageName}").object()
+              route.spec.to.name = "${destApp}"
+              openshift.apply(route)
+            }
+          }
         }
 
+      }
+    }
 
 
 
