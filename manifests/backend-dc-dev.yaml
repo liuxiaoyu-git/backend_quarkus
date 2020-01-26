@@ -43,16 +43,16 @@ objects:
           # - containerPort: 9779
           #   protocol: TCP
           - containerPort: 8080
-            protocol: TCP
+            protocol: HTTP
           # - containerPort: 8778
           #   protocol: TCP
           resources:
-          requests:
-            cpu: "0.1"
-            memory: 50Mi
-          limits:
-            cpu: "0.2"
-            memory: 100Mi
+            requests:
+              cpu: "0.05"
+              memory: 90Mi
+            limits:
+              cpu: "0.1"
+              memory: 150Mi
           env:
             - name: BACKEND_URL
               value: ${BACKEND_URL}
