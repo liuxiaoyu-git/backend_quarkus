@@ -1,18 +1,11 @@
 import java.text.SimpleDateFormat
 def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
-// def appName = "frontend"
-// def imageNamespace = "ci-cd"
-// def baseImageVersion
-// def backendURL = "https://httpbin.org/status/200"
-// def basePath = "https://gitlab.com/ocp-demo/frontend-js-cicd/raw/master"
-// def releaseTag
-// def version
 node {
-  //def dateFormat = new SimpleDateFormat("yyyyMMdd")
   def dateFormat = new SimpleDateFormat("yyyyMMdd")
   def date = new Date()
   def releaseDate = (dateFormat.format(date))
   releaseTag = releaseDate + "-" + env.BUILD_NUMBER
+  //docker://homework-nexus-registry.gpte-hw-cicd.svc.cluster.local:5000
 }
 pipeline {
   agent {
@@ -76,16 +69,13 @@ pipeline {
         }
       }
     }
-    stage('Release Image') {
+    stage('Release Image to Nexus') {
       steps {
         script {
           openshift.withCluster() {
             openshift.withProject(env.CICD_PROJECT) {
-              println "Releasing image  ${version} ${releaseTag} to ${env.STAGE_CICD}"
-              def tagStr = "oc tag " + env.CICD_PROJECT + "/" + appName + ":latest " + env.CICD_PROJECT + "/" + appName + ":" + version + "-" + releaseTag
-              println tagStr
-              //openshift.tag(tagStr)
-              sh(script: tagStr)
+              echo "Releasing image  ${version} ${releaseTag} to ${env.NEXUS_REGISTRY}"
+              sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds admin:password1234 docker://image-registry.openshift-image-registry.svc.cluster.local:5000/${devProject}/${imageName}:${releaseTag} ${env.NEXUS_REGISTRY}/${imageName}:${releaseTag}"
             }
           }
         }
