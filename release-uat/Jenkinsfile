@@ -1,0 +1,151 @@
+import java.text.SimpleDateFormat
+def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
+node {
+  def dateFormat = new SimpleDateFormat("yyyyMMdd")
+  def date = new Date()
+  def releaseDate = (dateFormat.format(date))
+  releaseTag = releaseDate + "-" + env.BUILD_NUMBER
+  //docker://homework-nexus-registry.gpte-hw-cicd.svc.cluster.local:5000
+}
+pipeline {
+  agent {
+    kubernetes {
+      label "maven36-with-tools"
+      cloud "openshift"
+      inheritFrom "maven"
+      containerTemplate {
+        name "jnlp"
+        image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
+        resourceRequestMemory "600Mi"
+        resourceLimitMemory "2Gi"
+        resourceRequestCpu "1"
+        resourceLimitCpu "2"
+      }
+    }
+  }
+  options {
+    // set a timeout of 20 minutes for this pipeline
+    timeout(time: 20, unit: 'MINUTES')
+  }
+  environment {
+    //mvnCmd = "/opt/apache-maven-3.6.3/bin/mvn "
+    mvnCmd ="/opt/apache-maven-3.6.3/bin/mvn -s ./nexus_settings.xml "
+    imageName="backend"
+  }
+  stages {
+    stage('Choose Staging Version') {
+      steps {
+        script {
+          openshift.withCluster() {
+            namespace = openshift.project()
+            def tags = openshift.selector("istag")
+              .objects()
+              .collect {
+                it.metadata.name
+              }
+              .findAll {
+                it.startsWith 'backend:'
+              }
+              .collect {
+                it.replaceAll(/backend:(.*)/, "\$1")
+              }
+              .sort()
+            timeout(5) {
+              releaseTag = input(
+                ok: "Deploy Staging",
+                message: "Enter release version to promote to Staging",
+                parameters: [
+                  choice(
+                    choices: tags.join('\n'),
+                    description: '',
+                    name: 'Release Version'
+                  )
+                ]
+              )
+            }
+          }
+          println "releaseTag = ${releaseTag}"
+          version = releaseTag.split('-')[0]
+          println "version = ${version}"
+        }
+      }
+    }
+    stage('Release Image to Nexus') {
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.CICD_PROJECT) {
+              echo "Releasing image  ${imageName}:${releaseTag} to ${env.NEXUS_REGISTRY}"
+              sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds admin:password1234 docker://image-registry.openshift-image-registry.svc.cluster.local:5000/${env.CICD_PROJECT}/${imageName}:${releaseTag} ${env.NEXUS_REGISTRY_SVC}/${imageName}:${releaseTag}"
+            }
+          }
+        }
+      }
+    }
+    stage('Tear-Down Stage') {
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.STAGE_PROJECT) {
+              println "Tear-Down project ${env.STAGE_PROJECT}"
+              openshift.raw("delete all -l app=${imageName}")
+            }
+          }
+        }
+      }
+    }
+    // Create Service
+    stage('Create Service') {
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.STAGE_PROJECT) {
+              def template = './manifests/backend-svc-stage.yaml'
+              openshift.apply(
+                openshift.process("-f", template)
+              )
+            }
+          }
+        }
+      }
+    }
+    // Create Route
+    stage('Create Route') {
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.STAGE_PROJECT) {
+              def template = './manifests/backend-route-stage.yaml'
+              openshift.apply(
+                openshift.process("-f", template)
+              )
+            }
+          }
+        }
+      }
+    }
+    // Create Deployment Config
+    stage('Create Deployment Config') {
+      steps {
+        echo "Create deployment config: env.STAGE_PROJECT"
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.STAGE_PROJECT) {
+              def template = './manifests/backend-dc-stage.yaml'
+              openshift.apply(
+                openshift.process(
+                  "-f", template,
+                  "-p", "IMAGE_TAG=${releaseTag}",
+                  "-p", "BACKEND_URL=${env.BACKEND_URL}",
+                  "-p", "APP_VERSION=${version}"
+                )
+              )
+              //openshift.selector("dc", "${imageName}").rollout().pause();
+            }
+          }
+        }
+
+      }
+    }
+   }
+}
