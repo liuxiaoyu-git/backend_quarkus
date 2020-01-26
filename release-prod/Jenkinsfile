@@ -30,43 +30,43 @@ pipeline {
     }
     stages {
         stage('Choose Production Version') {
-            steps {
-                script {
-                    openshift.withCluster() {
-                        namespace = openshift.project()
-                        def tags = openshift.selector("istag")
-                            .objects()
-                            .collect {
-                                it.metadata.name
-                            }
-                            .findAll {
-                                it == ~/^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)\-(.*)$/
-                                //it.startsWith 'backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)'
-                            }
-                            .collect {
-                                it.replaceAll(/backend:(.*)/, "\$1")
-                            }
-                            .sort()
-                        timeout(5) {
-                            selectTag = input(
-                                ok: "Deploy Production",
-                                message: "Enter release version to promote to Production",
-                                parameters: [
-                                    choice(
-                                        choices: tags.join('\n'),
-                                        description: '',
-                                        name: 'Select Version'
-                                    )
-                                ]
-                            )
-                        }
-                    }
-                    println "selectTag = ${selectTag}"
-                    version = selectTag.split('-')[0]
-                    println "version = ${version}"
-                }
+      steps {
+        script {
+          openshift.withCluster() {
+            namespace = openshift.project()
+            def tags = openshift.selector("istag")
+              .objects()
+              .collect {
+                it.metadata.name
+              }
+              .findAll {
+                it ==~ /^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)$/
+                //it.startsWith 'backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)'
+              }
+              .collect {
+                it.replaceAll(/backend:(.*)/, "\$1")
+              }
+              .sort()
+            timeout(5) {
+              selectTag = input(
+                ok: "Deploy Production",
+                message: "Enter release version to deploy to production",
+                parameters: [
+                  choice(
+                    choices: tags.join('\n'),
+                    description: '',
+                    name: 'Release Version'
+                  )
+                ]
+              )
             }
+          }
+          println "selectTag = ${selectTag}"
+          version = selectTag.split('-')[0]
+          println "version = ${version}"
         }
+      }
+    }
         stage('Create Deployment Config Blue') {
             when {
                 expression {
@@ -83,7 +83,8 @@ pipeline {
                         openshift.withProject(env.PROD_PROJECT) {
                             def template = './manifests/backend-dc-blue.yaml'
                             openshift.apply(
-                                openshift.process("-f", template, "-p", "IMAGE_TAG=0.0.0",
+                                openshift.process("-f", template, 
+                                    "-p", "IMAGE_TAG=0.0.0",
                                     "-p", "BACKEND_URL=${env.BACKEND_URL}",
                                     "-p", "APP_VERSION=${version}")
                             )
@@ -108,7 +109,8 @@ pipeline {
                         openshift.withProject(env.PROD_PROJECT) {
                             def template = './manifests/backend-dc-green.yaml'
                             openshift.apply(
-                                openshift.process("-f", template, "-p", "IMAGE_TAG=0.0.0",
+                                openshift.process("-f", template, 
+                                    "-p", "IMAGE_TAG=0.0.0",
                                     "-p", "BACKEND_URL=${env.BACKEND_URL}",
                                     "-p", "APP_VERSION=${version}")
                             )
