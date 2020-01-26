@@ -23,8 +23,8 @@ spec:
         value: stage
       - name: CICD_PROJECT
         value: ci-cd
-      - name: DEV_PROJECT
-        value: dev
+      #- name: DEV_PROJECT
+      #  value: dev
       # - name: BACKEND_URL
       #   value: https://httpbin.org/status/200
       # - name: PRIVATE_REGISTRY

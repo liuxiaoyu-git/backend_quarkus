@@ -1,22 +1,23 @@
 import java.text.SimpleDateFormat
-def imageName = "backend"
-def imageNamespace = "ci-cd"
-def baseImageVersion
-def releaseTag
-def version
-def CICD = "ci-cd"
-def JENKINS_SLAVE_IMAGE = "mvn-with-skopeo"
+ef JENKINS_SLAVE_IMAGE = "maven36-with-tools"
+// def appName = "frontend"
+// def imageNamespace = "ci-cd"
+// def baseImageVersion
+// def backendURL = "https://httpbin.org/status/200"
+// def basePath = "https://gitlab.com/ocp-demo/frontend-js-cicd/raw/master"
+// def releaseTag
+// def version
 
 pipeline {
   agent {
     kubernetes {
-      label "${JENKINS_SLAVE_IMAGE}"
+      label "maven36-with-tools"
       cloud "openshift"
       inheritFrom "maven"
       containerTemplate {
         name "jnlp"
         image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
-        resourceRequestMemory "1Gi"
+        resourceRequestMemory "600Mi"
         resourceLimitMemory "2Gi"
         resourceRequestCpu "1"
         resourceLimitCpu "2"
@@ -28,90 +29,73 @@ pipeline {
     timeout(time: 20, unit: 'MINUTES')
   }
   environment {
-    def dateFormat = new SimpleDateFormat("MMdd")
+    //mvnCmd = "/opt/apache-maven-3.6.3/bin/mvn "
+    mvnCmd ="/opt/apache-maven-3.6.3/bin/mvn -s ./nexus_settings.xml "
+    def dateFormat = new SimpleDateFormat("yyyyMMdd")
     def date = new Date()
     def releaseDate = (dateFormat.format(date))
-    releaseTag = releaseDate + "-" + env.BUILD_NUMBER
-
-    nexusSvc = "http://nexus:8081/repository/releases"
-    nexusContainerSvc = "docker://nexus:5000"
-    //nexusURL = "https://homework-nexus.apps.shared.na.openshift.opentlc.com"
-    //mvnCmd = "source /usr/local/bin/scl_enable && mvn -s ./nexus_settings.xml"
-    mvnCmd = "source /usr/local/bin/scl_enable && mvn "
-    // Images and Projects
-    imageName = "backend"
-    // Tags
-    devTag = ""
-    currentImage = ""
-
-
+  releaseTag = releaseDate + "-" + env.BUILD_NUMBER
   }
   stages {
-    stage('Checkout Source') {
+    stage('Choose Staging Version') {
       steps {
-        echo "imageName: ${imageName}"
-        echo "CICD Project: ${env.CICD_PROJECT}"
-        echo "Dev Project: ${env.DEV_PROJECT}"
-        //echo "prodProject: ${prodProject}"
-        checkout scm
-        dir('code') {
-          script {
-            def pom = readMavenPom file: 'pom.xml'
-            def version = pom.version
-            echo "version: ${version}"
-            // Set the tag for the development image: version + build number
-            devTag = "${version}-" + currentBuild.number            
-            echo "devTag: ${devTag}"
-
-            // Patch Source artifactId to include GUID
-            //sh "sed -i 's/GUID/${GUID}/g' ./pom.xml"
+        script {
+          openshift.withCluster() {
+            namespace = openshift.project()
+            def tags = openshift.selector("istag")
+              .objects()
+              .collect {
+                it.metadata.name
+              }
+              .findAll {
+                it.startsWith 'backend:'
+              }
+              .collect {
+                it.replaceAll(/backend:(.*)/, "\$1")
+              }
+              .sort()
+            timeout(5) {
+              releaseTag = input(
+                ok: "Deploy Staging",
+                message: "Enter release version to promote to Staging",
+                parameters: [
+                  choice(
+                    choices: tags.join('\n'),
+                    description: '',
+                    name: 'Release Version'
+                  )
+                ]
+              )
+            }
+          }
+          println "releaseTag = ${releaseTag}"
+          version = releaseTag.split('-')[0]
+          println "version = ${version}"
+        }
+      }
+    }
+    stage('Release Image') {
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.CICD_PROJECT) {
+              println "Releasing image  ${version} ${releaseTag} to ${env.STAGE_CICD}"
+              def tagStr = "oc tag " + env.CICD_PROJECT + "/" + appName + ":latest " + env.CICD_PROJECT + "/" + appName + ":" + version + "-" + releaseTag
+              println tagStr
+              //openshift.tag(tagStr)
+              sh(script: tagStr)
+            }
           }
         }
       }
     }
-    stage('Check Dev Version'){
-      steps {
-        script {
-          openshift.withCluster() {
-            openshift.withProject(env.DEV_PROJECT) {
-                 currentImage = openshift.selector("dc/${imageName}").object().spec.template.spec.containers[0].image
-                 echo "Current Image: ${currentImage}"
-                //spec.template.spec.containers[0].image
-                //def activeApp = openshift.selector("route", "tasks").object().spec.to.name
-            }
-        }
-      }
-    }
-    // stage('Release Image') {
-    //   steps {
-    //     script {
-    //       openshift.withCluster() {
-    //         openshift.withProject(env.CICD_PROJECT) {
-    //           println "Releasing image  ${version} ${releaseTag} to ${env.CICD_PROJECT}"
-    //           def tagStr = "oc tag " + env.CICD_PROJECT + "/" + imageName + ":latest " + env.CICD_PROJECT + "/" + imageName + ":" + version + "-" + releaseTag
-    //           println tagStr
-    //           //openshift.tag(tagStr)
-    //           sh(script: tagStr)
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
-    // stage('Publish to Nexus') {
-    //   steps {
-    //     script {
-
-    //     }
-    //   }
-    // }
-
     // stage('Tear-Down Stage') {
     //   steps {
     //     script {
     //       openshift.withCluster() {
     //         openshift.withProject(env.STAGE_PROJECT) {
     //           println "Tear-Down project ${env.STAGE_PROJECT}"
-    //           openshift.raw("delete all -l app=${imageName}")
+    //           openshift.raw("delete all -l app=${appName}")
     //         }
     //       }
     //     }
@@ -138,5 +122,5 @@ pipeline {
     //     }
     //   }
     // }
-  }
+   }
 }
