@@ -7,7 +7,13 @@ ef JENKINS_SLAVE_IMAGE = "maven36-with-tools"
 // def basePath = "https://gitlab.com/ocp-demo/frontend-js-cicd/raw/master"
 // def releaseTag
 // def version
-
+node {
+  //def dateFormat = new SimpleDateFormat("yyyyMMdd")
+  def dateFormat = new SimpleDateFormat("yyyyMMdd")
+  def date = new Date()
+  def releaseDate = (dateFormat.format(date))
+  releaseTag = releaseDate + "-" + env.BUILD_NUMBER
+}
 pipeline {
   agent {
     kubernetes {
@@ -31,10 +37,7 @@ pipeline {
   environment {
     //mvnCmd = "/opt/apache-maven-3.6.3/bin/mvn "
     mvnCmd ="/opt/apache-maven-3.6.3/bin/mvn -s ./nexus_settings.xml "
-    def dateFormat = new SimpleDateFormat("yyyyMMdd")
-    def date = new Date()
-    def releaseDate = (dateFormat.format(date))
-  releaseTag = releaseDate + "-" + env.BUILD_NUMBER
+    echo "releaseTag:${releaseTag}"
   }
   stages {
     stage('Choose Staging Version') {
