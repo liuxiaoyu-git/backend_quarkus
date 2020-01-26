@@ -55,7 +55,7 @@ objects:
             memory: 100Mi
           env:
             - name: BACKEND_URL
-              value: ${BACEND_URL}
+              value: ${BACKEND_URL}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
         dnsPolicy: ClusterFirst
