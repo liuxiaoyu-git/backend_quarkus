@@ -48,6 +48,32 @@ pipeline {
         }
       }
     }
+    stage('Test') {
+      parallel {
+        // Unit Test
+        stage('Unit Tests') {
+          steps {
+            dir('code') {
+              echo "Running Unit Tests"
+              sh "${mvnCmd} test"
+              step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
+            }
+          }
+        }
+        Using Maven call SonarQube
+        for Code Analysis
+        stage('Code Analysis') {
+          steps {
+            dir('code') {
+              script {
+                echo "Running Code Analysis"
+                sh "${mvnCmd} sonar:sonar -Dsonar.host.url=${env.SONARQUBE_SVC} -Dsonar.projectName=${imageName}-${devTag} -Dsonar.projectVersion=${devTag}"
+              }
+            }
+          }
+        }
+      }
+    }
     // Using Maven run the unit tests
     // stage('Unit Tests') {
     //   steps {
@@ -78,7 +104,7 @@ pipeline {
 
           echo "Building binary for ${imageName}"
           script {
-            sh(script:'${mvnCmd} clean package -DskipTests=true', returnStdout:'true')
+            sh(script: '${mvnCmd} clean package -DskipTests=true', returnStdout: 'true')
           }
         }
       }
@@ -156,12 +182,12 @@ pipeline {
       }
     }
     // Create Service
-    stage('Create Service'){
-      when{
-        expression{
-          openshift.withCluster(){
-            openshift.withProject(env.DEV_PROJECT){
-              return !openshift.selector("svc","${appName}").exists()
+    stage('Create Service') {
+      when {
+        expression {
+          openshift.withCluster() {
+            openshift.withProject(env.DEV_PROJECT) {
+              return !openshift.selector("svc", "${imageName}").exists()
             }
           }
         }
@@ -180,12 +206,12 @@ pipeline {
       }
     }
     // Create Route
-    stage('Create Route'){
-      when{
-        expression{
-          openshift.withCluster(){
-            openshift.withProject(env.DEV_PROJECT){
-              return !openshift.selector("route","${appName}").exists()
+    stage('Create Route') {
+      when {
+        expression {
+          openshift.withCluster() {
+            openshift.withProject(env.DEV_PROJECT) {
+              return !openshift.selector("route", "${imageName}").exists()
             }
           }
         }
