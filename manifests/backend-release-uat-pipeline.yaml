@@ -20,9 +20,9 @@ spec:
     jenkinsPipelineStrategy:
       env:
       - name: UAT_PROJECT
-        value: stage
-      - name: CICD_PROJECT
-        value: ci-cd
+        value: uat
+      # - name: CICD_PROJECT
+      #   value: ci-cd
       - name: BACKEND_URL
         value: https:/httpbin.org/status/201
       jenkinsfilePath: Jenkinsfile

@@ -1,12 +1,15 @@
 import java.text.SimpleDateFormat
 def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
-node {
-  def dateFormat = new SimpleDateFormat("yyyyMMdd")
-  def date = new Date()
-  def releaseDate = (dateFormat.format(date))
-  releaseTag = releaseDate + "-" + env.BUILD_NUMBER
-  //docker://homework-nexus-registry.gpte-hw-cicd.svc.cluster.local:5000
-}
+def selectTag
+//def releaseTag
+// def tag
+// node {
+//   def dateFormat = new SimpleDateFormat("yyyyMMdd")
+//   def date = new Date()
+//   def releaseDate = (dateFormat.format(date))
+//   tag = releaseDate + "-" + env.BUILD_NUMBER
+//   //docker://homework-nexus-registry.gpte-hw-cicd.svc.cluster.local:5000
+// }
 pipeline {
   agent {
     kubernetes {
@@ -44,50 +47,39 @@ pipeline {
                 it.metadata.name
               }
               .findAll {
-                it.startsWith 'backend:'
+                it ==~ /^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)\-([0-9]+)\-([0-9]+)$/
+                //it.startsWith 'backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)'
               }
               .collect {
                 it.replaceAll(/backend:(.*)/, "\$1")
               }
               .sort()
             timeout(5) {
-              releaseTag = input(
-                ok: "Deploy Staging",
-                message: "Enter release version to promote to Staging",
+              selectTag = input(
+                ok: "Deploy UAT",
+                message: "Enter release version to promote to UAT",
                 parameters: [
                   choice(
                     choices: tags.join('\n'),
                     description: '',
-                    name: 'Release Version'
+                    name: 'Select Version'
                   )
                 ]
               )
             }
           }
-          println "releaseTag = ${releaseTag}"
-          version = releaseTag.split('-')[0]
+          println "selectTag = ${selectTag}"
+          version = selectTag.split('-')[0]
           println "version = ${version}"
         }
       }
     }
-    stage('Release Image to Nexus') {
+    stage('Tear-Down UAT') {
       steps {
         script {
           openshift.withCluster() {
-            openshift.withProject(env.CICD_PROJECT) {
-              echo "Releasing image  ${imageName}:${releaseTag} to ${env.NEXUS_REGISTRY}"
-              sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds admin:password1234 docker://image-registry.openshift-image-registry.svc.cluster.local:5000/${env.CICD_PROJECT}/${imageName}:${releaseTag} ${env.NEXUS_REGISTRY_SVC}/${imageName}:${releaseTag}"
-            }
-          }
-        }
-      }
-    }
-    stage('Tear-Down Stage') {
-      steps {
-        script {
-          openshift.withCluster() {
-            openshift.withProject(env.STAGE_PROJECT) {
-              println "Tear-Down project ${env.STAGE_PROJECT}"
+            openshift.withProject(env.UAT_PROJECT) {
+              println "Tear-Down project ${env.UAT_PROJECT}"
               openshift.raw("delete all -l app=${imageName}")
             }
           }
@@ -99,8 +91,8 @@ pipeline {
       steps {
         script {
           openshift.withCluster() {
-            openshift.withProject(env.STAGE_PROJECT) {
-              def template = './manifests/backend-svc-stage.yaml'
+            openshift.withProject(env.UAT_PROJECT) {
+              def template = './manifests/backend-svc-uat.yaml'
               openshift.apply(
                 openshift.process("-f", template)
               )
@@ -114,8 +106,8 @@ pipeline {
       steps {
         script {
           openshift.withCluster() {
-            openshift.withProject(env.STAGE_PROJECT) {
-              def template = './manifests/backend-route-stage.yaml'
+            openshift.withProject(env.UAT_PROJECT) {
+              def template = './manifests/backend-route-uat.yaml'
               openshift.apply(
                 openshift.process("-f", template)
               )
@@ -127,20 +119,20 @@ pipeline {
     // Create Deployment Config
     stage('Create Deployment Config') {
       steps {
-        echo "Create deployment config: env.STAGE_PROJECT"
+        println "Deploy to: env.UAT_PROJECT"
+        println "IMAGE_TAG = ${selectTag}"
         script {
           openshift.withCluster() {
-            openshift.withProject(env.STAGE_PROJECT) {
-              def template = './manifests/backend-dc-stage.yaml'
+            openshift.withProject(env.UAT_PROJECT) {
+              def template = './manifests/backend-dc-uat.yaml'
               openshift.apply(
                 openshift.process(
                   "-f", template,
-                  "-p", "IMAGE_TAG=${releaseTag}",
+                  "-p", "IMAGE_TAG=${selectTag}",
                   "-p", "BACKEND_URL=${env.BACKEND_URL}",
                   "-p", "APP_VERSION=${version}"
                 )
               )
-              //openshift.selector("dc", "${imageName}").rollout().pause();
             }
           }
         }
