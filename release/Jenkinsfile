@@ -4,7 +4,6 @@ node {
   def dateFormat = new SimpleDateFormat("yyyyMMdd")
   def date = new Date()
   def releaseDate = (dateFormat.format(date))
-  releaseTag = releaseDate + "-" + env.BUILD_NUMBER
   //docker://homework-nexus-registry.gpte-hw-cicd.svc.cluster.local:5000
 }
 pipeline {
@@ -64,7 +63,9 @@ pipeline {
               )
             }
           }
+          releaseTag = releaseDate + "-" + env.BUILD_NUMBER
           println "releaseTag = ${releaseTag}"
+          println "releaseDate = ${releaseDate}" 
           version = releaseTag.split('-')[0]
           println "version = ${version}"
         }
