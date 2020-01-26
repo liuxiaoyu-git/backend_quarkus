@@ -18,6 +18,7 @@ pipeline {
                 resourceLimitCpu "2"
             }
         }
+    }
         options {
             // set a timeout of 20 minutes for this pipeline
             timeout(time: 20, unit: 'MINUTES')
@@ -185,35 +186,40 @@ pipeline {
                     }
                 }
             }
-            // stage('Blue/Green Deployment') {
-            //     print "Blue/Green Deployment"
-            //     script {
-            //         openshift.withCluster() {
-            //             openshift.withProject(env.PROD_PROJECT) {
-            //                 activeApp = openshift.selector("route", "tasks").object().spec.to.name
-            //                 if (activeApp == "${imageName}-green") {
-            //                     destApp = "${imageName}-blue"
-            //                 }
-            //                 println "Active Application = ${activeApp}"
-            //                 println "Destination Application = ${destApp}"
-            //                 def dc = openshift.selector("dc/${destApp}").object()
-            //                 dc.spec.template.spec.containers[0].image = "image-registry.openshift-image-registry.svc:5000/${env.CICD_PROJECT}/${imageName}:${selectTag}"
-            //                 openshift.apply(dc)
-            //                 // Set config map here
-            //                 // Deploy Inactive App
-            //                 openshift.selector("dc", "${destApp}").rollout().latest();
-            //                 // Wait for app to deploy
-            //                 def dc_prod = openshift.selector("dc", "${destApp}").object()
-            //                 def dc_version = dc_prod.status.latestVersion
-            //                 def rc_prod = openshift.selector("rc", "${destApp}-${dc_version}").object()
-            //                 echo "Waiting for ${destApp} to be ready"
-            //                 while (rc_prod.spec.replicas != rc_prod.status.readyReplicas) {
-            //                     sleep 5
-            //                     rc_prod = openshift.selector("rc", "${destApp}-${dc_version}").object()
-            //                 }
-            //             }
-            //         }
-            //     }
+            stage('Blue/Green Deployment') {
+                print "Blue/Green Deployment"
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            activeApp = openshift.selector("route", "tasks").object().spec.to.name
+                            if (activeApp == "${imageName}-green") {
+                                destApp = "${imageName}-blue"
+                            }
+                            println "Active Application = ${activeApp}"
+                            println "Destination Application = ${destApp}"
+                            def dc = openshift.selector("dc/${destApp}").object()
+                            dc.spec.template.spec.containers[0].image = "image-registry.openshift-image-registry.svc:5000/${env.CICD_PROJECT}/${imageName}:${selectTag}"
+                            openshift.apply(dc)
+                            // Set config map here
+                            // Deploy Inactive App
+                            openshift.selector("dc", "${destApp}").rollout().latest();
+                            // Wait for app to deploy
+                            def dc_prod = openshift.selector("dc", "${destApp}").object()
+                            def dc_version = dc_prod.status.latestVersion
+                            def rc_prod = openshift.selector("rc", "${destApp}-${dc_version}").object()
+                            echo "Waiting for ${destApp} to be ready"
+                            while (rc_prod.spec.replicas != rc_prod.status.readyReplicas) {
+                                sleep 5
+                                rc_prod = openshift.selector("rc", "${destApp}-${dc_version}").object()
+                            }
+                        }
+                    }
+                }
 
              }
-        }
+        
+        
+        
+        
+}
+}
