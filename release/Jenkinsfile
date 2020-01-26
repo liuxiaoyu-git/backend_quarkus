@@ -94,5 +94,58 @@ pipeline {
         }
       }
     }
+    // Create Service
+    stage('Create Service') {
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.STAGE_PROJECT) {
+              def template = './manifests/backend-svc-stage.yaml'
+              openshift.apply(
+                openshift.process("-f", template)
+              )
+            }
+          }
+        }
+      }
+    }
+    // Create Route
+    stage('Create Route') {
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.STAGE_PROJECT) {
+              def template = './manifests/backend-route-stage.yaml'
+              openshift.apply(
+                openshift.process("-f", template)
+              )
+            }
+          }
+        }
+      }
+    }
+    // Create Deployment Config
+    stage('Create Deployment Config') {
+      steps {
+        echo "Create deployment config: env.STAGE_PROJECT"
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.DEV_PROJECT) {
+              def template = './manifests/backend-dc-stage.yaml'
+              openshift.apply(
+                openshift.process(
+                  "-f", template,
+                  "-p", "IMAGE_TAG=${devTag}",
+                  "-p", "BACKEND_URL=${env.BACKEND_URL}",
+                  "-p", "APP_VERSION=${version}"
+                )
+              )
+              //openshift.selector("dc", "${imageName}").rollout().pause();
+            }
+          }
+        }
+
+      }
+    }
    }
 }
