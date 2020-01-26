@@ -19,175 +19,175 @@ pipeline {
             }
         }
     }
-        options {
-            // set a timeout of 20 minutes for this pipeline
-            timeout(time: 20, unit: 'MINUTES')
+    options {
+        // set a timeout of 20 minutes for this pipeline
+        timeout(time: 20, unit: 'MINUTES')
+    }
+    environment {
+        //mvnCmd = "/opt/apache-maven-3.6.3/bin/mvn "
+        mvnCmd = "/opt/apache-maven-3.6.3/bin/mvn -s ./nexus_settings.xml "
+        imageName = "backend"
+    }
+    stages {
+        stage('Choose Production Version') {
+            steps {
+                script {
+                    openshift.withCluster() {
+                        namespace = openshift.project()
+                        def tags = openshift.selector("istag")
+                            .objects()
+                            .collect {
+                                it.metadata.name
+                            }
+                            .findAll {
+                                it == ~/^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)\-(.*)$/
+                                //it.startsWith 'backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)'
+                            }
+                            .collect {
+                                it.replaceAll(/backend:(.*)/, "\$1")
+                            }
+                            .sort()
+                        timeout(5) {
+                            selectTag = input(
+                                ok: "Deploy Production",
+                                message: "Enter release version to promote to Production",
+                                parameters: [
+                                    choice(
+                                        choices: tags.join('\n'),
+                                        description: '',
+                                        name: 'Select Version'
+                                    )
+                                ]
+                            )
+                        }
+                    }
+                    println "selectTag = ${selectTag}"
+                    version = selectTag.split('-')[0]
+                    println "version = ${version}"
+                }
+            }
         }
-        environment {
-            //mvnCmd = "/opt/apache-maven-3.6.3/bin/mvn "
-            mvnCmd = "/opt/apache-maven-3.6.3/bin/mvn -s ./nexus_settings.xml "
-            imageName = "backend"
+        stage('Create Deployment Config Blue') {
+            when {
+                expression {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            return !openshift.selector("dc", "${imageName}-blue").exists()
+                        }
+                    }
+                }
+            }
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            def template = './manifests/backend-dc-blue.yaml'
+                            openshift.apply(
+                                openshift.process("-f", template, "-p", "IMAGE_TAG=0.0.0",
+                                    "-p", "BACKEND_URL=${env.BACKEND_URL}",
+                                    "-p", "APP_VERSION=${version}")
+                            )
+                        }
+                    }
+                }
+            }
         }
-        stages {
-            stage('Choose Production Version') {
-                steps {
-                    script {
-                        openshift.withCluster() {
-                            namespace = openshift.project()
-                            def tags = openshift.selector("istag")
-                                .objects()
-                                .collect {
-                                    it.metadata.name
-                                }
-                                .findAll {
-                                    it == ~/^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)\-(.*)$/
-                                    //it.startsWith 'backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)'
-                                }
-                                .collect {
-                                    it.replaceAll(/backend:(.*)/, "\$1")
-                                }
-                                .sort()
-                            timeout(5) {
-                                selectTag = input(
-                                    ok: "Deploy Production",
-                                    message: "Enter release version to promote to Production",
-                                    parameters: [
-                                        choice(
-                                            choices: tags.join('\n'),
-                                            description: '',
-                                            name: 'Select Version'
-                                        )
-                                    ]
-                                )
-                            }
-                        }
-                        println "selectTag = ${selectTag}"
-                        version = selectTag.split('-')[0]
-                        println "version = ${version}"
-                    }
-                }
-            }
-            stage('Create Deployment Config Blue') {
-                when {
-                    expression {
-                        openshift.withCluster() {
-                            openshift.withProject(env.PROD_PROJECT) {
-                                return !openshift.selector("dc", "${imageName}-blue").exists()
-                            }
-                        }
-                    }
-                }
-                steps {
-                    script {
-                        openshift.withCluster() {
-                            openshift.withProject(env.PROD_PROJECT) {
-                                def template = './manifests/backend-dc-blue.yaml'
-                                openshift.apply(
-                                    openshift.process("-f", template, "-p", "IMAGE_TAG=0.0.0",
-                                        "-p", "BACKEND_URL=${env.BACKEND_URL}",
-                                        "-p", "APP_VERSION=${version}")
-                                )
-                            }
+        stage('Create Deployment Config Green') {
+            when {
+                expression {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            return !openshift.selector("dc", "${imageName}-green").exists()
                         }
                     }
                 }
             }
-            stage('Create Deployment Config Green') {
-                when {
-                    expression {
-                        openshift.withCluster() {
-                            openshift.withProject(env.PROD_PROJECT) {
-                                return !openshift.selector("dc", "${imageName}-green").exists()
-                            }
-                        }
-                    }
-                }
-                steps {
-                    script {
-                        openshift.withCluster() {
-                            openshift.withProject(env.PROD_PROJECT) {
-                                def template = './manifests/backend-dc-green.yaml'
-                                openshift.apply(
-                                    openshift.process("-f", template, "-p", "IMAGE_TAG=0.0.0",
-                                        "-p", "BACKEND_URL=${env.BACKEND_URL}",
-                                        "-p", "APP_VERSION=${version}")
-                                )
-                            }
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            def template = './manifests/backend-dc-green.yaml'
+                            openshift.apply(
+                                openshift.process("-f", template, "-p", "IMAGE_TAG=0.0.0",
+                                    "-p", "BACKEND_URL=${env.BACKEND_URL}",
+                                    "-p", "APP_VERSION=${version}")
+                            )
                         }
                     }
                 }
             }
-            stage('Create Service Blue') {
-                when {
-                    expression {
-                        openshift.withCluster() {
-                            openshift.withProject(env.PROD_PROJECT) {
-                                return !openshift.selector("svc", "${imageName}-blue").exists()
-                            }
-                        }
-                    }
-                }
-                steps {
-                    script {
-                        openshift.withCluster() {
-                            openshift.withProject(env.PROD_PROJECT) {
-                                def template = './manifests/backend-svc-blue.yaml'
-                                openshift.apply(
-                                    openshift.process("-f", template)
-                                )
-                            }
+        }
+        stage('Create Service Blue') {
+            when {
+                expression {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            return !openshift.selector("svc", "${imageName}-blue").exists()
                         }
                     }
                 }
             }
-            stage('Create Service Green') {
-                when {
-                    expression {
-                        openshift.withCluster() {
-                            openshift.withProject(env.PROD_PROJECT) {
-                                return !openshift.selector("svc", "${imageName}-green").exists()
-                            }
-                        }
-                    }
-                }
-                steps {
-                    script {
-                        openshift.withCluster() {
-                            openshift.withProject(env.PROD_PROJECT) {
-                                def template = './manifests/backend-svc-green.yaml'
-                                openshift.apply(
-                                    openshift.process("-f", template)
-                                )
-                            }
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            def template = './manifests/backend-svc-blue.yaml'
+                            openshift.apply(
+                                openshift.process("-f", template)
+                            )
                         }
                     }
                 }
             }
-            stage('Create Route') {
-                when {
-                    expression {
-                        openshift.withCluster() {
-                            openshift.withProject(env.PROD_PROJECT) {
-                                return !openshift.selector("route", "${imageName}").exists()
-                            }
-                        }
-                    }
-                }
-                steps {
-                    script {
-                        openshift.withCluster() {
-                            openshift.withProject(env.PROD_PROJECT) {
-                                def template = './manifests/backend-route-prod.yaml'
-                                openshift.apply(
-                                    openshift.process("-f", template)
-                                )
-                            }
+        }
+        stage('Create Service Green') {
+            when {
+                expression {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            return !openshift.selector("svc", "${imageName}-green").exists()
                         }
                     }
                 }
             }
-            stage('Blue/Green Deployment') {
-                
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            def template = './manifests/backend-svc-green.yaml'
+                            openshift.apply(
+                                openshift.process("-f", template)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        stage('Create Route') {
+            when {
+                expression {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            return !openshift.selector("route", "${imageName}").exists()
+                        }
+                    }
+                }
+            }
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            def template = './manifests/backend-route-prod.yaml'
+                            openshift.apply(
+                                openshift.process("-f", template)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        stage('Blue/Green Deployment') {
+            steps {
                 script {
                     println "Blue/Green Deployment"
                     openshift.withCluster() {
@@ -216,11 +216,13 @@ pipeline {
                         }
                     }
                 }
+            }
 
-             }
-        
-        
-        
-        
-}
+
+        }
+
+
+
+
+    }
 }
