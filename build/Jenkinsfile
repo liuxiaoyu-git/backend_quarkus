@@ -48,53 +48,32 @@ pipeline {
         }
       }
     }
-    stage('Test') {
-      parallel {
-        // Unit Test
-        stage('Unit Tests') {
-          steps {
-            dir('code') {
-              echo "Running Unit Tests"
-              sh "${mvnCmd} test"
-              step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
-            }
-          }
-        }
-        //Using Maven call SonarQube for Code Analysis
-        stage('Code Analysis') {
-          steps {
-            dir('code') {
-              script {
-                echo "Running Code Analysis"
-                sh "${mvnCmd} sonar:sonar -Dsonar.host.url=${env.SONARQUBE_SVC} -Dsonar.projectName=${imageName}-${devTag} -Dsonar.projectVersion=${devTag}"
-              }
-            }
-          }
-        }
-      }
-    }
-    // Using Maven run the unit tests
-    // stage('Unit Tests') {
-    //   steps {
-    //     dir('code') {
-    //       echo "Running Unit Tests"
-    //       sh "${mvnCmd} test"
-    //       step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
+    // Test
+    // stage('Test') {
+    //   parallel {
+    //     // Unit Test
+    //     stage('Unit Tests') {
+    //       steps {
+    //         dir('code') {
+    //           echo "Running Unit Tests"
+    //           sh "${mvnCmd} test"
+    //           step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
+    //         }
+    //       }
     //     }
-    //   }
-    // }
-    // Using Maven call SonarQube for Code Analysis
-    // stage('Code Analysis') {
-    //   steps {
-    //     dir('code') {
-    //       script {
-    //         echo "Running Code Analysis"
-    //         sh "${mvnCmd} sonar:sonar -Dsonar.host.url=${env.SONARQUBE_SVC} -Dsonar.projectName=${imageName}-${devTag} -Dsonar.projectVersion=${devTag}"
+    //     //Using Maven call SonarQube for Code Analysis
+    //     stage('Code Analysis') {
+    //       steps {
+    //         dir('code') {
+    //           script {
+    //             echo "Running Code Analysis"
+    //             sh "${mvnCmd} sonar:sonar -Dsonar.host.url=${env.SONARQUBE_SVC} -Dsonar.projectName=${imageName}-${devTag} -Dsonar.projectVersion=${devTag}"
+    //           }
+    //         }
     //       }
     //     }
     //   }
     // }
-
     // Build the JAR
     stage('Build Binary') {
       steps {
@@ -136,49 +115,6 @@ pipeline {
             }
           }
         }
-      }
-    }
-    // Build Container Image
-    stage('Build Container Image') {
-      steps {
-        echo "Build Container Image ${imageName}"
-        dir('code') {
-          script {
-            openshift.withCluster() {
-              openshift.withProject(env.CICD_PROJECT) {
-                openshift.startBuild(
-                  "${imageName}",
-                  "--from-dir=.",
-                  "--wait"
-                )
-                openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
-              }
-            }
-          }
-        }
-      }
-    }
-    // Create Deployment Config
-    stage('Create Deployment Config - Dev') {
-      steps {
-        echo "Create deployment config: env.DEV_PROJECT"
-        script {
-          openshift.withCluster() {
-            openshift.withProject(env.DEV_PROJECT) {
-              def template = './manifests/backend-dc-dev.yaml'
-              openshift.apply(
-                openshift.process(
-                  "-f", template,
-                  "-p", "IMAGE_TAG=${devTag}",
-                  "-p", "BACEND_URL=https://httpbin.org/status/201",
-                  "-p", "APP_VERSION=${version}"
-                )
-              )
-              //openshift.selector("dc", "${imageName}").rollout().pause();
-            }
-          }
-        }
-
       }
     }
     // Create Service
@@ -227,6 +163,49 @@ pipeline {
             }
           }
         }
+      }
+    }
+    // Build Container Image
+    stage('Build Container Image') {
+      steps {
+        echo "Build Container Image ${imageName}"
+        dir('code') {
+          script {
+            openshift.withCluster() {
+              openshift.withProject(env.CICD_PROJECT) {
+                openshift.startBuild(
+                  "${imageName}",
+                  "--from-dir=.",
+                  "--wait"
+                )
+                openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
+              }
+            }
+          }
+        }
+      }
+    }
+    // Create Deployment Config
+    stage('Create Deployment Config - Dev') {
+      steps {
+        echo "Create deployment config: env.DEV_PROJECT"
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.DEV_PROJECT) {
+              def template = './manifests/backend-dc-dev.yaml'
+              openshift.apply(
+                openshift.process(
+                  "-f", template,
+                  "-p", "IMAGE_TAG=${devTag}",
+                  "-p", "BACKEND_URL=https://httpbin.org/status/201",
+                  "-p", "APP_VERSION=${version}"
+                )
+              )
+              //openshift.selector("dc", "${imageName}").rollout().pause();
+            }
+          }
+        }
+
       }
     }
   }
