@@ -25,5 +25,7 @@ spec:
         value: ci-cd
       - name: NEXUS_REGISTRY_SVC
         value: docker://nexus-registry:5000
+      - name: BACKEND_URL
+        value: https:/httpbin.org/status/201
       jenkinsfilePath: Jenkinsfile
     type: JenkinsPipeline
