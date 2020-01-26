@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: backend-route-template
+objects:
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    name: backend
+  spec:
+    port:
+      targetPort: 8080
+    subdomain: ""
+    to:
+      kind: Service
+      name: backend-green
+      weight: 100
+    wildcardPolicy: None
+  status:
+    ingress: null

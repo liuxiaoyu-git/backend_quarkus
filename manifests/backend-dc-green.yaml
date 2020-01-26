@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: backend-build-config-template
+objects:
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: backend-green
+      version: ${APP_VERSION}
+      tag: ${IMAGE_TAG}
+      app.kubernetes.io/component: backend
+      app.kubernetes.io/instance: backend
+      app.kubernetes.io/name: backend
+    name: backend-green
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 5
+    selector:
+      deploymentconfig: backend-green
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: backend-green
+          version: ${APP_VERSION}
+          tag: ${IMAGE_TAG}
+          deploymentconfig: backend-green
+      spec:
+        containers:
+        - image: image-registry.openshift-image-registry.svc:5000/ci-cd/backend:${IMAGE_TAG}
+          imagePullPolicy: Always
+          name: backend
+          ports:
+          # - containerPort: 9779
+          #   protocol: TCP
+          - containerPort: 8080
+            # protocol: TCP
+          # - containerPort: 8778
+          #   protocol: TCP
+          resources:
+            requests:
+              cpu: "0.05"
+              memory: 90Mi
+            limits:
+              cpu: "0.1"
+              memory: 150Mi
+          env:
+            - name: app.backend
+              value: ${BACKEND_URL}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  triggers: []
+parameters:
+- displayName: Application version
+  description: Version of application
+  name: APP_VERSION
+  required: true
+  value: ${APP_VERSION}
+- displayName: Image Tag
+  description: Image Tag
+  name: IMAGE_TAG
+  required: true
+  value: ${IMAGE_TAG}
+- displayName: BACKEND_URL
+  description: Backend target URL
+  name: BACKEND_URL
+  required: true
+  value: ${BACKEND_URL}
+  # triggers:
+  # - type: ConfigChange
+  # - imageChangeParams:
+  #     automatic: true
+  #     containerNames:
+  #     - backend
+  #     from:
+  #       kind: ImageStreamTag
+  #       name: backend:latest
+  #       namespace: ci-cd
+  #   type: ImageChange

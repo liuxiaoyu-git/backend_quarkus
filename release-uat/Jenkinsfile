@@ -1,15 +1,6 @@
 import java.text.SimpleDateFormat
 def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
 def selectTag
-//def releaseTag
-// def tag
-// node {
-//   def dateFormat = new SimpleDateFormat("yyyyMMdd")
-//   def date = new Date()
-//   def releaseDate = (dateFormat.format(date))
-//   tag = releaseDate + "-" + env.BUILD_NUMBER
-//   //docker://homework-nexus-registry.gpte-hw-cicd.svc.cluster.local:5000
-// }
 pipeline {
   agent {
     kubernetes {
@@ -36,7 +27,7 @@ pipeline {
     imageName="backend"
   }
   stages {
-    stage('Choose Staging Version') {
+    stage('Choose UAT Version') {
       steps {
         script {
           openshift.withCluster() {
