@@ -171,6 +171,7 @@ pipeline {
                 openshift.process(
                   "-f", template,
                   "-p", "IMAGE_TAG=${devTag}",
+                  "-p", "BACEND_URL=https://httpbin.org/status/201",
                   "-p", "APP_VERSION=${version}"
                 )
               )
