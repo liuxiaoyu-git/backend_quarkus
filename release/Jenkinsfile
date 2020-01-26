@@ -1,10 +1,12 @@
 import java.text.SimpleDateFormat
 def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
+def releaseTag
+def tag
 node {
   def dateFormat = new SimpleDateFormat("yyyyMMdd")
   def date = new Date()
   def releaseDate = (dateFormat.format(date))
-  def releaseTag = releaseDate + "-" + env.BUILD_NUMBER
+  tag = releaseDate + "-" + env.BUILD_NUMBER
   //docker://homework-nexus-registry.gpte-hw-cicd.svc.cluster.local:5000
 }
 pipeline {
@@ -65,9 +67,9 @@ pipeline {
             }
           }
           println "releaseTag = ${releaseTag}"
-          println "releaseDate = ${releaseDate}" 
           version = releaseTag.split('-')[0]
           println "version = ${version}"
+          println "tag = ${tag}"
         }
       }
     }
