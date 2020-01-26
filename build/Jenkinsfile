@@ -49,6 +49,19 @@ pipeline {
         }
       }
     }
+    // Build the JAR
+    stage('Build Binary') {
+      steps {
+
+        dir('code') {
+
+          echo "Building binary for ${imageName}"
+          script {
+            sh(script: '${mvnCmd} clean package -DskipTests=true', returnStdout: 'true')
+          }
+        }
+      }
+    }
     // Test
     stage('Test') {
       parallel {
@@ -71,19 +84,6 @@ pipeline {
                 sh "${mvnCmd} sonar:sonar -Dsonar.host.url=${env.SONARQUBE_SVC} -Dsonar.projectName=${imageName}-${devTag} -Dsonar.projectVersion=${devTag}"
               }
             }
-          }
-        }
-      }
-    }
-    // Build the JAR
-    stage('Build Binary') {
-      steps {
-
-        dir('code') {
-
-          echo "Building binary for ${imageName}"
-          script {
-            sh(script: '${mvnCmd} clean package -DskipTests=true', returnStdout: 'true')
           }
         }
       }
