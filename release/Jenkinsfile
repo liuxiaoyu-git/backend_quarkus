@@ -44,7 +44,7 @@ pipeline {
                 it.metadata.name
               }
               .findAll {
-                it.startsWith '${imageName}:'
+                it.startsWith 'backend:'
               }
               .collect {
                 it.replaceAll(/backend:(.*)/, "\$1")
