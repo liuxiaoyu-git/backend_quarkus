@@ -145,7 +145,7 @@ pipeline {
               openshift.apply(
                 openshift.process(
                   "-f", template,
-                  "-p", "IMAGE_TAG=${devTag}"
+                  "-p", "IMAGE_TAG=${devTag}",
                   "-p", "APP_VERSION=${version}"
                 )
               )
