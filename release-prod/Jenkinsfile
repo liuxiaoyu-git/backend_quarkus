@@ -194,7 +194,7 @@ pipeline {
                     println "Blue/Green Deployment"
                     openshift.withCluster() {
                         openshift.withProject(env.PROD_PROJECT) {
-                            activeApp = openshift.selector("route", "tasks").object().spec.to.name
+                            activeApp = openshift.selector("route", "${imageName}").object().spec.to.name
                             if (activeApp == "${imageName}-green") {
                                 destApp = "${imageName}-blue"
                             }
