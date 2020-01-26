@@ -198,6 +198,9 @@ pipeline {
                             if (activeApp == "${imageName}-green") {
                                 destApp = "${imageName}-blue"
                             }
+                            if (activeApp == "${imageName}-blue") {
+                                destApp = "${imageName}-green"
+                            }
                             println "Active Application = ${activeApp}"
                             println "Destination Application = ${destApp}"
                             def dc = openshift.selector("dc/${destApp}").object()
