@@ -81,11 +81,10 @@ pipeline {
         script {
           openshift.withCluster() {
             openshift.withProject(env.CICD_PROJECT) {
-              echo "Releasing image  ${imageName}:${selectTag} to ${env.NEXUS_REGISTRY_SVC}"
+              println "Releasing image  ${imageName}:${selectTag} to ${env.NEXUS_REGISTRY_SVC}"
               sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds admin:password1234 docker://image-registry.openshift-image-registry.svc.cluster.local:5000/${env.CICD_PROJECT}/${imageName}:${selectTag} ${env.NEXUS_REGISTRY_SVC}/${imageName}:${releaseTag}"
               openshift.tag("${imageName}:${selectTag}", "${imageName}:${releaseTag}")
             }
-            
           }
         }
       }
@@ -135,7 +134,8 @@ pipeline {
     // Create Deployment Config
     stage('Create Deployment Config') {
       steps {
-        echo "Create deployment config: env.STAGE_PROJECT"
+        println "Deploy to: env.STAGE_PROJECT"
+        println "IMAGE_TAG = ${releaseTag}"
         script {
           openshift.withCluster() {
             openshift.withProject(env.STAGE_PROJECT) {
@@ -148,7 +148,6 @@ pipeline {
                   "-p", "APP_VERSION=${version}"
                 )
               )
-              //openshift.selector("dc", "${imageName}").rollout().pause();
             }
           }
         }
