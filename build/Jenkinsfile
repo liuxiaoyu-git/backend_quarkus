@@ -198,7 +198,7 @@ pipeline {
                 openshift.process(
                   "-f", template,
                   "-p", "IMAGE_TAG=${devTag}",
-                  "-p", "BACKEND_URL=${env.BACKEND_URL}",
+                  "-p", "app.version=${env.BACKEND_URL}",
                   "-p", "APP_VERSION=${version}"
                 )
               )
