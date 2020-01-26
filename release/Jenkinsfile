@@ -30,6 +30,7 @@ pipeline {
   environment {
     //mvnCmd = "/opt/apache-maven-3.6.3/bin/mvn "
     mvnCmd ="/opt/apache-maven-3.6.3/bin/mvn -s ./nexus_settings.xml "
+    imageName="backend"
   }
   stages {
     stage('Choose Staging Version') {
@@ -43,7 +44,7 @@ pipeline {
                 it.metadata.name
               }
               .findAll {
-                it.startsWith 'backend:'
+                it.startsWith '${imageName}:'
               }
               .collect {
                 it.replaceAll(/backend:(.*)/, "\$1")
@@ -74,8 +75,8 @@ pipeline {
         script {
           openshift.withCluster() {
             openshift.withProject(env.CICD_PROJECT) {
-              echo "Releasing image  ${version} ${releaseTag} to ${env.NEXUS_REGISTRY}"
-              sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds admin:password1234 docker://image-registry.openshift-image-registry.svc.cluster.local:5000/${devProject}/${imageName}:${releaseTag} ${env.NEXUS_REGISTRY}/${imageName}:${releaseTag}"
+              echo "Releasing image  ${imageName}:${releaseTag} to ${env.NEXUS_REGISTRY}"
+              sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds admin:password1234 docker://image-registry.openshift-image-registry.svc.cluster.local:5000/${env.CICD_PROJECT}/${imageName}:${releaseTag} ${env.NEXUS_REGISTRY}/${imageName}:${releaseTag}"
             }
           }
         }
