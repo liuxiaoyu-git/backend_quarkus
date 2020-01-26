@@ -25,7 +25,6 @@ pipeline {
     version = ""
     imageName = "backend"
     devTag = "0.0-0"
-    backendURL = env.BACKEND_URL
   }
   stages {
     // Checkout Source Code.
@@ -41,7 +40,7 @@ pipeline {
             echo "Image Name: ${imageName}"
             echo "version: ${version}"
             echo "devTag: ${devTag}"
-            echo "Backend URL: "
+            echo "Backend URL: ${env.BACKEND_URL}"
             echo "CICD Project: ${env.CICD_PROJECT}"
             echo "Development Project: ${env.DEV_PROJECT}"
             // Patch Source artifactId to include GUID
@@ -199,7 +198,7 @@ pipeline {
                 openshift.process(
                   "-f", template,
                   "-p", "IMAGE_TAG=${devTag}",
-                  "-p", "BACKEND_URL=${backendURL}",
+                  "-p", "BACKEND_URL=${env.BACKEND_URL}",
                   "-p", "APP_VERSION=${version}"
                 )
               )
