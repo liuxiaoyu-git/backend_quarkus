@@ -76,44 +76,23 @@ pipeline {
           openshift.withCluster() {
             openshift.withProject(env.CICD_PROJECT) {
               echo "Releasing image  ${imageName}:${releaseTag} to ${env.NEXUS_REGISTRY}"
-              sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds admin:password1234 docker://image-registry.openshift-image-registry.svc.cluster.local:5000/${env.CICD_PROJECT}/${imageName}:${releaseTag} ${env.NEXUS_REGISTRY}/${imageName}:${releaseTag}"
+              sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds admin:password1234 docker://image-registry.openshift-image-registry.svc.cluster.local:5000/${env.CICD_PROJECT}/${imageName}:${releaseTag} ${env.NEXUS_REGISTRY_SVC}/${imageName}:${releaseTag}"
             }
           }
         }
       }
     }
-    // stage('Tear-Down Stage') {
-    //   steps {
-    //     script {
-    //       openshift.withCluster() {
-    //         openshift.withProject(env.STAGE_PROJECT) {
-    //           println "Tear-Down project ${env.STAGE_PROJECT}"
-    //           openshift.raw("delete all -l app=${appName}")
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
-    // stage('Deploy Staging') {
-    //   steps {
-    //     script {
-    //       openshift.withCluster() {
-    //         openshift.withProject(env.STAGE_PROJECT) {
-    //           println "Deploy project ${env.STAGE_PROJECT}"
-    //           def template = "${basePath}/templates/deploy-sit/frontend-sit-template.yml"
-    //           openshift.apply(
-    //             openshift.process(
-    //               "-f", template,
-    //               "-p", "IMAGE_NAMESPACE=${imageNamespace}",
-    //               "-p", "IMAGE_VERSION=${version}-${releaseTag}",
-    //               "-p", "APP_VERSION=${version}",
-    //               "-p", "BACKEND_URL=${backendURL}"
-    //             )
-    //           )
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
+    stage('Tear-Down Stage') {
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.STAGE_PROJECT) {
+              println "Tear-Down project ${env.STAGE_PROJECT}"
+              openshift.raw("delete all -l app=${imageName}")
+            }
+          }
+        }
+      }
+    }
    }
 }

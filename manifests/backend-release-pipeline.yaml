@@ -23,15 +23,7 @@ spec:
         value: stage
       - name: CICD_PROJECT
         value: ci-cd
-      - name: NEXUS_REGISTRY
-        value: docker://nexus:5000
-      #- name: DEV_PROJECT
-      #  value: dev
-      # - name: BACKEND_URL
-      #   value: https://httpbin.org/status/200
-      # - name: PRIVATE_REGISTRY
-      #   value: http://nexus3:8081/repository/npm-registry
-      # - name: REGISTRY
-      #   value: http://nexus3:8081/repository/npm-group
+      - name: NEXUS_REGISTRY_SVC
+        value: docker://nexus-registry:5000
       jenkinsfilePath: Jenkinsfile
     type: JenkinsPipeline
