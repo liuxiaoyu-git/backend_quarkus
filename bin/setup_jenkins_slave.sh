@@ -1,6 +1,6 @@
 #!/bin/bash
 PROJECT=ci-cd
-JENKINS_SLAVE=maven36
+JENKINS_SLAVE=maven36-with-tools
 # oc new-build --binary --name=${JENKINS_SLAVE} -l app=${JENKINS_SLAVE} -n ${PROJECT}
 # oc patch bc/${JENKINS_SLAVE} -p "{\"spec\":{\"strategy\":{\"dockerStrategy\":{\"dockerfilePath\":\"maven-slave/Dockerfile\"}}}}"
 # oc start-build ${JENKINS_SLAVE} --from-dir=. --follow

@@ -1,14 +1,14 @@
-def JENKINS_SLAVE_IMAGE = "maven36"
+def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
 pipeline {
   agent {
     kubernetes {
-      label "maven36-custom"
+      label "maven36-with-tools"
       cloud "openshift"
       inheritFrom "maven"
       containerTemplate {
         name "jnlp"
         image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
-        resourceRequestMemory "1Gi"
+        resourceRequestMemory "600Mi"
         resourceLimitMemory "2Gi"
         resourceRequestCpu "1"
         resourceLimitCpu "2"
@@ -17,13 +17,12 @@ pipeline {
   }
   options {
     // set a timeout of 30 minutes for this pipeline
-    timeout(time: 40, unit: 'MINUTES')
+    echo "Pipeline timeout is 30 minutes"
+    timeout(time: 30, unit: 'MINUTES')
   }
   environment {
-    //mvnCmd = "source /usr/local/bin/scl_enable && mvn -s ./nexus_settings.xml"
     mvnCmd = "/opt/apache-maven-3.6.3/bin/mvn "
     // mvnCmd ="mvn -s ./nexus_settings.xml "
-    //mvnCmd = "mvn "
     version = ""
     imageName = "backend"
     devTag = "0.0-0"
@@ -32,18 +31,18 @@ pipeline {
     // Checkout Source Code.
     stage('Checkout Source') {
       steps {
-        echo "imageName: ${imageName}"
-        echo "CICD Project: ${env.CICD_PROJECT}"
-        echo "Dev Project: ${env.DEV_PROJECT}"
-        //echo "prodProject: ${prodProject}"
+
         checkout scm
         dir('code') {
           script {
             def pom = readMavenPom file: 'pom.xml'
             version = pom.version
-            echo "version: ${version}"
             devTag = "${version}-" + currentBuild.number
+            echo "Image Name: ${imageName}"
+            echo "version: ${version}"
             echo "devTag: ${devTag}"
+            echo "CICD Project: ${env.CICD_PROJECT}"
+            echo "Development Project: ${env.DEV_PROJECT}"
             // Patch Source artifactId to include GUID
             //sh "sed -i 's/GUID/${GUID}/g' ./pom.xml"
           }
@@ -66,27 +65,21 @@ pipeline {
     //     dir('code') {
     //       script {
     //         echo "Running Code Analysis"
-    //         sh "${mvnCmd} sonar:sonar -Dsonar.host.url=${sonarURL} -Dsonar.projectName=${JOB_BASE_NAME}-${devTag} -Dsonar.projectVersion=${devTag}"
+    //         sh "${mvnCmd} sonar:sonar -Dsonar.host.url=${env.SONARQUBE_SVC} -Dsonar.projectName=${imageName}-${devTag} -Dsonar.projectVersion=${devTag}"
     //       }
     //     }
     //   }
     // }
+
     // Build the JAR
     stage('Build Binary') {
       steps {
 
         dir('code') {
 
-          echo "Building binary for ${imageName}:${devTag}"
+          echo "Building binary for ${imageName}"
           script {
-            // def check = sh(script: 'ls -ltr /opt/apache-maven-3.6.3/bin', returnStdout: true)
-            // echo "Check: ${check}"
-            //def mvnVersion = sh(script: '${mvnCmd} -version', returnStdout: true)
-            //def mvnLocation = sh(script: 'which ${mvnCmd}', returnStdout: true)
-            //echo "Maven Version: ${mvnVersion}"
-            //echo "Maven Location: ${mvnLocation}"
             sh(script:'${mvnCmd} clean package -DskipTests=true', returnStdout:'true')
-            //sh "${mvnCmd} clean package -DskipTests=true"
           }
         }
       }
@@ -103,7 +96,7 @@ pipeline {
         }
       }
       steps {
-        echo "Create build config ${imageName}"
+        echo "Create build config ${imageName}:latest"
         script {
           openshift.withCluster() {
             openshift.withProject(env.CICD_PROJECT) {
@@ -152,7 +145,8 @@ pipeline {
               openshift.apply(
                 openshift.process(
                   "-f", template,
-                  "-p", "APP_VERSION=${devTag}"
+                  "-p", "IMAGE_TAG=${devTag}"
+                  "-p", "APP_VERSION=${version}"
                 )
               )
               //openshift.selector("dc", "${imageName}").rollout().pause();
@@ -178,6 +172,30 @@ pipeline {
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
               def template = './manifests/backend-svc-dev.yaml'
+              openshift.apply(
+                openshift.process("-f", template)
+              )
+            }
+          }
+        }
+      }
+    }
+    // Create Route
+    stage('Create Route'){
+      when{
+        expression{
+          openshift.withCluster(){
+            openshift.withProject(env.DEV_PROJECT){
+              return !openshift.selector("route","${appName}").exists()
+            }
+          }
+        }
+      }
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.DEV_PROJECT) {
+              def template = './manifests/backend-route-dev.yaml'
               openshift.apply(
                 openshift.process("-f", template)
               )

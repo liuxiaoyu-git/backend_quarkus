@@ -27,12 +27,12 @@ spec:
           value: dev
         - name: CICD_PROJECT
           value: ci-cd
-        # - name: BACKEND_URL
-        #   value: https://httpbin.org/status/200
-        - name: PRIVATE_REGISTRY
-          value: http://nexus3:8081/repository/
-        - name: REGISTRY
-          value: http://nexus3:8081/repository/npm-group
+        - name: BACKEND_URL
+          value: https://httpbin.org/status/200
+        - name: NEXUS_SVC
+          value: http://nexus:8081
+        - name: SONARQUBE_SVC
+          value: http://sonarqube:9000
     type: JenkinsPipeline
   successfulBuildsHistoryLimit: 5
   triggers: []

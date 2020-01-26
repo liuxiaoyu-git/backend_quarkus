@@ -22,7 +22,10 @@ ENV PATH=/bin:$PATH:${JMETER_PATH}/bin:$SONAR_PATH/bin:${JFROG_PATH}
 
 WORKDIR /home/jenkins
 
-
+# Install Maven 3.6.3
+RUN curl -L -o /tmp/apache-maven-3.6.3-bin.zip https://www-eu.apache.org/dist/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.zip && \
+    unzip /tmp/apache-maven-3.6.3-bin.zip && \
+    mv 
 # Install Sonar Scanner
 RUN if [ -z $SONAR_VERSION ] ; then SONAR_VERSION=${SONAR_VERSION_1001} ; fi && \
     curl -L -o /tmp/sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_VERSION}.zip && \
