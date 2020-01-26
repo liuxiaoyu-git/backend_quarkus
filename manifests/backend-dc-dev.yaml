@@ -33,6 +33,9 @@ objects:
       metadata:
         creationTimestamp: null
         labels:
+          app: backend
+          version: ${APP_VERSION}
+          tag: ${IMAGE_TAG}
           deploymentconfig: backend
       spec:
         containers:
