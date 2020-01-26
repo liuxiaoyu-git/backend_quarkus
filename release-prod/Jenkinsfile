@@ -61,9 +61,9 @@ pipeline {
                                 )
                             }
                         }
-                        printlnln "selectTag = ${selectTag}"
+                        println "selectTag = ${selectTag}"
                         version = selectTag.split('-')[0]
-                        printlnln "version = ${version}"
+                        println "version = ${version}"
                     }
                 }
             }
@@ -187,16 +187,17 @@ pipeline {
                 }
             }
             stage('Blue/Green Deployment') {
-                println "Blue/Green Deployment"
+                
                 script {
+                    println "Blue/Green Deployment"
                     openshift.withCluster() {
                         openshift.withProject(env.PROD_PROJECT) {
                             activeApp = openshift.selector("route", "tasks").object().spec.to.name
                             if (activeApp == "${imageName}-green") {
                                 destApp = "${imageName}-blue"
                             }
-                            printlnln "Active Application = ${activeApp}"
-                            printlnln "Destination Application = ${destApp}"
+                            println "Active Application = ${activeApp}"
+                            println "Destination Application = ${destApp}"
                             def dc = openshift.selector("dc/${destApp}").object()
                             dc.spec.template.spec.containers[0].image = "image-registry.openshift-image-registry.svc:5000/${env.CICD_PROJECT}/${imageName}:${selectTag}"
                             openshift.apply(dc)
