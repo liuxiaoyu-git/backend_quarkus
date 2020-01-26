@@ -1,5 +1,6 @@
 import java.text.SimpleDateFormat
 def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
+def selectTag
 def releaseTag
 def tag
 node {
@@ -53,7 +54,7 @@ pipeline {
               }
               .sort()
             timeout(5) {
-              releaseTag = input(
+              selectTag = input(
                 ok: "Deploy Staging",
                 message: "Enter release version to promote to Staging",
                 parameters: [
@@ -66,10 +67,12 @@ pipeline {
               )
             }
           }
-          println "releaseTag = ${releaseTag}"
-          version = releaseTag.split('-')[0]
+          println "selectTag = ${selectTag}"
+          version = selectTag.split('-')[0]
           println "version = ${version}"
           println "tag = ${tag}"
+          releaseTag = version + "-" + tag
+          println "releaseTag = ${releaseTag}"
         }
       }
     }
