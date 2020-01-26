@@ -37,7 +37,6 @@ pipeline {
   environment {
     //mvnCmd = "/opt/apache-maven-3.6.3/bin/mvn "
     mvnCmd ="/opt/apache-maven-3.6.3/bin/mvn -s ./nexus_settings.xml "
-    echo "releaseTag:${releaseTag}"
   }
   stages {
     stage('Choose Staging Version') {
