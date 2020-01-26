@@ -60,8 +60,7 @@ pipeline {
             }
           }
         }
-        Using Maven call SonarQube
-        for Code Analysis
+        //Using Maven call SonarQube for Code Analysis
         stage('Code Analysis') {
           steps {
             dir('code') {
