@@ -39,7 +39,7 @@ objects:
           deploymentconfig: backend
       spec:
         containers:
-        - image: nexus-registry.ci-cd.svc.cluster.local:5000/backend:${IMAGE_TAG}
+        - image: image-registry.openshift-image-registry.svc:5000/ci-cd/backend:${IMAGE_TAG}
           imagePullPolicy: Always
           name: backend
           ports:
