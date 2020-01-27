@@ -30,43 +30,43 @@ pipeline {
     }
     stages {
         stage('Choose Production Version') {
-      steps {
-        script {
-          openshift.withCluster() {
-            namespace = openshift.project()
-            def tags = openshift.selector("istag")
-              .objects()
-              .collect {
-                it.metadata.name
-              }
-              .findAll {
-                it ==~ /^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)\-(.*)$/
-                //it.startsWith 'backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)'
-              }
-              .collect {
-                it.replaceAll(/backend:(.*)/, "\$1")
-              }
-              .sort()
-            timeout(5) {
-              selectTag = input(
-                ok: "Deploy Production",
-                message: "Enter version to deploy to Production",
-                parameters: [
-                  choice(
-                    choices: tags.join('\n'),
-                    description: '',
-                    name: 'Select Version'
-                  )
-                ]
-              )
+            steps {
+                script {
+                    openshift.withCluster() {
+                        namespace = openshift.project()
+                        def tags = openshift.selector("istag")
+                            .objects()
+                            .collect {
+                                it.metadata.name
+                            }
+                            .findAll {
+                                it == ~/^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)\-(.*)$/
+                                //it.startsWith 'backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)'
+                            }
+                            .collect {
+                                it.replaceAll(/backend:(.*)/, "\$1")
+                            }
+                            .sort()
+                        timeout(5) {
+                            selectTag = input(
+                                ok: "Deploy Production",
+                                message: "Enter version to deploy to Production",
+                                parameters: [
+                                    choice(
+                                        choices: tags.join('\n'),
+                                        description: '',
+                                        name: 'Select Version'
+                                    )
+                                ]
+                            )
+                        }
+                    }
+                    println "selectTag = ${selectTag}"
+                    version = selectTag.split('-')[0]
+                    println "version = ${version}"
+                }
             }
-          }
-          println "selectTag = ${selectTag}"
-          version = selectTag.split('-')[0]
-          println "version = ${version}"
         }
-      }
-    }
         stage('Create Deployment Config Blue') {
             when {
                 expression {
@@ -242,7 +242,24 @@ pipeline {
             }
         }
 
-
+        stage('Scale down previous version') {
+            steps {
+                timeout(time: 15, unit: 'MINUTES') {
+                    input message: "Scale down ${activeApp}", ok: "Approve"
+                }
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            println "scale down ${activeApp}"
+                            sh(script: "oc patch dc/${activeApp} -n ${env.PROD_PROJECT} -p '{\"spec\":{\"paused\":false}}'")
+                            def scaleDown = sh(script: "oc scale dc/${activeApp} -n ${env.PROD_PROJECT} --replicas=0", returnStdout: 'true')
+                            println "Result: ${activeApp}"
+                            //sh(script: "oc patch dc/${activeApp} -n ${env.PROD_PROJECT} -p '{\"spec\":{\"paused\":true}}'")
+                        }
+                    }
+                }
+            }
+        }
 
     }
 }
