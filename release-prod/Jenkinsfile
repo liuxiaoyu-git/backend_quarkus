@@ -251,7 +251,7 @@ pipeline {
                     openshift.withCluster() {
                         openshift.withProject(env.PROD_PROJECT) {
                             println "scale down ${activeApp}"
-                            sh(script: "oc patch dc/${activeApp} -n ${env.PROD_PROJECT} -p '{\"spec\":{\"paused\":false}}'")
+                            //sh(script: "oc patch dc/${activeApp} -n ${env.PROD_PROJECT} -p '{\"spec\":{\"paused\":false}}'")
                             def scaleDown = sh(script: "oc scale dc/${activeApp} -n ${env.PROD_PROJECT} --replicas=0", returnStdout: 'true')
                             println "Result: ${activeApp}"
                             //sh(script: "oc patch dc/${activeApp} -n ${env.PROD_PROJECT} -p '{\"spec\":{\"paused\":true}}'")
