@@ -20,12 +20,12 @@ pipeline {
         }
     }
     options {
-        // set a timeout of 20 minutes for this pipeline
-        timeout(time: 20, unit: 'MINUTES')
+        // set a timeout of 40 minutes for this pipeline
+        timeout(time: 40, unit: 'MINUTES')
     }
     environment {
         //mvnCmd = "/opt/apache-maven-3.6.3/bin/mvn "
-        mvnCmd = "/opt/apache-maven-3.6.3/bin/mvn -s ./nexus_settings.xml "
+        //mvnCmd = "/opt/apache-maven-3.6.3/bin/mvn -s ./nexus_settings.xml "
         imageName = "backend"
     }
     stages {
