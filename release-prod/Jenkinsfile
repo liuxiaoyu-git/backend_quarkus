@@ -86,7 +86,7 @@ pipeline {
                                     "-p", "BACKEND_URL=${env.BACKEND_URL}",
                                     "-p", "APP_VERSION=${version}")
                             )
-                            openshift.selector("dc", "${imageName}-blue").rollout().pause()
+                            //openshift.selector("dc", "${imageName}-blue").rollout().pause()
 
 
                         }
@@ -115,7 +115,7 @@ pipeline {
                                     "-p", "BACKEND_URL=${env.BACKEND_URL}",
                                     "-p", "APP_VERSION=${version}")
                             )
-                            openshift.selector("dc", "${imageName}-green").rollout().pause()
+                            //openshift.selector("dc", "${imageName}-green").rollout().pause()
                         }
                     }
                 }
@@ -210,14 +210,14 @@ pipeline {
                             openshift.apply(dc)
                             // Set config map here
                             // Deploy Inactive App
-                            isPaused = openshift.selector("dc/${destApp}").object().paused
+                            // isPaused = openshift.selector("dc/${destApp}").object().paused
                             
-                            if( isPaused == "true"){
-                                println "${destApp} is paused"
-                                openshift.selector("dc", "${destApp}").rollout().resume();
-                            }else{
-                                println "${destApp} is not paused"
-                            }
+                            // if( isPaused == "true"){
+                            //     println "${destApp} is paused"
+                            //     openshift.selector("dc", "${destApp}").rollout().resume();
+                            // }else{
+                            //     println "${destApp} is not paused"
+                            // }
                             // Wait for app to deploy
                             def dc_prod = openshift.selector("dc", "${destApp}").object()
                             def dc_version = dc_prod.status.latestVersion

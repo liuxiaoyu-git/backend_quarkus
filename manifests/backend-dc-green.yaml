@@ -73,7 +73,7 @@ objects:
         schedulerName: default-scheduler
         securityContext: {}
         terminationGracePeriodSeconds: 30
-  triggers: []
+    triggers: []
 parameters:
 - displayName: Application version
   description: Version of application
