@@ -218,6 +218,7 @@ pipeline {
                             // }else{
                             //     println "${destApp} is not paused"
                             // }
+                            openshift.selector("dc", "${destApp}").rollout().latest();
                             // Wait for app to deploy
                             def dc_prod = openshift.selector("dc", "${destApp}").object()
                             def dc_version = dc_prod.status.latestVersion
