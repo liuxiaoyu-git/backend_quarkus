@@ -24,8 +24,6 @@ pipeline {
         timeout(time: 40, unit: 'MINUTES')
     }
     environment {
-        //mvnCmd = "/opt/apache-maven-3.6.3/bin/mvn "
-        //mvnCmd = "/opt/apache-maven-3.6.3/bin/mvn -s ./nexus_settings.xml "
         imageName = "backend"
     }
     stages {
@@ -88,6 +86,9 @@ pipeline {
                                     "-p", "BACKEND_URL=${env.BACKEND_URL}",
                                     "-p", "APP_VERSION=${version}")
                             )
+                            openshift.selector("dc", "${imageName}-blue").rollout().pause()
+
+
                         }
                     }
                 }
@@ -114,6 +115,7 @@ pipeline {
                                     "-p", "BACKEND_URL=${env.BACKEND_URL}",
                                     "-p", "APP_VERSION=${version}")
                             )
+                            openshift.selector("dc", "${imageName}-green").rollout().pause()
                         }
                     }
                 }
@@ -208,7 +210,7 @@ pipeline {
                             openshift.apply(dc)
                             // Set config map here
                             // Deploy Inactive App
-                            //openshift.selector("dc", "${destApp}").rollout().latest();
+                            openshift.selector("dc", "${destApp}").rollout().resume();
                             // Wait for app to deploy
                             def dc_prod = openshift.selector("dc", "${destApp}").object()
                             def dc_version = dc_prod.status.latestVersion

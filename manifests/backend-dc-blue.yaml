@@ -90,14 +90,3 @@ parameters:
   name: BACKEND_URL
   required: true
   value: ${BACKEND_URL}
-  # triggers:
-  # - type: ConfigChange
-  # - imageChangeParams:
-  #     automatic: true
-  #     containerNames:
-  #     - backend
-  #     from:
-  #       kind: ImageStreamTag
-  #       name: backend:latest
-  #       namespace: ci-cd
-  #   type: ImageChange
