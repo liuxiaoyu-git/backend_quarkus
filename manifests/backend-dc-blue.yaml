@@ -6,17 +6,17 @@ objects:
 - apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
   metadata:
-    name: backend
+    name: backend-blue
     annotations:
       app.openshift.io/vcs-ref: master
       app.openshift.io/vcs-uri: 'https://gitlab.com/ocp-demo/backend-quarkus.git'
     labels:
-      app: backend
+      app: backend-blue
       version: ${APP_VERSION}
       tag: ${IMAGE_TAG}
-      name: backend
-      app.kubernetes.io/component: backend
-      app.kubernetes.io/instance: backend
+      name: backend-blue
+      app.kubernetes.io/component: backend-blue
+      app.kubernetes.io/instance: backend-blue
       app.kubernetes.io/name: java
       app.kubernetes.io/part-of: group-1
       app.openshift.io/runtime: java
