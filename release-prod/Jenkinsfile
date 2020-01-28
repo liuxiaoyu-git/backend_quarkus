@@ -210,12 +210,20 @@ pipeline {
                             openshift.apply(dc)
                             // Set config map here
                             // Deploy Inactive App
-                            openshift.selector("dc", "${destApp}").rollout().resume();
+                            isPaused = openshift.selector("dc/${destApp}").object().paused
+                            
+                            if( isPaused == "true"){
+                                println "${destApp} is paused"
+                                openshift.selector("dc", "${destApp}").rollout().resume();
+                            }else{
+                                println "${destApp} is not paused"
+                            }
                             // Wait for app to deploy
                             def dc_prod = openshift.selector("dc", "${destApp}").object()
                             def dc_version = dc_prod.status.latestVersion
                             def rc_prod = openshift.selector("rc", "${destApp}-${dc_version}").object()
                             echo "Waiting for ${destApp} to be ready"
+                            
                             while (rc_prod.spec.replicas != rc_prod.status.readyReplicas) {
                                 sleep 5
                                 rc_prod = openshift.selector("rc", "${destApp}-${dc_version}").object()
