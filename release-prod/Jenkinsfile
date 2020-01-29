@@ -60,11 +60,11 @@ pipeline {
               )
             }
           }
-          println "selectTag = ${selectTag}"
+          echo "selectTag = ${selectTag}"
           version = selectTag.split('-')[0]
-          println "version = ${version}"
+          echo "version = ${version}"
           tag = selectTag.split('-')[1]+"-"+selectTag.split('-')[2]
-          println "tag = ${tag}"
+          echo "tag = ${tag}"
         }
       }
     }
@@ -196,7 +196,7 @@ pipeline {
         stage('Blue/Green Deployment') {
             steps {
                 script {
-                    println "Blue/Green Deployment"
+                    echo "Blue/Green Deployment"
                     openshift.withCluster() {
                         openshift.withProject(env.PROD_PROJECT) {
                             activeApp = openshift.selector("route", "${imageName}").object().spec.to.name
@@ -206,15 +206,15 @@ pipeline {
                             if (activeApp == "${imageName}-blue") {
                                 destApp = "${imageName}-green"
                             }
-                            println "Active Application = ${activeApp}"
-                            println "Destination Application = ${destApp}"
+                            echo "Active Application = ${activeApp}"
+                            echo "Destination Application = ${destApp}"
                             numOfpods = openshift.selector("dc", "${activeApp}").object().spec.replicas
-                            println "${activeApp} run with ${numOfpods} pods"
+                            echo "${activeApp} run with ${numOfpods} pods"
                             def dc = openshift.selector("dc/${destApp}").object()
                             dc.spec.template.spec.containers[0].image = "image-registry.openshift-image-registry.svc:5000/${env.CICD_PROJECT}/${imageName}:${selectTag}"
                             dc.spec.replicas = numOfpods
-                            dc.metadata.labels["xyz"] = selectTag
-                            dc.metadata.labels["abc"] = version
+                            dc.metadata.labels["tag"] = tag
+                            dc.metadata.labels["version"] = version
                             openshift.apply(dc)
                             // Set config map here
                             // -- code for setting config map here -- 
@@ -260,7 +260,7 @@ pipeline {
                 script {
                     openshift.withCluster() {
                         openshift.withProject(env.PROD_PROJECT) {
-                            println "scale down ${activeApp}"
+                            echo "scale down ${activeApp}"
                             def dc = openshift.selector("dc/${activeApp}").object()
                             dc.spec.replicas = 0
                             openshift.apply(dc)

@@ -18,7 +18,7 @@ objects:
       app.kubernetes.io/component: backend-blue
       app.kubernetes.io/instance: backend-blue
       app.kubernetes.io/name: java
-      app.kubernetes.io/part-of: group-1
+      app.kubernetes.io/part-of: group-blue
       app.openshift.io/runtime: java
       app.openshift.io/runtime-version: '8'
   spec:
