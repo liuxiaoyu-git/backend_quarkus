@@ -44,6 +44,10 @@ All templates are in directory link:../manifests[manifests]
 Start pipeline via CLI by oc command
 ----
 oc start-build backend-build-pipeline.yaml -n ci-cd
-oc logs build/backend-build-pipeline-1 -n ci-cd
+oc logs build/backend-build-pipeline-<build number> -n ci-cd
 # Open URL show in log for open Jenkins
 ----
+
+Sample build pipeline result. Remark that Build Config already avaiable when this pipeline run then this step is skipped.
+
+image::imagesdir/build-pipeline.png[]
