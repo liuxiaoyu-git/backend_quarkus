@@ -1,2 +1,2 @@
-= Sample Quarkus Application:backend application
-Sample quarkus application with Jenkins CI/CD 
+= Sample Quarkus Application with Jenkins Pipeline
+WIP
