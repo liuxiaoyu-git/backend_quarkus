@@ -1,0 +1,74 @@
+= Sample Quarkus Application:backend application
+
+== Application Overview
+configuration can be set via environment variable or config/application.properties file
+
+[options=header]
+|===
+|Variable|Description|Default Value
+|app.version|Application Version|1.0.0-SNAPSHOT
+|app.backend|target URL that backend request to|http://localhost:8080/version
+|app.message|Message return from application|Hello, World
+|===
+
+URI supported by application
+[options=header]
+|===
+|URI|Description
+|/version|Return application version
+|/version|Return application version
+|/status|Return liveness and readiness
+|/stop|Set liveness to false
+|/start|Set liveness to true
+|/not_ready|Set readiness to false
+|/ready|Set readiness to true
+|/health/live|Livenness probe URL
+|/health/ready|Readiness probe URL
+|===
+== Deploy to OpenShift (JVM Mode)
+* Create binary build and patch to change strategy to docker strategy
+[source,bash]
+----
+oc new-build --binary --name=backend -l app=backend
+oc patch bc/backend -p "{\"spec\":{\"strategy\":{\"dockerStrategy\":{\"dockerfilePath\":\"src/main/docker/Dockerfile.jvm\"}}}}"
+----
+
+* Start build from current directory. Remark that this directory is base directory for src/main/docker/Dockerfile.jvm
+[source,bash]
+----
+oc start-build backend --from-dir=. --follow
+----
+
+* Start deploy
+[source,bash]
+----
+oc new-app --image-stream=backend:latest
+----
+
+* Pause deployment, set rediness and liveness probe
+[source,bash]
+----
+oc rollout pause dc backend
+oc set probe dc/backend --readiness --get-url=http://:8080/health/ready --initial-delay-seconds=15 --failure-threshold=1 --period-seconds=10
+oc set probe dc/backend --liveness --get-url=http://:8080/health/live --initial-delay-seconds=10 --failure-threshold=3 --period-seconds=10
+----
+
+* Quarkus will overwrite configuration with config/application.properites
+[source,bash]
+----
+oc delete configmap backend
+oc create configmap backend --from-file=config/application.properties
+oc set volume dc/backend --add --name=backend-config \
+--mount-path=/deployments/config/application.properties \
+--sub-path=application.properties \
+--configmap-name=backend
+----
+
+* Expose service (create route) and resume rollout
+[source,path]
+----
+oc expose svc backend
+oc rollout resume dc backend
+BACKEND_URL=$(oc get route backend -o jsonpath='{.spec.host}')
+echo "Backend: http://$BACKEND_URL"
+----

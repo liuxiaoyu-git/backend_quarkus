@@ -90,7 +90,7 @@ pipeline {
                                     "-p", "MESSAGE=I am blue version",
                                     "-p", "APP_VERSION=${version}")
                             )
-                            //openshift.selector("dc", "${imageName}-blue").rollout().pause()
+                            
 
 
                         }
@@ -120,7 +120,7 @@ pipeline {
                                     "-p", "MESSAGE=I am green version",
                                     "-p", "APP_VERSION=${version}")
                             )
-                            //openshift.selector("dc", "${imageName}-green").rollout().pause()
+                            
                         }
                     }
                 }
