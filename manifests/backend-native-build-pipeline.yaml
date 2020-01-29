@@ -12,7 +12,7 @@ spec:
   resources: {}
   runPolicy: Serial
   source:
-    contextDir: build
+    contextDir: build-native
     git:
       ref: master
       uri: https://gitlab.com/ocp-demo/backend_quarkus.git
