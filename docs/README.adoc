@@ -42,6 +42,7 @@ All templates are in directory link:../manifests[manifests]
 |===
 
 Start pipeline via CLI by oc command
+[source,bash]
 ----
 oc start-build backend-build-pipeline.yaml -n ci-cd
 oc logs build/backend-build-pipeline-<build number> -n ci-cd
@@ -51,3 +52,24 @@ oc logs build/backend-build-pipeline-<build number> -n ci-cd
 Sample build pipeline result. Remark that Build Config already avaiable when this pipeline run then this step is skipped.
 
 image::imagesdir/build-pipeline.png[]
+
+Check that backend app pod is created in dev project with label version and tag.
+[source,bash]
+----
+oc get pods -n dev
+oc get pod <pod name> -o yaml -n dev
+----
+
+Sample output from build number 19 with app version 1.0.0 (This is from pom.xml)
+[source,bash]
+----
+...
+labels:
+    app: backend
+    deployment: backend-1
+    deploymentconfig: backend
+    tag: 1.0.0-19
+    version: 1.0.0
+  name: backend-1-jsdhv
+...
+----
