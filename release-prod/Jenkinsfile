@@ -87,6 +87,7 @@ pipeline {
                                 openshift.process("-f", template,
                                     "-p", "IMAGE_TAG=0.0.0",
                                     "-p", "BACKEND_URL=${env.BACKEND_URL}",
+                                    "-p", "MESSAGE=I am blue version",
                                     "-p", "APP_VERSION=${version}")
                             )
                             //openshift.selector("dc", "${imageName}-blue").rollout().pause()
@@ -116,6 +117,7 @@ pipeline {
                                 openshift.process("-f", template,
                                     "-p", "IMAGE_TAG=0.0.0",
                                     "-p", "BACKEND_URL=${env.BACKEND_URL}",
+                                    "-p", "MESSAGE=I am green version",
                                     "-p", "APP_VERSION=${version}")
                             )
                             //openshift.selector("dc", "${imageName}-green").rollout().pause()
