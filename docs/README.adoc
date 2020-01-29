@@ -1,0 +1,50 @@
+= CI/CD with Jenkins
+
+
+
+:toc:
+
+
+
+== Create OpenShift Project, Jenkins, Nexus and SonarQube
+
+Run following script in directory bin
+----
+cd bin
+# Create project ci-cd, jenkins, nexus and sonarqube
+./setup_ci_cd_tools.sh
+# Create Jenkins slave with Maven 3.6 and Skopeo
+./setup_maven36_slave.sh
+# Create projects for dev,stage,uat and production
+./setup_projects.sh
+----
+
+== Crete Pipelines
+Create pipelines in ci-cd project with oc command
+----
+oc apply -f manifests/backend-build-pipeline.yaml -n ci-cd
+oc apply -f manifests/backend-release-pipeline.yaml -n ci-cd
+oc apply -f manifests/backend-release-uat-pipeline.yaml -n ci-cd
+oc apply -f manifests/backend-release-prod-pipeline.yaml -n ci-cd
+----
+
+Pipelines details
+All templates are in directory link:../manifests[manifests]
+
+[options=header]
+|===
+|Pipelines|Description|Jenkinsfile Location
+|backend-build-pipeline|Use S2I to create container image, run Unit Test, SonarQube scan, archive JAR to nexus and deploy to Development project|link:../build/Jenkinsfile[build/Jenkinsfile]
+|backend-release-pipeline|Select image from image tag to deploy to Staging project,tag image with YYYYMMDD-<build number> and archive container image to Nexus|link:../release/Jenkinsfile[release/Jenkinsfile]
+|backend-release-uat-pipeline|Select image from image tag to deploy to UAT project. Only image with tag YYYYMMDD-<build number> can be selected|link:../release-uat/Jenkinsfile[release-uat/Jenkinsfile]
+|backend-release-prod-pipeline|Select image from image to deploy to production with blue/green deployment. Only image with tag YYYYMMDD-<build number> can be selected|link:../release-prod/Jenkinsfile[release-prod/Jenkinsfile]
+|===
+
+
+
+
+
+
+
+
+

@@ -4,14 +4,9 @@ Simple RESTful App with sample Jenkinsfile for CI/CD process and related command
 
 :toc:
 
-
-
-== Directory Structure
-
-
 == Sample Quarkus Application
 See detail in link:./code/README.adoc[Backend App]
 
 == CI/CD with Jenkins
-Document is WIP
+See detail in link:./docs/README.adoc[Jenkins & OpenShift]
 

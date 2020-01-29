@@ -29,45 +29,45 @@ pipeline {
     }
     stages {
         stage('Choose Production Version') {
-      steps {
-        script {
-          openshift.withCluster() {
-            namespace = openshift.project()
-            def tags = openshift.selector("istag")
-              .objects()
-              .collect {
-                it.metadata.name
-              }
-              .findAll {
-                it ==~ /^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)\-(.*)$/
-                //it.startsWith 'backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)'
-              }
-              .collect {
-                it.replaceAll(/backend:(.*)/, "\$1")
-              }
-              .sort()
-            timeout(5) {
-              selectTag = input(
-                ok: "Deploy Production",
-                message: "Enter release version to promote to Production",
-                parameters: [
-                  choice(
-                    choices: tags.join('\n'),
-                    description: '',
-                    name: 'Select Version'
-                  )
-                ]
-              )
+            steps {
+                script {
+                    openshift.withCluster() {
+                        namespace = openshift.project()
+                        def tags = openshift.selector("istag")
+                            .objects()
+                            .collect {
+                                it.metadata.name
+                            }
+                            .findAll {
+                                it == ~/^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)\-(.*)$/
+                                //it.startsWith 'backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)'
+                            }
+                            .collect {
+                                it.replaceAll(/backend:(.*)/, "\$1")
+                            }
+                            .sort()
+                        timeout(5) {
+                            selectTag = input(
+                                ok: "Deploy Production",
+                                message: "Enter release version to promote to Production",
+                                parameters: [
+                                    choice(
+                                        choices: tags.join('\n'),
+                                        description: '',
+                                        name: 'Select Version'
+                                    )
+                                ]
+                            )
+                        }
+                    }
+                    echo "selectTag = ${selectTag}"
+                    version = selectTag.split('-')[0]
+                    echo "version = ${version}"
+                    tag = selectTag.split('-')[1] + "-" + selectTag.split('-')[2]
+                    echo "tag = ${tag}"
+                }
             }
-          }
-          echo "selectTag = ${selectTag}"
-          version = selectTag.split('-')[0]
-          echo "version = ${version}"
-          tag = selectTag.split('-')[1]+"-"+selectTag.split('-')[2]
-          echo "tag = ${tag}"
         }
-      }
-    }
         stage('Create Deployment Config Blue') {
             when {
                 expression {
@@ -90,7 +90,7 @@ pipeline {
                                     "-p", "MESSAGE=I am blue version",
                                     "-p", "APP_VERSION=${version}")
                             )
-                            
+
 
 
                         }
@@ -120,7 +120,7 @@ pipeline {
                                     "-p", "MESSAGE=I am green version",
                                     "-p", "APP_VERSION=${version}")
                             )
-                            
+
                         }
                     }
                 }
@@ -228,7 +228,7 @@ pipeline {
                             def dc_version = dc_prod.status.latestVersion
                             def rc_prod = openshift.selector("rc", "${destApp}-${dc_version}").object()
                             echo "Waiting for ${destApp} to be ready"
-                            
+
                             while (rc_prod.spec.replicas != rc_prod.status.readyReplicas) {
                                 sleep 5
                                 rc_prod = openshift.selector("rc", "${destApp}-${dc_version}").object()
