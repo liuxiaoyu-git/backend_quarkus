@@ -9,6 +9,7 @@
 == Create OpenShift Project, Jenkins, Nexus and SonarQube
 
 Run following script in directory bin
+[source,bash]
 ----
 cd bin
 # Create project ci-cd, jenkins, nexus and sonarqube
@@ -19,7 +20,7 @@ cd bin
 ./setup_projects.sh
 ----
 
-== Crete Pipelines
+== Jenkins Pipelines
 Create pipelines in ci-cd project with oc command
 ----
 oc apply -f manifests/backend-build-pipeline.yaml -n ci-cd
@@ -40,11 +41,9 @@ All templates are in directory link:../manifests[manifests]
 |backend-release-prod-pipeline|Select image from image to deploy to production with blue/green deployment. Only image with tag YYYYMMDD-<build number> can be selected|link:../release-prod/Jenkinsfile[release-prod/Jenkinsfile]
 |===
 
-
-
-
-
-
-
-
-
+Start pipeline via CLI by oc command
+----
+oc start-build backend-build-pipeline.yaml -n ci-cd
+oc logs build/backend-build-pipeline-1 -n ci-cd
+# Open URL show in log for open Jenkins
+----
