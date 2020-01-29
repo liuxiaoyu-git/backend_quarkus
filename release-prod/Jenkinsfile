@@ -1,5 +1,6 @@
 def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
 def selectTag
+def tag
 def version
 def activeApp
 def destApp
@@ -62,6 +63,8 @@ pipeline {
           println "selectTag = ${selectTag}"
           version = selectTag.split('-')[0]
           println "version = ${version}"
+          tag = selectTag.split('-')[1]+"-"+selectTag.split('-')[2]
+          println "tag = ${tag}"
         }
       }
     }
@@ -217,7 +220,6 @@ pipeline {
                             // -- code for setting config map here -- 
                             // Wait for app to deploy
                             openshift.selector("dc", "${destApp}").rollout().latest();
-                            
                             def dc_prod = openshift.selector("dc", "${destApp}").object()
                             def dc_version = dc_prod.status.latestVersion
                             def rc_prod = openshift.selector("rc", "${destApp}-${dc_version}").object()
