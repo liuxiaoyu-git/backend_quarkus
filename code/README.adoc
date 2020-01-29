@@ -85,3 +85,5 @@ oc rollout resume dc backend
 BACKEND_URL=$(oc get route backend -o jsonpath='{.spec.host}')
 echo "Backend: http://$BACKEND_URL"
 ----
+
+All in one shell script => link:build.sh[build.sh]
