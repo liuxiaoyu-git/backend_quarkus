@@ -66,6 +66,10 @@ objects:
           env:
             - name: app.backend
               value: ${BACKEND_URL}
+            - name: app.version
+              value: ${APP_VERSION}
+            - name: app.message
+              value: ${MESSAGE}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
         dnsPolicy: ClusterFirst
@@ -89,6 +93,11 @@ parameters:
   name: BACKEND_URL
   required: true
   value: ${BACKEND_URL}
+- displayName: MESSAGE
+  description: Meesage return from app
+  name: MESSAGE
+  required: false
+  value: ${MESSAGE}
   # triggers:
   # - type: ConfigChange
   # - imageChangeParams:
