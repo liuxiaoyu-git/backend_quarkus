@@ -213,8 +213,8 @@ pipeline {
                             def dc = openshift.selector("dc/${destApp}").object()
                             dc.spec.template.spec.containers[0].image = "image-registry.openshift-image-registry.svc:5000/${env.CICD_PROJECT}/${imageName}:${selectTag}"
                             dc.spec.replicas = numOfpods
-                            dc.metadata.labels["tag"] = selectTag
-                            dc.metadata.labels["version"] = version
+                            dc.metadata.labels["xyz"] = selectTag
+                            dc.metadata.labels["abc"] = version
                             openshift.apply(dc)
                             // Set config map here
                             // -- code for setting config map here -- 
