@@ -57,7 +57,7 @@ pipeline {
 
           echo "Building binary for ${imageName}"
           script {
-            sh(script: '${mvnCmd}' clean package -Pnative -Dquarkus.native.container-build=true',returnStdout: 'true')
+            sh(script: '${mvnCmd} clean package -Pnative -Dquarkus.native.container-build=true',returnStdout: 'true')
             //sh(script: '${mvnCmd} clean package -DskipTests=true', returnStdout: 'true')
           }
         }
