@@ -1,2 +1,4 @@
 = Sample Quarkus Application with Jenkins Pipeline
-WIP
+Simple RESTful App with sample Jenkinsfile for CI/CD process and related command lines to build and (also) deploy to OpenShift
+
+:toc: left

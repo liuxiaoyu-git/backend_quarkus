@@ -1,4 +1,17 @@
 = Sample Quarkus Application:backend application
+Simple RESTful API app with health check and configuration by properties file or environment variable.
+
+== Build JAR and run locally
+You need maven 3.5.4 at least.
+[source,bash]
+----
+# package JAR
+mvn clean package
+# Run
+java -jar target/backend-1.0.0-runner.jar
+# Remark: Check that how fast it is!
+----
+
 
 == Application Overview
 configuration can be set via environment variable or config/application.properties file
@@ -15,15 +28,15 @@ URI supported by application
 [options=header]
 |===
 |URI|Description
-|/version|Return application version
-|/version|Return application version
-|/status|Return liveness and readiness
+|/|Return Hello Message
+|/health/live|Livenness probe URL
+|/health/ready|Readiness probe URL
 |/stop|Set liveness to false
 |/start|Set liveness to true
 |/not_ready|Set readiness to false
 |/ready|Set readiness to true
-|/health/live|Livenness probe URL
-|/health/ready|Readiness probe URL
+|/version|Return App version
+
 |===
 == Deploy to OpenShift (JVM Mode)
 * Create binary build and patch to change strategy to docker strategy
