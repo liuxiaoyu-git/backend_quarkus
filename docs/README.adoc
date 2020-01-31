@@ -9,6 +9,7 @@
 == Create OpenShift Project, Jenkins, Nexus and SonarQube
 
 Run following script in directory bin
+
 [source,bash]
 ----
 cd bin
@@ -22,12 +23,23 @@ cd bin
 
 == Jenkins Pipelines
 Create pipelines in ci-cd project with oc command
+
+[source,bash]
 ----
 oc apply -f manifests/backend-build-pipeline.yaml -n ci-cd
 oc apply -f manifests/backend-release-pipeline.yaml -n ci-cd
 oc apply -f manifests/backend-release-uat-pipeline.yaml -n ci-cd
 oc apply -f manifests/backend-release-prod-pipeline.yaml -n ci-cd
 ----
+
+or run following bash script to create all pipelines
+
+[source,bash]
+----
+cd bin
+./create_pipelines.sh
+----
+
 
 Pipelines details
 All templates are in directory link:../manifests[manifests]
@@ -73,3 +85,11 @@ labels:
   name: backend-1-jsdhv
 ...
 ----
+
+You can also use Develop Console to view backend app in Development project
+
+image::imagesdir/dev-console-dev-project.png[]
+
+Sample release (to staging environment) pipeline that prompt for user to select build to be release.
+
+image::imagesdir/release-pipeline.png[]
