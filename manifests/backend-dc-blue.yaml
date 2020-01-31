@@ -98,4 +98,4 @@ parameters:
   description: Meesage return from app
   name: MESSAGE
   required: false
-  value: ${MESSAGE}
+  value: "Hello, World"
