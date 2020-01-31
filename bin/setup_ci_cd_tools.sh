@@ -24,7 +24,7 @@ function check_pod(){
         fi
     done
 }
-CICD_PROJECT=c-cd
+CICD_PROJECT=ci-cd
 oc new-project ${CICD_PROJECT} --display-name="CI/CD Tools"
 oc new-app sonatype/nexus3:latest --name=nexus -n ${CICD_PROJECT}
 oc expose svc nexus -n ${CICD_PROJECT}
