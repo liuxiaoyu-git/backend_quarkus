@@ -9,7 +9,7 @@ objects:
     name: backend-blue
     annotations:
       app.openshift.io/vcs-ref: master
-      app.openshift.io/vcs-uri: 'https://gitlab.com/ocp-demo/backend-quarkus.git'
+      app.openshift.io/vcs-uri: 'https://gitlab.com/ocp-demo/backend_quarkus.git'
     labels:
       app: backend-blue
       version: ${APP_VERSION}
