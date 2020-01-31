@@ -11,7 +11,7 @@ spec:
   resources: {}
   runPolicy: Serial
   source:
-    contextDir: release
+    contextDir: release-uat
     git:
       ref: master
       uri: https://gitlab.com/ocp-demo/backend_quarkus.git
