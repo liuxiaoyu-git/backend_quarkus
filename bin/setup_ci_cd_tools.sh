@@ -69,6 +69,7 @@ check_pod "jenkins"
 echo "Jenkins URL = $(oc get route jenkins -n ${CICD_PROJECT} -o jsonpath='{.spec.host}')"
 echo "NEXUS URL = $(oc get route nexus -n ${CICD_PROJECT} -o jsonpath='{.spec.host}') "
 echo "NEXUS Password = ${NEXUS_PASSWORD}"
+echo ${NEXUS_PASSWORD} > nexus_password.txt
 echo "Record this password and change it via web console"
 echo "Enable anonymous access"
 echo "SONARQUBE URL = $(oc get route sonarqube -n ${CICD_PROJECT} -o jsonpath='{.spec.host}') "

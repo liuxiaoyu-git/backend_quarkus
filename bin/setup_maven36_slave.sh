@@ -17,6 +17,7 @@ oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-
    DISABLES="--disablerepo=rhel-server-extras --disablerepo=rhel-server --disablerepo=rhel-fast-datapath --disablerepo=rhel-server-optional --disablerepo=rhel-server-ose --disablerepo=rhel-server-rhscl" && \ \n
    yum $DISABLES -y --setopt=tsflags=nodocs install skopeo && yum clean all\n
    USER 1001' --name=${JENKINS_SLAVE} -n ${PROJECT}
+echo "Wait 5 sec for build to start"
+sleep 5
 oc logs build/${JENKINS_SLAVE}-1 -f -n ${PROJECT}
-clear
-oc get build ${JENKINS_SLAVE}-1 -n ${PROJECT}
+oc get build/${JENKINS_SLAVE}-1 -n ${PROJECT}

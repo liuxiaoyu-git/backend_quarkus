@@ -69,7 +69,6 @@ oc set probe dc/backend --liveness --get-url=http://:8080/health/live --initial-
 * Quarkus will overwrite configuration with config/application.properites
 [source,bash]
 ----
-oc delete configmap backend
 oc create configmap backend --from-file=config/application.properties
 oc set volume dc/backend --add --name=backend-config \
 --mount-path=/deployments/config/application.properties \

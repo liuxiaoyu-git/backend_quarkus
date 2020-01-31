@@ -21,6 +21,8 @@ cd bin
 ./setup_projects.sh
 ----
 
+After run setup_ci_cd_tools.sh, You need to record nexus password then login to nexus and set nexus to allow anonymous access.
+
 == Jenkins Pipelines
 Create pipelines in ci-cd project with oc command
 
