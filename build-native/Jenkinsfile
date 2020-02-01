@@ -50,14 +50,14 @@ pipeline {
       }
     }
     // Build the JAR
-    stage('Build Binary') {
+    stage('Build Quarkus Native') {
       steps {
 
         dir('code') {
 
           echo "Building binary for ${imageName}"
           script {
-            sh(script: '${mvnCmd} clean package -DskipTests=true', returnStdout: 'true')
+            sh(script: '${mvnCmd} clean package -Pnative -Dquarkus.native.container-build=true', returnStdout: 'true')
           }
         }
       }
