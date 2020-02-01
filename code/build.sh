@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash
+echo "Build Backend App"
+mvn clean package -DskipTests=true
 oc new-build --binary --name=backend -l app=backend
 oc patch bc/backend -p "{\"spec\":{\"strategy\":{\"dockerStrategy\":{\"dockerfilePath\":\"src/main/docker/Dockerfile.jvm\"}}}}"
 oc start-build backend --from-dir=. --follow
