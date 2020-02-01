@@ -4,13 +4,13 @@ Simple RESTful API app with health check and configuration by properties file or
 == Application Overview
 configuration can be set via environment variable or config/application.properties file
 
-[options=header]
-|===
-|Variable|Description|Default Value
-|app.version|Application Version|1.0.0-SNAPSHOT
-|app.backend|target URL that backend request to|http://localhost:8080/version
-|app.message|Message return from application|Hello, World
-|===
+// [options=header]
+// |===
+// |Variable|Description|Default Value
+// |app.version|Application Version|1.0.0-SNAPSHOT
+// |app.backend|target URL that backend request to|http://localhost:8080/version
+// |app.message|Message return from application|Hello, World
+// |===
 
 URI supported by application
 [options=header]
@@ -39,6 +39,7 @@ java -jar target/backend-1.0.0-runner.jar
 ----
 
 == Build Native and run locally (OSX)
+
 GraalVM 19.2.1 and XCode is needed.
 
 [source,bash]
@@ -53,7 +54,6 @@ export GRAALVM_HOME=${HOME}/opt/graalvm-ce-19.2.1/Contents/Home
 ${GRAALVM_HOME}/bin/gu install native-image
 # Package
 mvn clean package -Pnative -DskipTests=true
-
 # Run
 target/backend-1.0.0-runner
 # Remark: still have problem about outgoing HTTPS
