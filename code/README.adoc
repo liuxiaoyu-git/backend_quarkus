@@ -51,8 +51,8 @@ https://github.com/oracle/graal/releases/download/vm-19.2.1/graalvm-ce-darwin-am
 export GRAALVM_HOME=${HOME}/opt/graalvm-ce-19.2.1/Contents/Home
 # Install Native Image
 ${GRAALVM_HOME}/bin/gu install native-image
-# Padkage
-mvn package -Pnative
+# Package
+mvn clean package -Pnative -DskipTests=true
 
 # Run
 target/backend-1.0.0-runner
