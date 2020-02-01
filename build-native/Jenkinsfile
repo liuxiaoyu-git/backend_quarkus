@@ -58,7 +58,7 @@ pipeline {
           echo "Building binary for ${imageName}"
           script {
             sh(script: 'echo GRAALVM_HOME=${GRAALVM_HOME}', returnStdout: 'true')
-            sh(script: '${mvnCmd} verify -Pnative', returnStdout: 'true')
+            sh(script: '${mvnCmd} clean verify -Pnative', returnStdout: 'true')
             
           }
         }
