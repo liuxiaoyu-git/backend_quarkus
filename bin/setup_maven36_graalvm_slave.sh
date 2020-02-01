@@ -1,6 +1,6 @@
 #!/bin/bash
 PROJECT=ci-cd
-JENKINS_SLAVE=maven36-with-graal-vm-and-tools
+JENKINS_SLAVE=maven36-with-graalvm-and-tools
 oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-maven:4.1.0\n
    USER root\n
    RUN curl https://copr.fedorainfracloud.org/coprs/alsadi/dumb-init/repo/epel-7/alsadi-dumb-init-epel-7.repo -o /etc/yum.repos.d/alsadi-dumb-init-epel-7.repo && \ \n
