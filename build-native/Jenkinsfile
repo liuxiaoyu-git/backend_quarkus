@@ -57,7 +57,7 @@ pipeline {
 
           echo "Building binary for ${imageName}"
           script {
-            sh(script: '${GRAALVM_HOME}/bin/gu install native-image', returnStdout: 'true')
+            // sh(script: '${GRAALVM_HOME}/bin/gu install native-image', returnStdout: 'true')
             sh(script: '${mvnCmd} -X verify -Pnative', returnStdout: 'true')
             
           }
