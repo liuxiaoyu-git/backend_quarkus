@@ -57,8 +57,9 @@ pipeline {
 
           echo "Building binary for ${imageName}"
           script {
-            //sh(script: '${mvnCmd} clean package -Pnative -Dquarkus.native.container-build=true', returnStdout: 'true')
             sh(script: 'echo GRAALVM_HOME=${GRAALVM_HOME}', returnStdout: 'true')
+            sh(script: '${mvnCmd} verify -Pnative', returnStdout: 'true')
+            
           }
         }
       }
@@ -99,35 +100,35 @@ pipeline {
     //   }
     // }
     // Create Build Config
-    stage('Create Build Config') {
-      when {
-        expression {
-          openshift.withCluster() {
-            openshift.withProject(env.CICD_PROJECT) {
-              return !openshift.selector("bc", "${imageName}").exists()
-            }
-          }
-        }
-      }
-      steps {
-        echo "Create build config ${imageName}:latest"
-        script {
-          openshift.withCluster() {
-            openshift.withProject(env.CICD_PROJECT) {
-              openshift.newBuild(
-                "--name=${imageName}",
-                "--to=${imageName}:latest",
-                "--strategy=docker",
-                "--binary=true"
-              )
-              def bc = openshift.selector("bc/${imageName}").object()
-              bc.spec.strategy.dockerStrategy.dockerfilePath = "src/main/docker/Dockerfile.native"
-              openshift.apply(bc)
-            }
-          }
-        }
-      }
-    }
+    // stage('Create Build Config') {
+    //   when {
+    //     expression {
+    //       openshift.withCluster() {
+    //         openshift.withProject(env.CICD_PROJECT) {
+    //           return !openshift.selector("bc", "${imageName}").exists()
+    //         }
+    //       }
+    //     }
+    //   }
+    //   steps {
+    //     echo "Create build config ${imageName}:latest"
+    //     script {
+    //       openshift.withCluster() {
+    //         openshift.withProject(env.CICD_PROJECT) {
+    //           openshift.newBuild(
+    //             "--name=${imageName}",
+    //             "--to=${imageName}:latest",
+    //             "--strategy=docker",
+    //             "--binary=true"
+    //           )
+    //           def bc = openshift.selector("bc/${imageName}").object()
+    //           bc.spec.strategy.dockerStrategy.dockerfilePath = "src/main/docker/Dockerfile.native"
+    //           openshift.apply(bc)
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
     // Create Service
     // stage('Create Service') {
     //   when {
