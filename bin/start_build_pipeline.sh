@@ -2,7 +2,7 @@
 PROJECT=ci-cd
 PIPELINE=backend-build-pipeline
 OUTPUT=$(oc start-build ${PIPELINE} -n ${PROJECT})
-BUILD=$(echo ${OUTPUT}|awk '{print $1}'|awk -F'/' '{print $2')
+BUILD=$(echo ${OUTPUT}|awk '{print $1}'|awk -F'/' '{print $2}')
 echo "Build ${BUILD} started"
 echo "Wait 5 sec for ${BUILD} to be started"
 sleep 5
