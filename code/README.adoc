@@ -111,3 +111,7 @@ All in one shell script => link:build.sh[build.sh]
 
 == Deploy to OpenShift (Native Mode)
 WIP
+[source,bash]
+----
+mvn package -Pnative -Dquarkus.native.container-build=true -DskipTests=true
+----
