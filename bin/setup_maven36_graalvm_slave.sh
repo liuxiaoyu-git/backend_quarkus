@@ -17,8 +17,7 @@ oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-
    tar -C /opt -xf /tmp/graalvm-ce-linux-amd64-19.2.1.tar && \ \n
    rm -f /tmp/graalvm-ce-linux-amd64-19.2.1.tar && \ \n
    DISABLES="--disablerepo=rhel-server-extras --disablerepo=rhel-server --disablerepo=rhel-fast-datapath --disablerepo=rhel-server-optional --disablerepo=rhel-server-ose --disablerepo=rhel-server-rhscl" && \ \n
-   yum $DISABLES -y --setopt=tsflags=nodocs install skopeo && yum clean all && \ \n
-   yum $DISABLES -y --setopt=tsflags=nodocs install gcc glibc-devel zlib-devel libstdc++-static && yum clean all\n
+   yum $DISABLES -y --setopt=tsflags=nodocs install skopeo gcc glibc-devel zlib-devel libstdc++-static && yum clean all\n
    ENV GRAALVM_HOME=/opt/graalvm-ce-19.2.1\n
    ENV PATH=/opt/apache-maven-3.6.3/bin:$GRAALVM_HOME/bin:$PATH\n
    RUN export GRAALVM_HOME=/opt/graalvm-ce-19.2.1 && \ \n
