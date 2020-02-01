@@ -1,0 +1,40 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  labels:
+    build: backend-build-native-pipeline
+  name: backend-build-native-pipeline
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: {}
+  output: {}
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    contextDir: build-native
+    git:
+      ref: master
+      uri: https://gitlab.com/ocp-demo/backend_quarkus.git
+    # sourceSecret:
+    #   name: gogs-secret
+    type: Git
+  strategy:
+    jenkinsPipelineStrategy:
+      jenkinsfilePath: Jenkinsfile
+      env:
+        - name: DEV_PROJECT
+          value: dev
+        - name: CICD_PROJECT
+          value: ci-cd
+        - name: BACKEND_URL
+          value: https://httpbin.org/status/200
+        - name: NEXUS_SVC
+          value: http://nexus:8081
+        - name: SONARQUBE_SVC
+          value: http://sonarqube:9000
+    type: JenkinsPipeline
+  successfulBuildsHistoryLimit: 5
+  triggers: []
+status:
+  lastVersion: 1
