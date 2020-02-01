@@ -64,11 +64,11 @@ objects:
               cpu: "0.1"
               memory: 150Mi
           env:
-            - name: app.backend
+            - name: backend
               value: ${BACKEND_URL}
-            - name: app.version
+            - name: version
               value: ${APP_VERSION}
-            - name: app.message
+            - name: message
               value: ${MESSAGE}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File

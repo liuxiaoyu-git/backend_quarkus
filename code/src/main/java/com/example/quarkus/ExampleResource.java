@@ -19,13 +19,13 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Path("/")
 public class ExampleResource {
-    @ConfigProperty(name = "app.version", defaultValue="1.0.0-SNAPSHOT")
+    @ConfigProperty(name = "version", defaultValue="1.0.0-SNAPSHOT")
     String version;
 
-    @ConfigProperty(name = "app.backend", defaultValue="http://localhost:8080/version")
+    @ConfigProperty(name = "backend", defaultValue="http://localhost:8080/version")
     String backend;
 
-    @ConfigProperty(name = "app.message", defaultValue="Hello, World")
+    @ConfigProperty(name = "message", defaultValue="Hello, World")
     String message;
 
     @GET
