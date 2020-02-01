@@ -57,8 +57,8 @@ pipeline {
 
           echo "Building binary for ${imageName}"
           script {
-            
-            sh(script: '${mvnCmd} package -Pnative ', returnStdout: 'true')
+            sh(script: 'java -version ', returnStdout: 'true')
+            sh(script: '${mvnCmd} package -Pnative  -DskipTests=true', returnStdout: 'true')
             
           }
         }

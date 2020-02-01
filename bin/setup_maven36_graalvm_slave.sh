@@ -19,6 +19,7 @@ oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-
    DISABLES="--disablerepo=rhel-server-extras --disablerepo=rhel-server --disablerepo=rhel-fast-datapath --disablerepo=rhel-server-optional --disablerepo=rhel-server-ose --disablerepo=rhel-server-rhscl" && \ \n
    yum $DISABLES -y --setopt=tsflags=nodocs install skopeo gcc glibc-devel zlib-devel libstdc++-static && yum clean all\n
    ENV GRAALVM_HOME=/opt/graalvm-ce-19.2.1\n
+   ENV JAVA_HOME=${GRAALVM_HOME}\n
    ENV PATH=/opt/apache-maven-3.6.3/bin:$GRAALVM_HOME/bin:$PATH\n
    RUN export GRAALVM_HOME=/opt/graalvm-ce-19.2.1 && \ \n
    /opt/graalvm-ce-19.2.1/bin/gu install native-image && \ \n
