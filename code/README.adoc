@@ -4,13 +4,13 @@ Simple RESTful API app with health check and configuration by properties file or
 == Application Overview
 configuration can be set via environment variable or config/application.properties file
 
-// [options=header]
-// |===
-// |Variable|Description|Default Value
-// |app.version|Application Version|1.0.0-SNAPSHOT
-// |app.backend|target URL that backend request to|http://localhost:8080/version
-// |app.message|Message return from application|Hello, World
-// |===
+[options=header]
+|===
+|Variable|Description|Default Value
+|version|Application Version|1.0.0-SNAPSHOT
+|backend|target URL that backend request to|http://localhost:8080/version
+|message|Message return from application|Hello, World
+|===
 
 URI supported by application
 [options=header]
@@ -36,6 +36,10 @@ mvn clean package
 # Run
 java -jar target/backend-1.0.0-runner.jar
 # Remark: Check that how fast it is!
+# Test environment variables
+export message=Bravo
+export backend=https://httpbin.org/status/403
+java -jar target/backend-1.0.0-runner.jar
 ----
 
 == Build Native and run locally (OSX)
@@ -56,7 +60,13 @@ ${GRAALVM_HOME}/bin/gu install native-image
 mvn clean package -Pnative -DskipTests=true
 # Run
 target/backend-1.0.0-runner
-# Remark: still have problem about outgoing HTTPS
+# Test environment variable
+export message=Bravo
+export backend=http://httpbin.org/status/201
+target/backend-1.0.0-runner
+# Then cURL
+curl -v http://localhost:8080
+# Remark: To enable HTTPS, adding the -H:EnableURLProtocols=https
 ----
 
 
