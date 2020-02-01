@@ -1,8 +1,8 @@
-def JENKINS_SLAVE_IMAGE = "maven36-with-graalvm-and-tools"
+def JENKINS_SLAVE_IMAGE = "maven36-with-graal-vm-and-tools"
 pipeline {
   agent {
     kubernetes {
-      label "maven36-with-graalvm-and-tools"
+      label "maven36-with-graal-vm-and-tools"
       cloud "openshift"
       inheritFrom "maven"
       containerTemplate {
