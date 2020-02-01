@@ -57,8 +57,8 @@ pipeline {
 
           echo "Building binary for ${imageName}"
           script {
-            // sh(script: '${GRAALVM_HOME}/bin/gu install native-image', returnStdout: 'true')
-            sh(script: '${mvnCmd} package -Pnative -Dquarkus.native.container-runtime=podman', returnStdout: 'true')
+            
+            sh(script: '${mvnCmd} package -Pnative ', returnStdout: 'true')
             
           }
         }
