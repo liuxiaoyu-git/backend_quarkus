@@ -6,4 +6,4 @@ BUILD=$(echo ${OUTPUT}|awk '{print $1}'|awk -F'/' '{print $2')
 echo "Build ${BUILD} started"
 echo "Wait 5 sec for ${BUILD} to be started"
 sleep 5
-oc log build/${BUILD} -n ci-cd
+oc logs build/${BUILD} -n ci-cd
