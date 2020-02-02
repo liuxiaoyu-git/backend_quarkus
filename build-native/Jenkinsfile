@@ -1,13 +1,14 @@
-def JENKINS_SLAVE_IMAGE = "maven36-with-graalvm-and-tools"
+def JENKINS_SLAVE_IMAGE = "quarkus-maven-slave"
+def JENKINS_SLAVE_TAG = "19.2.1"
 pipeline {
   agent {
     kubernetes {
-      label "maven36-with-graalvm-and-tools"
+      label "quarkus-maven-slave"
       cloud "openshift"
       inheritFrom "maven"
       containerTemplate {
         name "jnlp"
-        image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
+        image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:${JENKINS_SLAVE_TAG}"
         resourceRequestMemory "600Mi"
         resourceLimitMemory "2Gi"
         resourceRequestCpu "1"
@@ -57,9 +58,7 @@ pipeline {
 
           echo "Building binary for ${imageName}"
           script {
-            // sh(script: 'java -version ', returnStdout: 'true')
-            // mvn 
-            sh(script: '${mvnCmd} clean package -Pnative -DskipTests=true -Dquarkus.native.container-build=true', returnStdout: 'true')
+            sh(script: '${mvnCmd} -Pnative clean package', returnStdout: 'true')
             
           }
         }
