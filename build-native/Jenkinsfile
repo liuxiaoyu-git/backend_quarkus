@@ -1,5 +1,4 @@
 def JENKINS_SLAVE_IMAGE = "quarkus-maven-slave"
-def JENKINS_SLAVE_TAG = "19.2.1"
 pipeline {
   agent {
     kubernetes {
@@ -8,7 +7,7 @@ pipeline {
       inheritFrom "maven"
       containerTemplate {
         name "jnlp"
-        image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:${JENKINS_SLAVE_TAG}"
+        image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
         resourceRequestMemory "600Mi"
         resourceLimitMemory "2Gi"
         resourceRequestCpu "1"
