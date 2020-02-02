@@ -6,8 +6,8 @@ pipeline {
       cloud "openshift"
       inheritFrom "maven"
       containerTemplate {
-        // name "jnlp"
-        image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:19.2.1"
+        name "jnlp"
+        image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
         resourceRequestMemory "600Mi"
         resourceLimitMemory "2Gi"
         resourceRequestCpu "1"

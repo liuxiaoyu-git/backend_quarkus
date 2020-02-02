@@ -7,8 +7,7 @@ oc new-build --strategy=docker \
    RUN curl https://copr.fedorainfracloud.org/coprs/alsadi/dumb-init/repo/epel-7/alsadi-dumb-init-epel-7.repo -o /etc/yum.repos.d/alsadi-dumb-init-epel-7.repo && \ \n
    curl https://raw.githubusercontent.com/cloudrouter/centos-repo/master/CentOS-Base.repo -o /etc/yum.repos.d/CentOS-Base.repo && \ \n
    curl http://mirror.centos.org/centos-7/7/os/x86_64/RPM-GPG-KEY-CentOS-7 -o /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 && \ \n
-   yum -y --setopt=tsflags=nodocs  install skopeo && yum clean all\n
-   USER quarkus' --name=${JENKINS_SLAVE} -n ${PROJECT}
+   yum -y --setopt=tsflags=nodocs  install skopeo && yum clean all\n' --name=${JENKINS_SLAVE} -n ${PROJECT}
 echo "Wait 5 sec for build to start"
 sleep 5
 oc logs build/${JENKINS_SLAVE}-1 -f -n ${PROJECT}
@@ -22,7 +21,6 @@ oc get build/${JENKINS_SLAVE}-1 -n ${PROJECT}
 # --from=${REGISTRY}/${IMAGE}:${TAG} -n ${PROJECT} \
 # --scheduled \
 # --confirm
-
 # FROM quay.io/quarkus/centos-quarkus-maven:19.2.1 AS build
 # COPY src /usr/src/app/src
 # COPY pom.xml /usr/src/app
