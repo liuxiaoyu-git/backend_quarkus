@@ -1,6 +1,5 @@
 #!/bin/bash
 function check_pod(){
-    
     READY="NO"
     while [ $READY = "NO" ];
     do
@@ -25,7 +24,12 @@ function check_pod(){
     done
 }
 CICD_PROJECT=ci-cd
+echo "########## Start build Jenkins ##########"
 oc new-project ${CICD_PROJECT} --display-name="CI/CD Tools"
+oc new-app jenkins-persistent --param ENABLE_OAUTH=true --param MEMORY_LIMIT=2Gi --param VOLUME_CAPACITY=4Gi --param DISABLE_ADMINISTRATIVE_MONITORS=true
+oc set resources dc jenkins --limits=memory=2Gi,cpu=2 --requests=memory=1Gi,cpu=500m
+check_pod "jenkins"
+echo "########## Start build Nexus   ##########"
 oc new-app sonatype/nexus3:latest --name=nexus -n ${CICD_PROJECT}
 oc expose svc nexus -n ${CICD_PROJECT}
 oc rollout pause dc nexus -n ${CICD_PROJECT}
@@ -36,12 +40,14 @@ oc set probe dc/nexus --liveness --failure-threshold 3 --initial-delay-seconds 6
 oc set probe dc/nexus --readiness --failure-threshold 3 --initial-delay-seconds 60 --get-url=http://:8081/ -n ${CICD_PROJECT}
 oc rollout resume dc nexus -n ${CICD_PROJECT}
 check_pod "nexus"
+echo "##########   Setup Nexus   ############"
 export NEXUS_POD=$(oc get pods | grep nexus | grep -v deploy | awk '{print $1}')
 export NEXUS_PASSWORD=$(oc rsh $NEXUS_POD cat /nexus-data/admin.password)
 # https://raw.githubusercontent.com/redhat-gpte-devopsautomation/ocp_advanced_development_resources/master/nexus/setup_nexus3.sh
 ./setup_nexus3.sh admin $NEXUS_PASSWORD http://$(oc get route nexus --template='{{ .spec.host }}')
 oc expose dc nexus --port=5000 --name=nexus-registry
 oc create route edge nexus-registry --service=nexus-registry --port=5000
+echo "########   Setup SonarQube   ##########"
 oc new-app --template=postgresql-persistent --param POSTGRESQL_USER=sonar --param POSTGRESQL_PASSWORD=sonar --param POSTGRESQL_DATABASE=sonar --param VOLUME_CAPACITY=4Gi --labels=app=sonarqube_db
 check_pod "postgresql"
 oc new-app --docker-image=quay.io/gpte-devops-automation/sonarqube:7.9.1 --env=SONARQUBE_JDBC_USERNAME=sonar --env=SONARQUBE_JDBC_PASSWORD=sonar --env=SONARQUBE_JDBC_URL=jdbc:postgresql://postgresql/sonar --labels=app=sonarqube
@@ -55,20 +61,19 @@ oc set probe dc/sonarqube --readiness --failure-threshold 3 --initial-delay-seco
 oc patch dc/sonarqube --type=merge -p '{"spec": {"template": {"metadata": {"labels": {"tuned.openshift.io/elasticsearch": "true"}}}}}'
 oc rollout resume dc sonarqube
 check_pod "sonarqube"
-oc new-app jenkins-persistent --param ENABLE_OAUTH=true --param MEMORY_LIMIT=2Gi --param VOLUME_CAPACITY=4Gi --param DISABLE_ADMINISTRATIVE_MONITORS=true
-oc set resources dc jenkins --limits=memory=2Gi,cpu=2 --requests=memory=1Gi,cpu=500m
-check_pod "jenkins"
-# oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-maven:4.1.0\n
-#    USER root\n
-#    RUN curl https://copr.fedorainfracloud.org/coprs/alsadi/dumb-init/repo/epel-7/alsadi-dumb-init-epel-7.repo -o /etc/yum.repos.d/alsadi-dumb-init-epel-7.repo && \ \n
-#    curl https://raw.githubusercontent.com/cloudrouter/centos-repo/master/CentOS-Base.repo -o /etc/yum.repos.d/CentOS-Base.repo && \ \n
-#    curl http://mirror.centos.org/centos-7/7/os/x86_64/RPM-GPG-KEY-CentOS-7 -o /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 && \ \n
-#    DISABLES="--disablerepo=rhel-server-extras --disablerepo=rhel-server --disablerepo=rhel-fast-datapath --disablerepo=rhel-server-optional --disablerepo=rhel-server-ose --disablerepo=rhel-server-rhscl" && \ \n
-#    yum $DISABLES -y --setopt=tsflags=nodocs install skopeo && yum clean all\n
-#    USER 1001' --name=mvn-with-skopeo
+echo "####### Maven 3.5 Jenkins Slave with Skopeo #########"
+oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-maven:4.1.0\n
+   USER root\n
+   RUN curl https://copr.fedorainfracloud.org/coprs/alsadi/dumb-init/repo/epel-7/alsadi-dumb-init-epel-7.repo -o /etc/yum.repos.d/alsadi-dumb-init-epel-7.repo && \ \n
+   curl https://raw.githubusercontent.com/cloudrouter/centos-repo/master/CentOS-Base.repo -o /etc/yum.repos.d/CentOS-Base.repo && \ \n
+   curl http://mirror.centos.org/centos-7/7/os/x86_64/RPM-GPG-KEY-CentOS-7 -o /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 && \ \n
+   DISABLES="--disablerepo=rhel-server-extras --disablerepo=rhel-server --disablerepo=rhel-fast-datapath --disablerepo=rhel-server-optional --disablerepo=rhel-server-ose --disablerepo=rhel-server-rhscl" && \ \n
+   yum $DISABLES -y --setopt=tsflags=nodocs install skopeo && yum clean all\n
+   USER 1001' --name=mvn-with-skopeo
 echo "Jenkins URL = $(oc get route jenkins -n ${CICD_PROJECT} -o jsonpath='{.spec.host}')"
 echo "NEXUS URL = $(oc get route nexus -n ${CICD_PROJECT} -o jsonpath='{.spec.host}') "
 echo "NEXUS Password = ${NEXUS_PASSWORD}"
+echo "Nexus password is stored at bin/nexus_password.txt"
 echo ${NEXUS_PASSWORD} > nexus_password.txt
 echo "Record this password and change it via web console"
 echo "Enable anonymous access"
