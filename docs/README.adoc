@@ -95,3 +95,7 @@ image::imagesdir/dev-console-dev-project.png[]
 Sample release (to staging environment) pipeline that prompt for user to select build to be release.
 
 image::imagesdir/release-pipeline.png[]
+
+Sample Blue/Green Deployment for produciton environment pipeline that prompt for user to switch to newly deployment version
+
+image::imagesdir/blue-green-switch-pipeline[]
