@@ -27,11 +27,12 @@ URI supported by application
 
 |===
 
-== Build JAR and run locally
+== Build JAR
 You need maven 3.5.4 at least.
 [source,bash]
 ----
 # package JAR
+cd code
 mvn clean package
 # Run
 java -jar target/backend-1.0.0-runner.jar
@@ -42,7 +43,7 @@ export backend=https://httpbin.org/status/403
 java -jar target/backend-1.0.0-runner.jar
 ----
 
-== Build Native and run locally (OSX)
+== Build Native binary on OSX 
 
 GraalVM 19.2.1 and XCode is needed.
 
@@ -69,6 +70,18 @@ curl -v http://localhost:8080
 # Remark: To enable HTTPS, adding the -H:EnableURLProtocols=https
 ----
 
+
+== Build Native Container Image 
+
+Use multistage build as follow
+
+[source,bash]
+----
+cd bin
+docker build -f src/main/docker/Dockerfile.multistage \
+-t ${CONTAINER_NAME} .
+# Remark: Make use that .dockerignore included target,src and pom.xml
+----
 
 == Deploy to OpenShift (JVM Mode)
 * Create binary build and patch to change strategy to docker strategy

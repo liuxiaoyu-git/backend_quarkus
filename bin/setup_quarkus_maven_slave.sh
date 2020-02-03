@@ -7,7 +7,10 @@ oc new-build --strategy=docker \
    RUN curl https://copr.fedorainfracloud.org/coprs/alsadi/dumb-init/repo/epel-7/alsadi-dumb-init-epel-7.repo -o /etc/yum.repos.d/alsadi-dumb-init-epel-7.repo && \ \n
    curl https://raw.githubusercontent.com/cloudrouter/centos-repo/master/CentOS-Base.repo -o /etc/yum.repos.d/CentOS-Base.repo && \ \n
    curl http://mirror.centos.org/centos-7/7/os/x86_64/RPM-GPG-KEY-CentOS-7 -o /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 && \ \n
-   yum -y --setopt=tsflags=nodocs  install skopeo && yum clean all\n' --name=${JENKINS_SLAVE} -n ${PROJECT}
+   chmod -R 755 /home/quarkus && \ \n
+   chown -R quarkus:0  /home/quarkus && \ \n
+   yum -y --setopt=tsflags=nodocs  install skopeo && yum clean all\n
+   USER quarkus' --name=${JENKINS_SLAVE} -n ${PROJECT}
 echo "Wait 5 sec for build to start"
 sleep 5
 oc logs build/${JENKINS_SLAVE}-1 -f -n ${PROJECT}
