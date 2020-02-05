@@ -18,7 +18,7 @@ import javax.ws.rs.core.Response;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Path("/")
-public class ExampleResource {
+public class BackendResource {
     @ConfigProperty(name = "version", defaultValue="1.0.0-SNAPSHOT")
     String version;
 
@@ -126,8 +126,5 @@ public class ExampleResource {
                 //logger.error(e.getMessage());
                 e.printStackTrace();
         }
-        return hostname;
-
-
-}
+        return hostname;}
 }
