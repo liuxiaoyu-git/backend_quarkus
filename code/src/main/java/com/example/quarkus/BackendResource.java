@@ -123,7 +123,7 @@ public class BackendResource {
     }
 
     private String generateMessage(final String msg, final String status) {
-        return "Backend: " + version + ",Hostname: " + getLocalHostname() + ", Status: " + status + ", Message: " + msg;
+        return "Backend: " + version + ", Hostname: " + getLocalHostname() + ", Status: " + status + ", Message: " + msg;
     }
 
     private String getLocalHostname() {
