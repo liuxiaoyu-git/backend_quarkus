@@ -67,7 +67,9 @@ pipeline {
                 }
             }
         }
-        stage('Create Deployment Config Blue') {
+        stage('Create Deployment Config'){
+            parallel {
+                stage('Create Deployment Config Blue') {
             when {
                 expression {
                     openshift.withCluster() {
@@ -125,7 +127,11 @@ pipeline {
                 }
             }
         }
-        stage('Create Service Blue') {
+            }
+        }
+        stage('Create Service'){
+            parallel {
+                stage('Create Service Blue') {
             when {
                 expression {
                     openshift.withCluster() {
@@ -171,6 +177,10 @@ pipeline {
                 }
             }
         }
+            }
+        }
+        
+        
         stage('Create Route') {
             when {
                 expression {
