@@ -1,5 +1,5 @@
 #!/bin/bash
-CONTAINER_NAME=backend
+CONTAINER_NAME=backend-native
 echo "*" > .dockerignore
 echo "!src/*" >> .dockerignore
 echo "!pom.xml" >> .dockerignore

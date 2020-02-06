@@ -44,29 +44,17 @@ public class BackendResource {
                 con.setRequestMethod("GET");
                 final int returnCode = con.getResponseCode();
                 logger.info("Return Code: " + returnCode);
-                // final BufferedReader in = new BufferedReader(
-                // new InputStreamReader(con.getInputStream()));
-                // final StringBuffer content = new StringBuffer();
-                // while ((inputLine = in .readLine()) != null) {
-                // content.append(inputLine);
-                // }
-                // in.close();
-                // return String.valueOf(returnCode);
-                // String msg = "Backend:" + version + ",Response Code:" + returnCode;
                 return Response.status(returnCode).encoding("text/plain")
                     .entity(generateMessage(message, Integer.toString(returnCode))).build();
-                // return Response.ok().entity(generateMessage(msg, "200")).build();
-                // Backend version:v2,Response:200,Host:backend-v2-7655885b8c-5spv4, Message:
-                // Hello World!!
-                // Backend: http://backend:8080, Response: 200, Body: Backend
-                // version:v2,Response:200,Host:backend-v2-7655885b8c-5spv4, Message: Hello
-                // World!!
             } catch (final IOException e) {
-                return Response.status(503).encoding("text/plain").entity(generateMessage(e.getMessage(), "503"))
+                return Response.status(503).encoding("text/plain")
+                    .entity(generateMessage(e.getMessage(), "503"))
                     .build();
             }
         } else {
-            return Response.status(503).encoding("text/plain").entity(generateMessage("Application is stopped", "503"))
+            logger.info("Applicartion liveness or rediness is set to false, return 503");
+            return Response.status(503).encoding("text/plain")
+                .entity(generateMessage("Application is stopped", "503"))
                 .build();
         }
     }
@@ -86,7 +74,8 @@ public class BackendResource {
         ApplicationConfig.IS_ALIVE.set(false);
         logger.info("Set Liveness to false");
         return Response.ok().encoding("text/plain")
-            .entity(generateMessage("Liveness: " + ApplicationConfig.IS_ALIVE.get(), "200")).build();
+            .entity(generateMessage("Liveness: " + ApplicationConfig.IS_ALIVE.get(), "200"))
+            .build();
     }
 
     @GET
@@ -96,32 +85,38 @@ public class BackendResource {
         ApplicationConfig.IS_READY.set(false);
         logger.info("Set Readiness to false");
         return Response.ok().encoding("text/plain")
-            .entity(generateMessage("Readiness: " + ApplicationConfig.IS_READY.get(), "200")).build();
+            .entity(generateMessage("Readiness: " + ApplicationConfig.IS_READY.get(), "200"))
+            .build();
     }
 
     @GET
     @Path("/start")
     @Produces(MediaType.TEXT_PLAIN)
     public Response startApp() {
+        logger.info("Set Liveness to true");
         if (!ApplicationConfig.IS_ALIVE.get())
             ApplicationConfig.IS_ALIVE.set(true);
         return Response.ok().encoding("text/plain")
-            .entity(generateMessage("Liveness: " + ApplicationConfig.IS_ALIVE.get(), "200")).build();
+            .entity(generateMessage("Liveness: " + ApplicationConfig.IS_ALIVE.get(), "200"))
+            .build();
     }
 
     @GET
     @Path("/ready")
     @Produces(MediaType.TEXT_PLAIN)
     public Response readyApp() {
+        logger.info("Set Readiness to true");
         ApplicationConfig.IS_READY.set(true);
         return Response.ok().encoding("text/plain")
-            .entity(generateMessage("Readiness: " + ApplicationConfig.IS_READY.get(), "200")).build();
+            .entity(generateMessage("Readiness: " + ApplicationConfig.IS_READY.get(), "200"))
+            .build();
     }
 
     @GET
     @Path("/status")
     @Produces(MediaType.TEXT_PLAIN)
     public Response statusApp() {
+        logger.info("Check status");
         final String msg = "Liveness=" + ApplicationConfig.IS_ALIVE.get() + " Readiness=" +
             ApplicationConfig.IS_READY.get();
         return Response.ok().entity(generateMessage(msg, "200")).build();
@@ -138,7 +133,7 @@ public class BackendResource {
             inetAddr = InetAddress.getLocalHost();
             hostname = inetAddr.getHostName();
         } catch (final UnknownHostException e) {
-            logger.error(e.getMessage());
+            logger.error("Error get local hostname: "+e.getMessage());
         }
         return hostname;
     }
