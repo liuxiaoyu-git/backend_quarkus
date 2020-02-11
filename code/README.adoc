@@ -79,7 +79,7 @@ Use multistage build as follow
 cd bin
 docker build -f src/main/docker/Dockerfile.multistage \
 -t ${CONTAINER_NAME} .
-# Remark: Make use that .dockerignore included target,src and pom.xml
+# Remark: Make sure that .dockerignore included target,src and pom.xml
 ----
 
 == Deploy to OpenShift (JVM Mode)
