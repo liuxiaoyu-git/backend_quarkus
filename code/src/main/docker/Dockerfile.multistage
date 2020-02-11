@@ -11,11 +11,12 @@ RUN mvn -f /usr/src/app/pom.xml -Pnative clean package
 FROM registry.access.redhat.com/ubi8/ubi-minimal
 RUN mkdir -p /work/ssl-libs/lib
 WORKDIR /work/
+## Copy Binary
 COPY --from=build /usr/src/app/target/*-runner /work/application
+## Copy CA Certs and lib
 COPY --from=build /opt/graalvm/jre/lib/security/cacerts /work/ssl-libs
 COPY --from=build /opt/graalvm/jre/lib/amd64/libsunec.so /work/ssl-libs/lib
 
 RUN chmod 775 /work
 EXPOSE 8080
-#CMD ["./application", "-Dquarkus.http.host=0.0.0.0"]
 CMD ["./application", "-Dquarkus.http.host=0.0.0.0", "-Djava.library.path=/work/ssl-libs/lib", "-Djavax.net.ssl.trustStore=/work/ssl-libs/cacerts"]

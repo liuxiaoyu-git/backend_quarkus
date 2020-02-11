@@ -67,8 +67,6 @@ export backend=http://httpbin.org/status/201
 target/backend-1.0.0-runner
 # Then cURL
 curl -v http://localhost:8080
-# Remark: To enable HTTPS, adding the -H:EnableURLProtocols=https
-# -H:EnableURLProtocols=http,https --enable-all-security-services -H:+JNI
 ----
 
 
