@@ -52,9 +52,13 @@ public class BackendResource {
                     .build();
             }
         } else {
-            logger.info("Applicartion liveness or rediness is set to false, return 503");
-            return Response.status(503).encoding("text/plain")
-                .entity(generateMessage("Application is stopped", "503"))
+            int status = 503;
+            if(!ApplicationConfig.IS_ALIVE.get()){
+                logger.info("Applicartion liveness is set to false, return 504");
+                status=504;
+            }
+            return Response.status(status).encoding("text/plain")
+                .entity(generateMessage("Application is stopped", String.valueOf(status)))
                 .build();
         }
     }
@@ -123,7 +127,8 @@ public class BackendResource {
     }
 
     private String generateMessage(final String msg, final String status) {
-        return "Backend: " + version + ", Hostname: " + getLocalHostname() + ", Status: " + status + ", Message: " + msg;
+        //return "Backend version: " + version + ", Hostname: " + getLocalHostname() + ", Status: " + status + ", Message: " + msg;
+        return "Backend version:"+version+", Response:"+status+", Host:"+getLocalHostname()+", Status:"+ status + ", Message: "+ msg;
     }
 
     private String getLocalHostname() {

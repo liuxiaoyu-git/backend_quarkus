@@ -1,6 +1,6 @@
 #!/bin/bash
 CONTAINER_NAME=backend-native
-TAG=latest
+TAG=v1
 echo "*" > .dockerignore
 echo "!src/*" >> .dockerignore
 echo "!pom.xml" >> .dockerignore
