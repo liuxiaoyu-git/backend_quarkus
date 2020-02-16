@@ -28,7 +28,8 @@ echo "########## Start build Jenkins ##########"
 oc new-project ${CICD_PROJECT} --display-name="CI/CD Tools"
 oc new-app jenkins-persistent --param ENABLE_OAUTH=true --param MEMORY_LIMIT=2Gi --param VOLUME_CAPACITY=4Gi --param DISABLE_ADMINISTRATIVE_MONITORS=true
 oc set resources dc jenkins --limits=memory=2Gi,cpu=2 --requests=memory=1Gi,cpu=500m
-check_pod "jenkins"
+# No need to wait for jenkins to start
+# check_pod "jenkins"
 echo "########## Start build Nexus   ##########"
 oc new-app sonatype/nexus3:latest --name=nexus -n ${CICD_PROJECT}
 oc expose svc nexus -n ${CICD_PROJECT}
@@ -61,15 +62,15 @@ oc set probe dc/sonarqube --readiness --failure-threshold 3 --initial-delay-seco
 oc patch dc/sonarqube --type=merge -p '{"spec": {"template": {"metadata": {"labels": {"tuned.openshift.io/elasticsearch": "true"}}}}}'
 oc rollout resume dc sonarqube
 check_pod "sonarqube"
-echo "####### Maven 3.5 Jenkins Slave with Skopeo #########"
-oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-maven:4.1.0\n
-   USER root\n
-   RUN curl https://copr.fedorainfracloud.org/coprs/alsadi/dumb-init/repo/epel-7/alsadi-dumb-init-epel-7.repo -o /etc/yum.repos.d/alsadi-dumb-init-epel-7.repo && \ \n
-   curl https://raw.githubusercontent.com/cloudrouter/centos-repo/master/CentOS-Base.repo -o /etc/yum.repos.d/CentOS-Base.repo && \ \n
-   curl http://mirror.centos.org/centos-7/7/os/x86_64/RPM-GPG-KEY-CentOS-7 -o /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 && \ \n
-   DISABLES="--disablerepo=rhel-server-extras --disablerepo=rhel-server --disablerepo=rhel-fast-datapath --disablerepo=rhel-server-optional --disablerepo=rhel-server-ose --disablerepo=rhel-server-rhscl" && \ \n
-   yum $DISABLES -y --setopt=tsflags=nodocs install skopeo && yum clean all\n
-   USER 1001' --name=mvn-with-skopeo
+# echo "####### Maven 3.5 Jenkins Slave with Skopeo #########"
+# oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-maven:4.1.0\n
+#    USER root\n
+#    RUN curl https://copr.fedorainfracloud.org/coprs/alsadi/dumb-init/repo/epel-7/alsadi-dumb-init-epel-7.repo -o /etc/yum.repos.d/alsadi-dumb-init-epel-7.repo && \ \n
+#    curl https://raw.githubusercontent.com/cloudrouter/centos-repo/master/CentOS-Base.repo -o /etc/yum.repos.d/CentOS-Base.repo && \ \n
+#    curl http://mirror.centos.org/centos-7/7/os/x86_64/RPM-GPG-KEY-CentOS-7 -o /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 && \ \n
+#    DISABLES="--disablerepo=rhel-server-extras --disablerepo=rhel-server --disablerepo=rhel-fast-datapath --disablerepo=rhel-server-optional --disablerepo=rhel-server-ose --disablerepo=rhel-server-rhscl" && \ \n
+#    yum $DISABLES -y --setopt=tsflags=nodocs install skopeo && yum clean all\n
+#    USER 1001' --name=mvn-with-skopeo
 echo "Jenkins URL = $(oc get route jenkins -n ${CICD_PROJECT} -o jsonpath='{.spec.host}')"
 echo "NEXUS URL = $(oc get route nexus -n ${CICD_PROJECT} -o jsonpath='{.spec.host}') "
 echo "NEXUS Password = ${NEXUS_PASSWORD}"
