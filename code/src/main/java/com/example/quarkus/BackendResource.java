@@ -18,22 +18,22 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Path("/")
 public class BackendResource {
-    @ConfigProperty(name = "version", defaultValue = "1.0.0")
+    @ConfigProperty(name = "app.version", defaultValue = "1.0.0")
     String version;
 
-    @ConfigProperty(name = "backend", defaultValue = "http://localhost:8080/version")
+    @ConfigProperty(name = "app.backend", defaultValue = "http://localhost:8080/version")
     String backend;
 
-    @ConfigProperty(name = "message", defaultValue = "Hello, World")
+    @ConfigProperty(name = "app.message", defaultValue = "Hello, World")
     String message;
 
-    @ConfigProperty(name = "errorCodeNotLive", defaultValue = "503")
+    @ConfigProperty(name = "app.errorCodeNotLive", defaultValue = "503")
     String errorCodeNotLive;
 
-    @ConfigProperty(name = "errorCodeNotReady", defaultValue = "504")
+    @ConfigProperty(name = "app.errorCodeNotReady", defaultValue = "504")
     String errorCodeNotReady;
 
-    @ConfigProperty(name = "showResponse", defaultValue = "true")
+    @ConfigProperty(name = "app.showResponse", defaultValue = "true")
     String showResponse;
 
     private static final Logger logger = Logger.getLogger(BackendResource.class);
