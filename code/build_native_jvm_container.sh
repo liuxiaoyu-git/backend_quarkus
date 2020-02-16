@@ -1,5 +1,5 @@
 #!/bin/bash
-CONTAINER_NAME=backend
+CONTAINER_NAME=frontend
 TAG=v1
 mvn clean package -DskipTests=true
 echo "*" > .dockerignore
