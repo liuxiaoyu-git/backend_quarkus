@@ -33,7 +33,7 @@ public class BackendResource {
     @ConfigProperty(name = "errorCodeNotReady", defaultValue = "504")
     String errorCodeNotReady;
 
-    @ConfigProperty(name = "showResponse", defaultValue = "false")
+    @ConfigProperty(name = "showResponse", defaultValue = "true")
     String showResponse;
 
     private static final Logger logger = Logger.getLogger(BackendResource.class);
@@ -46,6 +46,7 @@ public class BackendResource {
             URL url;
             try {
                 logger.info("Request to: " + backend);
+                logger.info("showResponse: "+showResponse);
                 url = new URL(backend);
                 final HttpURLConnection con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
