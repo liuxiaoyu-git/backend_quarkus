@@ -57,18 +57,18 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-smallrye-openapi</artifactId>
     </dependency>
-    <!-- CVE-2017-15708-->
+    <!-- CVE-2017-15708
     <dependency>
       <groupId>commons-collections</groupId>
       <artifactId>commons-collections</artifactId>
       <version>3.2.1</version>
-    </dependency>
-    <!-- CVE-2013-4366-->
+    </dependency>-->
+    <!-- CVE-2013-4366
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
       <version>4.3</version>
-  </dependency>
+  </dependency>-->
 
   </dependencies>
   <build>
