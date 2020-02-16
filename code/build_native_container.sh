@@ -1,5 +1,5 @@
 #!/bin/bash
-CONTAINER_NAME=frontend-native
+CONTAINER_NAME=backend-native
 TAG=v1
 echo "*" > .dockerignore
 echo "!src/*" >> .dockerignore
