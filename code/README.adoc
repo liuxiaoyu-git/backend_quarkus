@@ -7,9 +7,12 @@ configuration can be set via environment variable or config/application.properti
 [options=header]
 |===
 |Variable|Description|Default Value
-|version|Application Version|1.0.0-SNAPSHOT
-|backend|target URL that backend request to|http://localhost:8080/version
-|message|Message return from application|Hello, World
+|app.version|Application Version|1.0.0
+|app.backend|target URL that backend request to|http://localhost:8080/version
+|app.message|Message return from application|Hello, World
+|app.showResponse|Show response from app.backend instead of app.message|false
+|app.errorCodeNotLive|Return Code when liveness is false|504
+|app.errorCodeNotReady|Return Code when readiness is false|503
 |===
 
 URI supported by application
@@ -38,14 +41,12 @@ mvn clean package
 java -jar target/backend-1.0.0-runner.jar
 # Remark: Check that how fast it is!
 # Test environment variables
-export message=Bravo
-export backend=https://httpbin.org/status/403
-java -jar target/backend-1.0.0-runner.jar
+java -Dapp.showResponse=true -Dapp.backend=https://httpbin.org/delay/2 -jar target/backend-1.0.0-runner.jar
 ----
 
-== Build Native binary on OSX 
+== Build Native binary on OSX (or your OS)
 
-GraalVM 19.2.1 and XCode is needed.
+GraalVM 19.2.1 is needed and XCode is needed for OSX
 
 [source,bash]
 ----
@@ -61,12 +62,24 @@ ${GRAALVM_HOME}/bin/gu install native-image
 mvn clean package -Pnative -DskipTests=true
 # Run
 target/backend-1.0.0-runner
-# Test environment variable
-export message=Bravo
-export backend=http://httpbin.org/status/201
-target/backend-1.0.0-runner
 # Then cURL
 curl -v http://localhost:8080
+----
+
+== Build JVM Container Image 
+
+Use jvm build as follow
+
+[source,bash]
+----
+cd bin
+docker build -f src/main/docker/Dockerfile.jvm \
+-t ${CONTAINER_NAME}:${TAG} .
+# Remark: Make sure that .dockerignore included target,src and pom.xml
+# or use bash script
+./build_jvm_container.sh
+# Run
+docker run -p 8080:8080 -e app.showResponse=true ${CONTAINERNAME}:${TAG}
 ----
 
 
@@ -78,9 +91,12 @@ Use multistage build as follow
 ----
 cd bin
 docker build -f src/main/docker/Dockerfile.multistage \
--t ${CONTAINER_NAME} .
+-t ${CONTAINER_NAME}:${TAG} .
 # Remark: Make sure that .dockerignore included target,src and pom.xml
-
+# or use bash script
+./build_native_container.sh
+# Run
+docker run -p 8080:8080 -e app.showResponse=true ${CONTAINERNAME}:${TAG}
 ----
 
 == Deploy to OpenShift (JVM Mode)
@@ -130,11 +146,4 @@ BACKEND_URL=$(oc get route backend -o jsonpath='{.spec.host}')
 echo "Backend: http://$BACKEND_URL"
 ----
 
-All in one shell script => link:build.sh[build.sh]
-
-== Deploy to OpenShift (Native Mode)
-WIP
-[source,bash]
-----
-mvn package -Pnative -Dquarkus.native.container-build=true -DskipTests=true
-----
+All in one shell script => link:build.sh[build_ocp_jvm.sh]
