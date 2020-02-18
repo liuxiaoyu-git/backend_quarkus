@@ -78,16 +78,16 @@ pipeline {
           }
         }
         //Using Maven call SonarQube for Code Analysis
-        stage('Code Analysis') {
-          steps {
-            dir('code') {
-              script {
-                echo "Running Code Analysis"
-                sh "${mvnCmd} sonar:sonar -Dsonar.host.url=${env.SONARQUBE_SVC} -Dsonar.projectName=${imageName}-${devTag} -Dsonar.projectVersion=${devTag}"
-              }
-            }
-          }
-        }
+        // stage('Code Analysis') {
+        //   steps {
+        //     dir('code') {
+        //       script {
+        //         echo "Running Code Analysis"
+        //         sh "${mvnCmd} sonar:sonar -Dsonar.host.url=${env.SONARQUBE_SVC} -Dsonar.projectName=${imageName}-${devTag} -Dsonar.projectVersion=${devTag}"
+        //       }
+        //     }
+        //   }
+        // }
       }
     }
     // Publish the built jar file to Nexus
