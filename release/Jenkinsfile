@@ -76,19 +76,19 @@ pipeline {
         }
       }
     }
-    stage('Release Image to Nexus') {
-      steps {
-        script {
-          openshift.withCluster() {
-            openshift.withProject(env.CICD_PROJECT) {
-              println "Releasing image  ${imageName}:${selectTag} to ${env.NEXUS_REGISTRY_SVC}"
-              sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds admin:password1234 docker://image-registry.openshift-image-registry.svc.cluster.local:5000/${env.CICD_PROJECT}/${imageName}:${selectTag} ${env.NEXUS_REGISTRY_SVC}/${imageName}:${releaseTag}"
-              openshift.tag("${imageName}:${selectTag}", "${imageName}:${releaseTag}")
-            }
-          }
-        }
-      }
-    }
+    // stage('Release Image to Nexus') {
+    //   steps {
+    //     script {
+    //       openshift.withCluster() {
+    //         openshift.withProject(env.CICD_PROJECT) {
+    //           println "Releasing image  ${imageName}:${selectTag} to ${env.NEXUS_REGISTRY_SVC}"
+    //           sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds admin:password1234 docker://image-registry.openshift-image-registry.svc.cluster.local:5000/${env.CICD_PROJECT}/${imageName}:${selectTag} ${env.NEXUS_REGISTRY_SVC}/${imageName}:${releaseTag}"
+    //           openshift.tag("${imageName}:${selectTag}", "${imageName}:${releaseTag}")
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
     stage('Tear-Down Stage') {
       steps {
         script {
