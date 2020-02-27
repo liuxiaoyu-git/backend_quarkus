@@ -1,10 +1,9 @@
 #!/bin/bash
 echo "Build Frontend App"
 APP_NAME=frontend
-mvn clean package -DskipTests=true
-# mvn clean package -DskipTests=true -Dquarkus.package.uber-jar=true
+mvn clean package -DskipTests=true -Dquarkus.package.uber-jar=true
 oc new-build --binary --name=${APP_NAME} -l app=${APP_NAME}
-oc patch bc/${APP_NAME} -p "{\"spec\":{\"strategy\":{\"dockerStrategy\":{\"dockerfilePath\":\"src/main/docker/Dockerfile.jvm\"}}}}"
+oc patch bc/${APP_NAME} -p "{\"spec\":{\"strategy\":{\"dockerStrategy\":{\"dockerfilePath\":\"src/main/docker/Dockerfile.jvm_uberjar\"}}}}"
 oc start-build ${APP_NAME} --from-dir=. --follow
 oc new-app --image-stream=${APP_NAME}:latest
 oc rollout pause dc ${APP_NAME}

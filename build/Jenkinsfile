@@ -57,7 +57,7 @@ pipeline {
 
           echo "Building binary for ${imageName}"
           script {
-            sh(script: '${mvnCmd} clean package -DskipTests=true', returnStdout: 'true')
+            sh(script: '${mvnCmd} clean package -DskipTests=true -Dquarkus.package.uber-jar=true', returnStdout: 'true')
             
           }
         }
@@ -95,8 +95,7 @@ pipeline {
         dir('code') {
           echo "Publish to Nexus"
           sh "${mvnCmd} deploy -DskipTests=true -DaltDeploymentRepository=nexus::default::${env.NEXUS_SVC}/repository/releases"
-          //mvn deploy:deploy-file -DgroupId=com.somecompany -DartifactId=project -Dversion=1.0.0 -DgeneratePom=true -Dpackaging=jar -DrepositoryId=nexus -Durl=http://localhost:8081/repository/maven-releases -Dfile=target/project-1.0.0.jar
-          sh "${mvnCmd} deploy:deploy-file -DskipTests=true -DaltDeploymentRepository=nexus::default::${env.NEXUS_SVC}/repository/releases -Dfile=target/${imageName}-${version}-runner.jar"
+          //sh "${mvnCmd} deploy:deploy-file -DskipTests=true -DaltDeploymentRepository=nexus::default::${env.NEXUS_SVC}/repository/releases -Dfile=target/${imageName}-${version}-runner.jar"
         }
       }
     }
