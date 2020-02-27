@@ -82,7 +82,7 @@ sleep 10
 export NEXUS_POD=$(oc get pods | grep nexus | grep -v deploy | awk '{print $1}')
 export NEXUS_PASSWORD=$(oc rsh $NEXUS_POD cat /nexus-data/admin.password)
 # https://raw.githubusercontent.com/redhat-gpte-devopsautomation/ocp_advanced_development_resources/master/nexus/setup_nexus3.sh
-./setup_nexus3.sh admin $NEXUS_PASSWORD http://$(oc get route nexus --template='{{ .spec.host }}')
+./setup_nexus3.sh admin $NEXUS_PASSWORD https://$(oc get route nexus --template='{{ .spec.host }}')
 echo "expose port 5000 for container registry"
 oc expose dc nexus --port=5000 --name=nexus-registry
 oc create route edge nexus-registry --service=nexus-registry --port=5000
@@ -93,6 +93,6 @@ echo "NEXUS Password = ${NEXUS_PASSWORD}"
 echo "Nexus password is stored at bin/nexus_password.txt"
 echo ${NEXUS_PASSWORD} > nexus_password.txt
 echo "Record this password and change it via web console"
-echo "Youn need to enable anonymous access"
-echo "SONARQUBE URL = $(oc get route sonarqube -n ${CICD_PROJECT} -o jsonpath='{.spec.host}') "
+echo "You need to enable anonymous access"
+echo "Start build pipeline and deploy to dev project by run start_build_pipeline.sh"
 echo "###########################################################################################"

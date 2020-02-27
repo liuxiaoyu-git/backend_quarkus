@@ -4,7 +4,6 @@
 ./setup_maven36_slave.sh
 ./create_pipelines.sh
 echo "#####################################################"
-echo "https://$(oc get route nexus -n ci-cd -o jsonpath='{.spec.host}')"
 echo "Login to https://$(oc get route nexus -n ci-cd -o jsonpath='{.spec.host}')"
 echo "User ID: admin"
 echo "Password: $(cat ./nexus_password.txt)"
