@@ -89,13 +89,15 @@ pipeline {
         }
       }
     }
-    // Publish the built jar file to Nexus
+    // Publish the uberjar file to Nexus
     stage('Publish to Nexus') {
       steps {
         dir('code') {
           echo "Publish to Nexus"
+          sh "mv target/${imageName}-${version}-runner.jar target/${imageName}-${version}.jar"
           sh "${mvnCmd} deploy -DskipTests=true -DaltDeploymentRepository=nexus::default::${env.NEXUS_SVC}/repository/releases"
           //sh "${mvnCmd} deploy:deploy-file -DskipTests=true -DaltDeploymentRepository=nexus::default::${env.NEXUS_SVC}/repository/releases -Dfile=target/${imageName}-${version}-runner.jar"
+          sh "mv target/${imageName}-${version}.jar target/${imageName}-${version}-runner.jar"
         }
       }
     }
