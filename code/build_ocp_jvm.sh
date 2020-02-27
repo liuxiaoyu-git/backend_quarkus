@@ -1,6 +1,6 @@
 #!/bin/bash
-echo "Build Frontend App"
-APP_NAME=frontend
+echo "Build Backend App"
+APP_NAME=backend
 mvn clean package -DskipTests=true
 # mvn clean package -DskipTests=true -Dquarkus.package.uber-jar=true
 oc new-build --binary --name=${APP_NAME} -l app=${APP_NAME}
@@ -18,5 +18,5 @@ oc set volume dc/${APP_NAME} --add --name=${APP_NAME}-config \
 --configmap-name=${APP_NAME}
 oc expose svc ${APP_NAME}
 oc rollout resume dc ${APP_NAME}
-FRONTEND_URL=$(oc get route backend -o jsonpath='{.spec.host}')
-echo "Frontend: http://${FRONTEND_URL}"
+BACKEND_URL=$(oc get route backend -o jsonpath='{.spec.host}')
+echo "Frontend: http://${BACKEND_URL}"
