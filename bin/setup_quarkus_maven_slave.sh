@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 PROJECT=ci-cd
 JENKINS_SLAVE=quarkus-maven-slave
 oc new-build --strategy=docker \

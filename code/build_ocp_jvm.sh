@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 echo "Build Backend App"
 APP_NAME=backend
 mvn clean package -DskipTests=true

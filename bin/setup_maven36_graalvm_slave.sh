@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 PROJECT=ci-cd
 JENKINS_SLAVE=maven36-with-graalvm-and-tools
 oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-maven:4.1.0\n

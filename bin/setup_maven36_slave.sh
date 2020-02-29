@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 PROJECT=ci-cd
 JENKINS_SLAVE=maven36-with-tools
 echo "####### Maven 3.6 Jenkins Slave with Skopeo #########"

@@ -12,6 +12,7 @@ Run following script in directory bin
 
 [source,bash]
 ----
+
 cd bin
 # Create project ci-cd, jenkins, nexus and sonarqube
 ./setup_ci_cd_tools.sh
@@ -19,19 +20,38 @@ cd bin
 ./setup_maven36_slave.sh
 # Create projects for dev,stage,uat and production
 ./setup_projects.sh
+
 ----
 
-After run setup_ci_cd_tools.sh, You need to record nexus password then login to nexus and set nexus to allow anonymous access.
+Alternatively, run create everythings with shell script link:../bin/all_in_one.sh[all_in_one.sh]
+
+[source,bash]
+----
+
+cd bin
+./all_in_one.sh
+
+----
+
+== Setup Nexus
+Login to nexus with user admin. Initial password is stored in bin/nexus_password.txt
+
+  * Nexus password need to be matched with password in link:../code/nexus_settings.xml[nexus_settings.xml]
+  * Enable anonymous access
+
+
 
 == Jenkins Pipelines
 Create pipelines in ci-cd project with oc command
 
 [source,bash]
 ----
+
 oc apply -f manifests/backend-build-pipeline.yaml -n ci-cd
 oc apply -f manifests/backend-release-pipeline.yaml -n ci-cd
 oc apply -f manifests/backend-release-uat-pipeline.yaml -n ci-cd
 oc apply -f manifests/backend-release-prod-pipeline.yaml -n ci-cd
+
 ----
 
 or run following bash script to create all pipelines

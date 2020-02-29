@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 PROJECT=ci-cd
 PIPELINE=backend-release-uat-pipeline
 OUTPUT=$(oc start-build ${PIPELINE} -n ${PROJECT})

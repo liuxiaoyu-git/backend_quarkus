@@ -1,3 +1,3 @@
-#!/bin/bash
+#!/bin/sh
 mvn package -Pnative -DskipTests=true
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 CONTAINER_NAME=backend-native
 TAG=v1
 echo "*" > .dockerignore

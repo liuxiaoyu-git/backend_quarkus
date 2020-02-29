@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/bin/sh
 echo "Creating Projects ..."
 CI_CD=ci-cd
 DEV=dev
 STAGE=stage
 UAT=uat
 PROD=prod
-oc new-project $CI_CD  --display-name="CI/CD Tools"
+#oc new-project $CI_CD  --display-name="CI/CD Tools"
 oc new-project $DEV  --display-name="Development Environment"
 oc new-project $STAGE  --display-name="Staging Environment"
 oc new-project $UAT --display-name="User Acceptance Test Environment"

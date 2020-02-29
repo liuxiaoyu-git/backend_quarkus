@@ -16,6 +16,7 @@ configuration can be set via environment variable or config/application.properti
 |===
 
 URI supported by application
+
 [options=header]
 |===
 |URI|Description
@@ -27,13 +28,16 @@ URI supported by application
 |/not_ready|Set readiness to false
 |/ready|Set readiness to true
 |/version|Return App version
-
+|/openapi|Return OpenAPI (Swagger) document in yaml 
+|/openapi?format=json|Return OpenAPI (Swagger) document in JSON 
 |===
 
 == Build JAR
 You need maven 3.5.4 at least.
+
 [source,bash]
 ----
+
 # package JAR
 cd code
 mvn clean package
@@ -42,6 +46,17 @@ java -jar target/backend-1.0.0-runner.jar
 # Remark: Check that how fast it is!
 # Test environment variables
 java -Dapp.showResponse=true -Dapp.backend=https://httpbin.org/delay/2 -jar target/backend-1.0.0-runner.jar
+
+----
+
+Uber jar can be build with additional parameter
+
+[source,bash]
+----
+# package UberJAR
+cd code
+mvn clean package -Dquarkus.package.uber-jar=true
+
 ----
 
 == Build Native binary on OSX (or your OS)
@@ -72,7 +87,8 @@ Use jvm build as follow
 
 [source,bash]
 ----
-cd bin
+cd code
+mvn clean package
 docker build -f src/main/docker/Dockerfile.jvm \
 -t ${CONTAINER_NAME}:${TAG} .
 # Remark: Make sure that .dockerignore included target,src and pom.xml
@@ -82,6 +98,20 @@ docker build -f src/main/docker/Dockerfile.jvm \
 docker run -p 8080:8080 -e app.showResponse=true ${CONTAINERNAME}:${TAG}
 ----
 
+Build JVM container with Uberjar
+
+[source,bash]
+----
+cd code
+mvn clean package -Dquarkus.package.uber-jar=true
+docker build -f src/main/docker/Dockerfile.jvm_uberjar \
+-t ${CONTAINER_NAME}:${TAG} .
+# Remark: Make sure that .dockerignore included target,src and pom.xml
+# or use bash script
+./build_jvm_uberjar_container.sh
+# Run
+docker run -p 8080:8080 -e app.showResponse=true ${CONTAINERNAME}:${TAG}
+----
 
 == Build Native Container Image 
 
