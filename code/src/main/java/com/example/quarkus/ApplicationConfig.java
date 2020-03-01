@@ -2,7 +2,7 @@ package com.example.quarkus;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.ws.rs.ApplicationPath;
+//import javax.ws.rs.ApplicationPath;
 
 import javax.ws.rs.core.Application;
 
