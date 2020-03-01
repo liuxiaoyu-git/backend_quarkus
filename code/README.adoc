@@ -59,7 +59,7 @@ mvn clean package -Dquarkus.package.uber-jar=true
 
 ----
 
-== Build Native binary on OSX (or your OS)
+== Build Native binary
 
 GraalVM 19.2.1 is needed and XCode is needed for OSX
 
