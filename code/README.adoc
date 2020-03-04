@@ -223,4 +223,3 @@ ${BASE_IMAGE}~${APP_REPOSITORY} \
 --name=${APP_NAME}
 
 ----
-
