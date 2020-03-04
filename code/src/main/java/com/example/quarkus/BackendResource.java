@@ -89,6 +89,7 @@ public class BackendResource {
         }
 
         @GET
+        @Path("/version")
         @Produces(MediaType.TEXT_PLAIN)
         public Response version() {
             logger.info("Get Version");
