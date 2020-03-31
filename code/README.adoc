@@ -47,6 +47,11 @@ java -jar target/backend-1.0.0-runner.jar
 # Test environment variables
 java -Dapp.showResponse=true -Dapp.backend=https://httpbin.org/delay/2 -jar target/backend-1.0.0-runner.jar
 
+# Use environment variable
+export APP_SHOWRESPONSE=true
+export APP_BACKEND=https://httpbin.org/delay/2
+java -jar  target/backend-1.0.0-runner.jar
+
 ----
 
 Uber jar can be build with additional parameter
