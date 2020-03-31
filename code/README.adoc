@@ -61,16 +61,18 @@ mvn clean package -Dquarkus.package.uber-jar=true
 
 == Build Native binary
 
-GraalVM 19.2.1 is needed and XCode is needed for OSX
+GraalVM 19.3.1 and 20.0.0 is needed and XCode is needed for OSX
+
+
 
 [source,bash]
 ----
 # Download GraalVM & Untar it
-curl -o ~/Downloads/graalvm-ce-darwin-amd64-19.2.1.tar.gz \
-https://github.com/oracle/graal/releases/download/vm-19.2.1/graalvm-ce-darwin-amd64-19.2.1.tar.gz
+curl -o ~/Downloads/graalvm-ce-java8-darwin-amd64-20.0.0.tar.gz \
+-L https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.0.0/graalvm-ce-java8-darwin-amd64-20.0.0.tar.gz
 # Set GRAALVM_HOME variables
 # e.g. GrallVM is installed at ${HOME}/opt
-export GRAALVM_HOME=${HOME}/opt/graalvm-ce-19.2.1/Contents/Home
+export GRAALVM_HOME=${HOME}/opt/graalvm-ce-java8-20.0.0/Contents/Home
 # Install Native Image
 ${GRAALVM_HOME}/bin/gu install native-image
 # Package
