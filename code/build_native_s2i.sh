@@ -20,7 +20,9 @@ sleep 3
 # View build log
 echo "##### Build Log #####"
 oc logs -f bc/${APP_NAME}
-# To create the route
+# create the route
 oc expose svc/${APP_NAME}
+# create route with Edge termination
+# oc create route edge ${APP_NAME}  --service=${APP_NAME} --port=8080 
 # Get the route URL
 echo "URL: http://$(oc get route | grep ${APP_NAME} | awk '{print $2}')"
