@@ -33,7 +33,7 @@ URI supported by application
 |===
 
 == Build JAR
-You need maven 3.5.4 at least.
+You need maven 3.6.3 for work with Quarkus 1.3.1.
 
 [source,bash]
 ----
