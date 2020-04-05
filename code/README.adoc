@@ -33,7 +33,7 @@ URI supported by application
 |===
 
 == Build JAR
-You need maven 3.6.3 for work with Quarkus 1.3.1.
+Quarkus 1.3.1 needs maven 3.6.3+ 
 
 [source,bash]
 ----
@@ -41,8 +41,10 @@ You need maven 3.6.3 for work with Quarkus 1.3.1.
 # package JAR
 cd code
 mvn clean package
+
 # Run
 java -jar target/backend-1.0.0-runner.jar
+
 # Remark: Check that how fast it is!
 # Test environment variables
 java -Dapp.showResponse=true -Dapp.backend=https://httpbin.org/delay/2 -jar target/backend-1.0.0-runner.jar
@@ -66,7 +68,7 @@ mvn clean package -Dquarkus.package.uber-jar=true
 
 == Build Native binary
 
-GraalVM 19.3.1 and 20.0.0 is needed and XCode is needed for OSX
+Quarkus 1.3.1 needs GraalVM 19.3.1 or 20.0.0. XCode also needed for OSX. (link:build_native.sh[build_native.sh])
 
 
 
@@ -75,69 +77,86 @@ GraalVM 19.3.1 and 20.0.0 is needed and XCode is needed for OSX
 # Download GraalVM & Untar it
 curl -o ~/Downloads/graalvm-ce-java8-darwin-amd64-20.0.0.tar.gz \
 -L https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.0.0/graalvm-ce-java8-darwin-amd64-20.0.0.tar.gz
+
 # Set GRAALVM_HOME variables
 # e.g. GrallVM is installed at ${HOME}/opt
 export GRAALVM_HOME=${HOME}/opt/graalvm-ce-java8-20.0.0/Contents/Home
+
 # Install Native Image
 ${GRAALVM_HOME}/bin/gu install native-image
+
 # Package
 mvn clean package -Pnative -DskipTests=true
+
 # Run
 target/backend-1.0.0-runner
+
 # Then cURL
 curl -v http://localhost:8080
 ----
 
 == Build JVM Container Image 
 
-Use jvm build as follow
+* Build container with Quarkus package as JAR (link:build_jvm_container.sh[build_jvm_container.sh])
 
 [source,bash]
 ----
 cd code
 mvn clean package
+
+# Remark: Make sure that .dockerignore included target,src and pom.xml
 docker build -f src/main/docker/Dockerfile.jvm \
 -t ${CONTAINER_NAME}:${TAG} .
-# Remark: Make sure that .dockerignore included target,src and pom.xml
-# or use bash script
-./build_jvm_container.sh
+
 # Run
 docker run -p 8080:8080 -e app.showResponse=true ${CONTAINERNAME}:${TAG}
 ----
 
-Build JVM container with Uberjar
+* Because normally Quarkus will separate runnner and libraries. If you want single jar file (Uberjar). You an use parameter quarkus.pakage.uber-jar with value true to build uberjar. (link:build_jvm_uberjar_container.sh[build_jvm_uberjar_container.sh])
 
 [source,bash]
 ----
 cd code
 mvn clean package -Dquarkus.package.uber-jar=true
+
+# Remark: Make sure that .dockerignore included target,src and pom.xml
 docker build -f src/main/docker/Dockerfile.jvm_uberjar \
 -t ${CONTAINER_NAME}:${TAG} .
-# Remark: Make sure that .dockerignore included target,src and pom.xml
-# or use bash script
-./build_jvm_uberjar_container.sh
+
 # Run
 docker run -p 8080:8080 -e app.showResponse=true ${CONTAINERNAME}:${TAG}
 ----
 
 == Build Native Container Image 
 
-Use multistage build as follow
+* Use maven to build container native binary (link:build_native_container.sh[build_native_container.sh])
+[source,bash]
+----
+cd bin
+# Specified paramter quarkus.native.container-build=true
+mvn clean package -Dquarkus.native.container-build=true -DskipTests=true  -Pnative 
+
+# Build
+docker build -f src/main/docker/Dockerfile.native \
+-t ${CONTAINER_NAME}:${TAG} .
+----
+
+* Use Mulitstage build (link:build_native_container_multistage.sh[build_native_container_multistage.sh])
 
 [source,bash]
 ----
 cd bin
+# Remark: Make sure that .dockerignore included target,src and pom.xml
 docker build -f src/main/docker/Dockerfile.multistage \
 -t ${CONTAINER_NAME}:${TAG} .
-# Remark: Make sure that .dockerignore included target,src and pom.xml
-# or use bash script
-./build_native_container.sh
+
 # Run
 docker run -p 8080:8080 -e app.showResponse=true ${CONTAINERNAME}:${TAG}
 ----
 
 == Deploy to OpenShift (JVM Mode)
 * Create binary build and patch to change strategy to docker strategy
+
 [source,bash]
 ----
 oc new-build --binary --name=backend -l app=backend
@@ -145,18 +164,21 @@ oc patch bc/backend -p "{\"spec\":{\"strategy\":{\"dockerStrategy\":{\"dockerfil
 ----
 
 * Start build from current directory. Remark that this directory is base directory for src/main/docker/Dockerfile.jvm
+
 [source,bash]
 ----
 oc start-build backend --from-dir=. --follow
 ----
 
 * Start deploy
+
 [source,bash]
 ----
 oc new-app --image-stream=backend:latest
 ----
 
 * Pause deployment, set rediness and liveness probe
+
 [source,bash]
 ----
 oc rollout pause dc backend
@@ -165,6 +187,7 @@ oc set probe dc/backend --liveness --get-url=http://:8080/health/live --initial-
 ----
 
 * Quarkus will overwrite configuration with config/application.properites
+
 [source,bash]
 ----
 oc create configmap backend --from-file=config/application.properties
@@ -175,7 +198,8 @@ oc set volume dc/backend --add --name=backend-config \
 ----
 
 * Expose service (create route) and resume rollout
-[source,path]
+
+[source,bash]
 ----
 oc expose svc backend
 oc rollout resume dc backend
