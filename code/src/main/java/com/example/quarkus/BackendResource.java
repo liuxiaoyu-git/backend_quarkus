@@ -15,7 +15,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.jboss.logging.Logger;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-
+// import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
 @Path("/")
 public class BackendResource {
     @ConfigProperty(name = "app.version", defaultValue = "1.0.0")
@@ -41,6 +44,8 @@ public class BackendResource {
     @GET
     @Path("/")
     @Produces(MediaType.TEXT_PLAIN)
+    @Operation(summary = "Call Service")
+    @APIResponse(responseCode = "200", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     public Response callBackend() throws IOException {
         if (ApplicationConfig.IS_ALIVE.get() && ApplicationConfig.IS_READY.get()) {
             URL url;
@@ -91,6 +96,8 @@ public class BackendResource {
         @GET
         @Path("/version")
         @Produces(MediaType.TEXT_PLAIN)
+        @Operation(summary = "Show Version")
+        @APIResponse(responseCode = "200", content = @Content(mediaType = MediaType.TEXT_PLAIN))
         public Response version() {
             logger.info("Get Version");
             return Response.ok().encoding("text/plain").entity(generateMessage("", "200")).build();
@@ -99,6 +106,8 @@ public class BackendResource {
         @GET
         @Path("/stop")
         @Produces(MediaType.TEXT_PLAIN)
+        @Operation(summary = "Set Liveness to false")
+        @APIResponse(responseCode = "200", content = @Content(mediaType = MediaType.TEXT_PLAIN))
         public Response stopApp() {
             ApplicationConfig.IS_ALIVE.set(false);
             logger.info("Set Liveness to false");
@@ -110,6 +119,8 @@ public class BackendResource {
         @GET
         @Path("/not_ready")
         @Produces(MediaType.TEXT_PLAIN)
+        @Operation(summary = "Set Readiness to false")
+        @APIResponse(responseCode = "200", content = @Content(mediaType = MediaType.TEXT_PLAIN))
         public Response notReadyApp() {
             ApplicationConfig.IS_READY.set(false);
             logger.info("Set Readiness to false");
@@ -121,6 +132,8 @@ public class BackendResource {
         @GET
         @Path("/start")
         @Produces(MediaType.TEXT_PLAIN)
+        @Operation(summary = "Set Liveness to true")
+        @APIResponse(responseCode = "200", content = @Content(mediaType = MediaType.TEXT_PLAIN))
         public Response startApp() {
             logger.info("Set Liveness to true");
             if (!ApplicationConfig.IS_ALIVE.get())
@@ -133,6 +146,8 @@ public class BackendResource {
         @GET
         @Path("/ready")
         @Produces(MediaType.TEXT_PLAIN)
+        @Operation(summary = "Set Readiness to true")
+        @APIResponse(responseCode = "200", content = @Content(mediaType = MediaType.TEXT_PLAIN))
         public Response readyApp() {
             logger.info("Set Readiness to true");
             ApplicationConfig.IS_READY.set(true);
@@ -144,6 +159,8 @@ public class BackendResource {
         @GET
         @Path("/status")
         @Produces(MediaType.TEXT_PLAIN)
+        @Operation(summary = "Show Liveness and Readiness")
+        @APIResponse(responseCode = "200", content = @Content(mediaType = MediaType.TEXT_PLAIN))
         public Response statusApp() {
             logger.info("Check status");
             final String msg = "Liveness=" + ApplicationConfig.IS_ALIVE.get() + " Readiness=" +
