@@ -15,11 +15,11 @@ import javax.ws.rs.ApplicationPath;
     info = @Info(title = "Backend API",
         description = "Sample Backend RESTful API",
         version = "1.0.0",
-        contact = @Contact(name = "Quarkus", url = "")),
+        contact = @Contact(name = "Voraviz", url = "")),
     servers = {
         @Server(url = "http://localhost:8080")
     },
-    externalDocs = @ExternalDocumentation(url = "https://github.com/quarkusio/quarkus-workshops", description = "Sample Quarkus"),
+    externalDocs = @ExternalDocumentation(url = "https://gitlab.com/ocp-demo/backend_quarkus", description = "Backend Quarkus"),
     tags = {
         @Tag(name = "api", description = "Demo RESTful API"),
         @Tag(name = "backend", description = "This app call another RESTful App")
