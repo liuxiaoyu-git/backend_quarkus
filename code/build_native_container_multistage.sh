@@ -1,6 +1,7 @@
 #!/bin/sh
 CONTAINER_NAME=backend-native
 TAG=v1
+mvn test
 if [ $? - eq 0 ];
 then
     echo "*" > .dockerignore
