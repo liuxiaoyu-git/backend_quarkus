@@ -15,7 +15,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.jboss.logging.Logger;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-// import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
+import org.eclipse.microprofile.metrics.MetricUnits;
+import org.eclipse.microprofile.metrics.annotation.Counted;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -46,6 +48,15 @@ public class BackendResource {
     @Produces(MediaType.TEXT_PLAIN)
     @Operation(summary = "Call Service")
     @APIResponse(responseCode = "200", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @Counted(
+        name = "countBackend", 
+        description = "Counts how many times the backend method has been invoked"
+        )
+    @Timed(
+        name = "timeBackend", 
+        description = "Times how long it takes to invoke the backend method", 
+        unit = MetricUnits.MILLISECONDS
+        )
     public Response callBackend() throws IOException {
         if (ApplicationConfig.IS_ALIVE.get() && ApplicationConfig.IS_READY.get()) {
             URL url;

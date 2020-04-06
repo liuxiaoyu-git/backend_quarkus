@@ -30,6 +30,7 @@ URI supported by application
 |/version|Return App version
 |/openapi|Return OpenAPI (Swagger) document in yaml 
 |/openapi?format=json|Return OpenAPI (Swagger) document in JSON 
+|metrics/application|get metrics data
 |===
 
 == Build JAR
