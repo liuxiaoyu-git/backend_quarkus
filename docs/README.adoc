@@ -70,9 +70,9 @@ All templates are in directory link:../manifests[manifests]
 |===
 |Pipelines|Description|Jenkinsfile Location
 |backend-build-pipeline|Use S2I to create container image, run Unit Test, SonarQube scan, archive JAR to nexus and deploy to Development project|link:../build/Jenkinsfile[build/Jenkinsfile]
-|backend-release-pipeline|Select image from image tag to deploy to Staging project,tag image with YYYYMMDD-<build number> and archive container image to Nexus|link:../release/Jenkinsfile[release/Jenkinsfile]
-|backend-release-uat-pipeline|Select image from image tag to deploy to UAT project. Only image with tag YYYYMMDD-<build number> can be selected|link:../release-uat/Jenkinsfile[release-uat/Jenkinsfile]
-|backend-release-prod-pipeline|Select image from image to deploy to production with blue/green deployment. Only image with tag YYYYMMDD-<build number> can be selected|link:../release-prod/Jenkinsfile[release-prod/Jenkinsfile]
+|backend-release-pipeline|Select image from image tag to deploy to Staging project,tag image with YYYYMMDD-<build number> and archive container image to Nexus|link:../Jeninsfile/release/Jenkinsfile[release/Jenkinsfile]
+|backend-release-uat-pipeline|Select image from image tag to deploy to UAT project. Only image with tag YYYYMMDD-<build number> can be selected|link:../Jeninsfile/release-uat/Jenkinsfile[release-uat/Jenkinsfile]
+|backend-release-prod-pipeline|Select image from image to deploy to production with blue/green deployment. Only image with tag YYYYMMDD-<build number> can be selected|link:../Jeninsfile/release-prod/Jenkinsfile[release-prod/Jenkinsfile]
 |===
 
 Start pipeline via CLI by oc command

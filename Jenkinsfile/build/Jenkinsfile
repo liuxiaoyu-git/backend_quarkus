@@ -20,9 +20,8 @@ pipeline {
     timeout(time: 30, unit: 'MINUTES')
   }
   environment {
-    //mvnCmd = "mvn -s ./nexus_settings.xml "
-    mvnCmd = "mvn "
-    //mvnCmd ="/opt/apache-maven-3.6.3/bin/mvn -s ./nexus_settings.xml "
+    mvnCmd = "mvn -s ./nexus_settings.xml "
+    //mvnCmd = "mvn "
     version = ""
     imageName = "backend"
     devTag = "0.0-0"
