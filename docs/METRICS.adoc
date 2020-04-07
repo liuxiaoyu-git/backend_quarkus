@@ -1,9 +1,11 @@
 = Setup Prometheus and Grafana
+
 We will use Prometheus to read metrics information from our Backend app and use Grafana to visualized these data
 
 We will use Operator to setup both Prometheus and Grafana.
 
 == Backend App Metrics data
+
 Our backend apps use microprofiles metrics along with annotation in code to exposes their statistics.  These can be acess via URI /metrics
 
 You can test this with Backend app running on your local machine.
@@ -18,6 +20,7 @@ curl -H "Accept: application/json" http://localhost:8080/metrics/application
 ----
 
 == Prepare Environment
+
 We will deploy backend application in project demo, Prometheus and Grafana in projct app-monitoring
 
 * Create project and deploy backend application
@@ -34,6 +37,7 @@ oc expose svc backend -n demo
 * Install Prometheus Operator and Grafana Operator to project app-monitor
 
 == Setup Prometheus
+
 * Check that Prometheus operator is already installed on project app-monitor
 
 [source,bash]
@@ -87,10 +91,20 @@ spec:
       port: http
 ----
 
-* Check Target and Service Monitor 
+* Check Service Monitor
+
+image::imagesdir/prometheus-service-discovery.png[]
+
+* Check Target
+
+image::imagesdir/prometheus-target.png[]
+
 * Some load ... and check for Prometheus graph
 
+image::imagesdir/prometheus-request-per-minutes.png[]
+
 == Setup Grafana
+
 * Check that Prometheus operator is already installed on project app-monitor
 
 [source,bash]
