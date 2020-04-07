@@ -25,7 +25,7 @@ Simple RESTful App with sample Jenkinsfile for CI/CD process and related command
 :toc:
 
 == Sample Quarkus Application
-See detail in link:./code/BACKEND.adoc[Backend App]
+See detail in link:./docs/BACKEND.adoc[Backend App]
 
 == CI/CD with Jenkins
 See detail in link:./docs/JENKINS.adoc[Jenkins & OpenShift]
