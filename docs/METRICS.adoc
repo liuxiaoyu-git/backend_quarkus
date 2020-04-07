@@ -101,7 +101,7 @@ image::imagesdir/prometheus-target.png[]
 
 * Some load ... and check for Prometheus graph
 
-image::imagesdir/prometheus-request-per-minutes.png[]
+image::imagesdir/prometheus-request-per-minute.png[]
 
 == Setup Grafana
 
