@@ -86,11 +86,12 @@ spec:
       app: backend
   endpoints:
     - interval: 30s
+      # Read data from URI /metrics
       path: /metrics
       # Port name need to be matched with port in service to be monitored 
       port: http
 ----
-
+* Need to create service and route??
 * Check Service Monitor
 
 image::imagesdir/prometheus-service-discovery.png[]
