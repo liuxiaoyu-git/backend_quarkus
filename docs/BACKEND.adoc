@@ -69,7 +69,7 @@ mvn clean package -Dquarkus.package.uber-jar=true
 
 == Build Native binary
 
-Quarkus 1.3.1 needs GraalVM 19.3.1 or 20.0.0. XCode also needed for OSX. (link:build_native.sh[build_native.sh])
+Quarkus 1.3.1 needs GraalVM 19.3.1 or 20.0.0. XCode also needed for OSX. (link:../code/build_native.sh[build_native.sh])
 
 
 
@@ -98,7 +98,7 @@ curl -v http://localhost:8080
 
 == Build JVM Container Image 
 
-* Build container with Quarkus package as JAR (link:build_jvm_container.sh[build_jvm_container.sh])
+* Build container with Quarkus package as JAR (link:../code/build_jvm_container.sh[build_jvm_container.sh])
 
 [source,bash]
 ----
@@ -113,7 +113,7 @@ docker build -f src/main/docker/Dockerfile.jvm \
 docker run -p 8080:8080 -e app.showResponse=true ${CONTAINERNAME}:${TAG}
 ----
 
-* Because normally Quarkus will separate runnner and libraries. If you want single jar file (Uberjar). You an use parameter quarkus.pakage.uber-jar with value true to build uberjar. (link:build_jvm_uberjar_container.sh[build_jvm_uberjar_container.sh])
+* Because normally Quarkus will separate runnner and libraries. If you want single jar file (Uberjar). You an use parameter quarkus.pakage.uber-jar with value true to build uberjar. (link:../code/build_jvm_uberjar_container.sh[build_jvm_uberjar_container.sh])
 
 [source,bash]
 ----
@@ -130,7 +130,7 @@ docker run -p 8080:8080 -e app.showResponse=true ${CONTAINERNAME}:${TAG}
 
 == Build Native Container Image 
 
-* Use maven to build container native binary (link:build_native_container.sh[build_native_container.sh])
+* Use maven to build container native binary (link:../code/build_native_container.sh[build_native_container.sh])
 [source,bash]
 ----
 cd bin
@@ -142,7 +142,7 @@ docker build -f src/main/docker/Dockerfile.native \
 -t ${CONTAINER_NAME}:${TAG} .
 ----
 
-* Use Mulitstage build (link:build_native_container_multistage.sh[build_native_container_multistage.sh])
+* Use Mulitstage build (link:../code/build_native_container_multistage.sh[build_native_container_multistage.sh])
 
 [source,bash]
 ----
@@ -208,13 +208,13 @@ BACKEND_URL=$(oc get route backend -o jsonpath='{.spec.host}')
 echo "Backend: http://$BACKEND_URL"
 ----
 
-All in one shell script => link:build.sh[build_ocp_jvm.sh]
+All in one shell script => link:../code/build.sh[build_ocp_jvm.sh]
 
 
 == Deploy to OpenShift with S2I
 S2I support both JVM and native container. You need to specified which S2I to use for build Quarkus container
 
-Quarkus S2I need additional configuration in link:.s2i/environment[.s2i/environment]
+Quarkus S2I need additional configuration in link:../code/.s2i/environment[.s2i/environment]
 
 Example of .s2i/environment
 
@@ -224,7 +224,7 @@ ARTIFACT_COPY_ARGS=-p -r lib/ *-runner.jar
 JAVA_OPTIONS=-Dquarkus.http.host=0.0.0.0
 ----
 
-Build JVM container by following command or use shell script link:build_jvm_s2i.sh[build_jvm_s2i.sh]
+Build JVM container by following command or use shell script link:../code/build_jvm_s2i.sh[build_jvm_s2i.sh]
 
 [source,bash]
 ----
@@ -240,7 +240,7 @@ ${BASE_IMAGE}~${APP_REPOSITORY} \
 
 ----
 
-Build Native container by following command or use shell script link:build_native_s2i.sh[build_native_s2i.sh]
+Build Native container by following command or use shell script link:../code/build_native_s2i.sh[build_native_s2i.sh]
 
 [source,bash]
 ----

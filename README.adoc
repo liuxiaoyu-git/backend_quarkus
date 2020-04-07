@@ -28,7 +28,10 @@ Simple RESTful App with sample Jenkinsfile for CI/CD process and related command
 See detail in link:./docs/BACKEND.adoc[Backend App]
 
 == CI/CD with Jenkins
-See detail in link:./docs/JENKINS.adoc[Jenkins & OpenShift]
+See detail in link:./docs/JENKINS.adoc[Jenkins Pipeline]
+
+== CI/CD with Tekton
+See detail in ...WIP...
 
 == Metrics data with Prometheus and Grafana
-See detail in WIP
+See detail in link:./docs/METRICS.adoc[Prometheus & Grafana]
