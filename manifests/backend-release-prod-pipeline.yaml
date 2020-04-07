@@ -11,7 +11,7 @@ spec:
   resources: {}
   runPolicy: Serial
   source:
-    contextDir: release-prod
+    contextDir: Jenkinsfile/release-prod
     git:
       ref: master
       uri: https://gitlab.com/ocp-demo/backend_quarkus.git

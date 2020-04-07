@@ -1,4 +1,4 @@
-apiVersion: v1
+apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   labels:
@@ -11,7 +11,7 @@ spec:
   resources: {}
   runPolicy: Serial
   source:
-    contextDir: release-uat
+    contextDir: Jenkinsfile/release-uat
     git:
       ref: master
       uri: https://gitlab.com/ocp-demo/backend_quarkus.git

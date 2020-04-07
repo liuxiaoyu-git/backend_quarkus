@@ -1,0 +1,223 @@
+def JENKINS_SLAVE_IMAGE = "quarkus-maven-slave"
+pipeline {
+  agent {
+    kubernetes {
+      label "quarkus-maven-slave"
+      cloud "openshift"
+      inheritFrom "maven"
+      containerTemplate {
+        name "jnlp"
+        image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
+        resourceRequestMemory "600Mi"
+        resourceLimitMemory "2Gi"
+        resourceRequestCpu "1"
+        resourceLimitCpu "2"
+      }
+    }
+  }
+  options {
+    // set a timeout of 30 minutes for this pipeline
+    timeout(time: 30, unit: 'MINUTES')
+  }
+  environment {
+    mvnCmd = "mvn -s ./nexus_settings.xml "
+    //mvnCmd ="/opt/apache-maven-3.6.3/bin/mvn -s ./nexus_settings.xml "
+    version = ""
+    imageName = "backend-native"
+    devTag = "0.0-0"
+  }
+  stages {
+    // Checkout Source Code.
+    stage('Checkout Source') {
+      steps {
+
+        checkout scm
+        dir('code') {
+          script {
+            def pom = readMavenPom file: 'pom.xml'
+            version = pom.version
+            devTag = "${version}-" + currentBuild.number
+            echo "Image Name: ${imageName}"
+            echo "version: ${version}"
+            echo "devTag: ${devTag}"
+            echo "Backend URL: ${env.BACKEND_URL}"
+            echo "CICD Project: ${env.CICD_PROJECT}"
+            echo "Development Project: ${env.DEV_PROJECT}"
+            // Patch Source artifactId to include GUID
+            //sh "sed -i 's/GUID/${GUID}/g' ./pom.xml"
+          }
+        }
+      }
+    }
+    // Build the JAR
+    stage('Build Quarkus Native') {
+      steps {
+
+        dir('code') {
+
+          echo "Building binary for ${imageName}"
+          script {
+            sh(script: '${mvnCmd} -Pnative clean package', returnStdout: 'true')
+            
+          }
+        }
+      }
+    }
+    // Test
+    // stage('Test') {
+    //   parallel {
+    //     // Unit Test
+    //     stage('Unit Tests') {
+    //       steps {
+    //         dir('code') {
+    //           echo "Running Unit Tests"
+    //           sh "${mvnCmd} test"
+    //           step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
+    //         }
+    //       }
+    //     }
+    //     //Using Maven call SonarQube for Code Analysis
+    //     stage('Code Analysis') {
+    //       steps {
+    //         dir('code') {
+    //           script {
+    //             echo "Running Code Analysis"
+    //             sh "${mvnCmd} sonar:sonar -Dsonar.host.url=${env.SONARQUBE_SVC} -Dsonar.projectName=${imageName}-${devTag} -Dsonar.projectVersion=${devTag}"
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+    // Publish the built jar file to Nexus
+    // stage('Publish to Nexus') {
+    //   steps {
+    //     dir('code') {
+    //       echo "Publish to Nexus"
+    //       sh "${mvnCmd} deploy -DskipTests=true -DaltDeploymentRepository=nexus::default::${env.NEXUS_SVC}/repository/releases"
+    //     }
+    //   }
+    // }
+    // Create Build Config
+    // stage('Create Build Config') {
+    //   when {
+    //     expression {
+    //       openshift.withCluster() {
+    //         openshift.withProject(env.CICD_PROJECT) {
+    //           return !openshift.selector("bc", "${imageName}").exists()
+    //         }
+    //       }
+    //     }
+    //   }
+    //   steps {
+    //     echo "Create build config ${imageName}:latest"
+    //     script {
+    //       openshift.withCluster() {
+    //         openshift.withProject(env.CICD_PROJECT) {
+    //           openshift.newBuild(
+    //             "--name=${imageName}",
+    //             "--to=${imageName}:latest",
+    //             "--strategy=docker",
+    //             "--binary=true"
+    //           )
+    //           def bc = openshift.selector("bc/${imageName}").object()
+    //           bc.spec.strategy.dockerStrategy.dockerfilePath = "src/main/docker/Dockerfile.native"
+    //           openshift.apply(bc)
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+    // Create Service
+    // stage('Create Service') {
+    //   when {
+    //     expression {
+    //       openshift.withCluster() {
+    //         openshift.withProject(env.DEV_PROJECT) {
+    //           return !openshift.selector("svc", "${imageName}").exists()
+    //         }
+    //       }
+    //     }
+    //   }
+    //   steps {
+    //     script {
+    //       openshift.withCluster() {
+    //         openshift.withProject(env.DEV_PROJECT) {
+    //           def template = './manifests/backend-svc-dev.yaml'
+    //           openshift.apply(
+    //             openshift.process("-f", template)
+    //           )
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+    // // Create Route
+    // stage('Create Route') {
+    //   when {
+    //     expression {
+    //       openshift.withCluster() {
+    //         openshift.withProject(env.DEV_PROJECT) {
+    //           return !openshift.selector("route", "${imageName}").exists()
+    //         }
+    //       }
+    //     }
+    //   }
+    //   steps {
+    //     script {
+    //       openshift.withCluster() {
+    //         openshift.withProject(env.DEV_PROJECT) {
+    //           def template = './manifests/backend-route-dev.yaml'
+    //           openshift.apply(
+    //             openshift.process("-f", template)
+    //           )
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+    // // Build Container Image
+    // stage('Build Container Image') {
+    //   steps {
+    //     echo "Build Container Image ${imageName}"
+    //     dir('code') {
+    //       script {
+    //         openshift.withCluster() {
+    //           openshift.withProject(env.CICD_PROJECT) {
+    //             openshift.startBuild(
+    //               "${imageName}",
+    //               "--from-dir=.",
+    //               "--wait"
+    //             )
+    //             openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+    // Create Deployment Config
+    // stage('Create Deployment Config') {
+    //   steps {
+    //     echo "Create deployment config: env.DEV_PROJECT"
+    //     script {
+    //       openshift.withCluster() {
+    //         openshift.withProject(env.DEV_PROJECT) {
+    //           def template = './manifests/backend-dc-dev.yaml'
+    //           openshift.apply(
+    //             openshift.process(
+    //               "-f", template,
+    //               "-p", "IMAGE_TAG=${devTag}",
+    //               "-p", "BACKEND_URL=${env.BACKEND_URL}",
+    //               "-p", "APP_VERSION=${version}"
+    //             )
+    //           )
+    //           //openshift.selector("dc", "${imageName}").rollout().pause();
+    //         }
+    //       }
+    //     }
+
+    //   }
+    // }
+  }
+}

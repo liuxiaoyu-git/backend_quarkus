@@ -1,0 +1,278 @@
+def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
+def selectTag
+def tag
+def version
+def activeApp
+def destApp
+pipeline {
+    agent {
+        kubernetes {
+            label "maven36-with-tools"
+            cloud "openshift"
+            inheritFrom "maven"
+            containerTemplate {
+                name "jnlp"
+                image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
+                resourceRequestMemory "600Mi"
+                resourceLimitMemory "2Gi"
+                resourceRequestCpu "1"
+                resourceLimitCpu "2"
+            }
+        }
+    }
+    options {
+        // set a timeout of 40 minutes for this pipeline
+        timeout(time: 40, unit: 'MINUTES')
+    }
+    environment {
+        imageName = "backend"
+    }
+    stages {
+        stage('Choose Production Version') {
+            steps {
+                script {
+                    openshift.withCluster() {
+                        namespace = openshift.project()
+                        def tags = openshift.selector("istag")
+                            .objects()
+                            .collect {
+                                it.metadata.name
+                            }
+                            .findAll {
+                                it ==~ /^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)\-(.*)$/
+                            }
+                            .collect {
+                                it.replaceAll(/backend:(.*)/, "\$1")
+                            }
+                            .sort()
+                        timeout(5) {
+                            selectTag = input(
+                                ok: "Deploy Production",
+                                message: "Enter release version to promote to Production",
+                                parameters: [
+                                    choice(
+                                        choices: tags.join('\n'),
+                                        description: '',
+                                        name: 'Select Version'
+                                    )
+                                ]
+                            )
+                        }
+                    }
+                    echo "selectTag = ${selectTag}"
+                    version = selectTag.split('-')[0]
+                    echo "version = ${version}"
+                    tag = selectTag.split('-')[1] + "-" + selectTag.split('-')[2]
+                    echo "tag = ${tag}"
+                }
+            }
+        }
+
+        stage('Create Deployment Config Blue') {
+            when {
+                expression {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            return !openshift.selector("dc", "${imageName}-blue").exists()
+                        }
+                    }
+                }
+            }
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            def template = './manifests/backend-dc-blue.yaml'
+                            openshift.apply(
+                                openshift.process("-f", template,
+                                    "-p", "IMAGE_TAG=0.0.0",
+                                    "-p", "BACKEND_URL=${env.BACKEND_URL}",
+                                    "-p", "MESSAGE=I am blue version",
+                                    "-p", "APP_VERSION=${version}")
+                            )
+
+
+
+                        }
+                    }
+                }
+            }
+        }
+        stage('Create Deployment Config Green') {
+            when {
+                expression {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            return !openshift.selector("dc", "${imageName}-green").exists()
+                        }
+                    }
+                }
+            }
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            def template = './manifests/backend-dc-green.yaml'
+                            openshift.apply(
+                                openshift.process("-f", template,
+                                    "-p", "IMAGE_TAG=0.0.0",
+                                    "-p", "BACKEND_URL=${env.BACKEND_URL}",
+                                    "-p", "MESSAGE=I am green version",
+                                    "-p", "APP_VERSION=${version}")
+                            )
+
+                        }
+                    }
+                }
+            }
+        }
+        stage('Create Service Blue') {
+            when {
+                expression {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            return !openshift.selector("svc", "${imageName}-blue").exists()
+                        }
+                    }
+                }
+            }
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            def template = './manifests/backend-svc-blue.yaml'
+                            openshift.apply(
+                                openshift.process("-f", template)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        stage('Create Service Green') {
+            when {
+                expression {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            return !openshift.selector("svc", "${imageName}-green").exists()
+                        }
+                    }
+                }
+            }
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            def template = './manifests/backend-svc-green.yaml'
+                            openshift.apply(
+                                openshift.process("-f", template)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        stage('Create Route') {
+            when {
+                expression {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            return !openshift.selector("route", "${imageName}").exists()
+                        }
+                    }
+                }
+            }
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            def template = './manifests/backend-route-prod.yaml'
+                            openshift.apply(
+                                openshift.process("-f", template)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        stage('Blue/Green Deployment') {
+            steps {
+                script {
+                    echo "Blue/Green Deployment"
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            activeApp = openshift.selector("route", "${imageName}").object().spec.to.name
+                            if (activeApp == "${imageName}-green") {
+                                destApp = "${imageName}-blue"
+                            }
+                            if (activeApp == "${imageName}-blue") {
+                                destApp = "${imageName}-green"
+                            }
+                            echo "Active Application = ${activeApp}"
+                            echo "Destination Application = ${destApp}"
+                            numOfpods = openshift.selector("dc", "${activeApp}").object().spec.replicas
+                            echo "${activeApp} run with ${numOfpods} pods"
+                            def dc = openshift.selector("dc/${destApp}").object()
+                            dc.spec.template.spec.containers[0].image = "image-registry.openshift-image-registry.svc:5000/${env.CICD_PROJECT}/${imageName}:${selectTag}"
+                            dc.spec.replicas = numOfpods
+                            dc.metadata.labels["tag"] = tag
+                            dc.metadata.labels["version"] = version
+                            dc.spec.template.metadata.labels["tag"] = tag
+                            dc.spec.template.metadata.labels["version"] = version
+                            openshift.apply(dc)
+                            // Set config map here
+                            // -- code for setting config map here -- 
+                            // Wait for app to deploy
+                            openshift.selector("dc", "${destApp}").rollout().latest();
+                            def dc_prod = openshift.selector("dc", "${destApp}").object()
+                            def dc_version = dc_prod.status.latestVersion
+                            def rc_prod = openshift.selector("rc", "${destApp}-${dc_version}").object()
+                            echo "Waiting for ${destApp} to be ready"
+
+                            while (rc_prod.spec.replicas != rc_prod.status.readyReplicas) {
+                                sleep 5
+                                rc_prod = openshift.selector("rc", "${destApp}-${dc_version}").object()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        stage('Switch over to new Version') {
+            steps {
+                echo "Switching Production application to ${destApp} with ${selectTag}"
+                timeout(time: 15, unit: 'MINUTES') {
+                    input message: "Switch to ${destApp} with ${selectTag}", ok: "Approve"
+                }
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            def route = openshift.selector("route/${imageName}").object()
+                            route.spec.to.name = "${destApp}"
+                            openshift.apply(route)
+                        }
+                    }
+                }
+
+            }
+        }
+        stage('Scale down previous version') {
+            steps {
+                timeout(time: 15, unit: 'MINUTES') {
+                    input message: "Scale down ${activeApp}", ok: "Approve"
+                }
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject(env.PROD_PROJECT) {
+                            echo "scale down ${activeApp}"
+                            def dc = openshift.selector("dc/${activeApp}").object()
+                            dc.spec.replicas = 0
+                            openshift.apply(dc)
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+}

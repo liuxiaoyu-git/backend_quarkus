@@ -1,0 +1,132 @@
+import java.text.SimpleDateFormat
+def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
+def selectTag
+pipeline {
+  agent {
+    kubernetes {
+      label "maven36-with-tools"
+      cloud "openshift"
+      inheritFrom "maven"
+      containerTemplate {
+        name "jnlp"
+        image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
+        resourceRequestMemory "600Mi"
+        resourceLimitMemory "2Gi"
+        resourceRequestCpu "1"
+        resourceLimitCpu "2"
+      }
+    }
+  }
+  options {
+    // set a timeout of 20 minutes for this pipeline
+    timeout(time: 20, unit: 'MINUTES')
+  }
+  environment {
+    imageName="backend"
+  }
+  stages {
+    stage('Choose UAT Version') {
+      steps {
+        script {
+          openshift.withCluster() {
+            namespace = openshift.project()
+            def tags = openshift.selector("istag")
+              .objects()
+              .collect {
+                it.metadata.name
+              }
+              .findAll {
+                it ==~ /^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)\-(.*)$/
+                //it.startsWith 'backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)'
+              }
+              .collect {
+                it.replaceAll(/backend:(.*)/, "\$1")
+              }
+              .sort()
+            timeout(5) {
+              selectTag = input(
+                ok: "Deploy UAT",
+                message: "Enter release version to promote to UAT",
+                parameters: [
+                  choice(
+                    choices: tags.join('\n'),
+                    description: '',
+                    name: 'Select Version'
+                  )
+                ]
+              )
+            }
+          }
+          println "selectTag = ${selectTag}"
+          version = selectTag.split('-')[0]
+          println "version = ${version}"
+        }
+      }
+    }
+    stage('Tear-Down UAT') {
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.UAT_PROJECT) {
+              println "Tear-Down project ${env.UAT_PROJECT}"
+              openshift.raw("delete all -l app=${imageName}")
+            }
+          }
+        }
+      }
+    }
+    // Create Service
+    stage('Create Service') {
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.UAT_PROJECT) {
+              def template = './manifests/backend-svc-uat.yaml'
+              openshift.apply(
+                openshift.process("-f", template)
+              )
+            }
+          }
+        }
+      }
+    }
+    // Create Route
+    stage('Create Route') {
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.UAT_PROJECT) {
+              def template = './manifests/backend-route-uat.yaml'
+              openshift.apply(
+                openshift.process("-f", template)
+              )
+            }
+          }
+        }
+      }
+    }
+    // Create Deployment Config
+    stage('Create Deployment Config') {
+      steps {
+        println "Deploy to: env.UAT_PROJECT"
+        println "IMAGE_TAG = ${selectTag}"
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.UAT_PROJECT) {
+              def template = './manifests/backend-dc-uat.yaml'
+              openshift.apply(
+                openshift.process(
+                  "-f", template,
+                  "-p", "IMAGE_TAG=${selectTag}",
+                  "-p", "BACKEND_URL=${env.BACKEND_URL}",
+                  "-p", "APP_VERSION=${version}"
+                )
+              )
+            }
+          }
+        }
+
+      }
+    }
+   }
+}

@@ -1,4 +1,4 @@
-= Sample Quarkus Application with Jenkins Pipeline
+= Sample Quarkus Application
 :author: Voravit L
 
 Simple RESTful App with sample Jenkinsfile for CI/CD process and related command lines to build and (also) deploy to OpenShift
@@ -30,3 +30,5 @@ See detail in link:./code/README.adoc[Backend App]
 == CI/CD with Jenkins
 See detail in link:./docs/README.adoc[Jenkins & OpenShift]
 
+== Metrics data with Prometheus and Grafana
+See detail in WIP
