@@ -49,7 +49,7 @@ curl -H "Accept: application/json" http://$(oc get route backend -n demo -o json
 == Setup Prometheus
 * Install Prometheus Operator to project app-monitor by login to Administrator Console. Browse to Operator=>Operator Hub and search for Prometheus. Select namespace app-monitor
 
-image::imagesdir/install-prometheus-operator.png[Prometheus Operator,60%,60%]
+image::imagesdir/install-prometheus-operator.png[Prometheus Operator,40%,40%]
 
 * Check that Prometheus operator is already installed on project app-monitor
 
