@@ -150,7 +150,7 @@ image::imagesdir/prometheus-request-per-minute.png[Prometheus Graph,60%,60%]
 == Setup Grafana
 * Install PrometGrafanaheus Operator to project app-monitor by login to Administrator Console. Browse to Operator=>Operator Hub and search for Grafana. Select namespace app-monitor
 
-image::imagesdir/grafana-operator.png[]
+image::imagesdir/grafana-operator.png[Grafana Operator,60%,60%]
 
 * Check that Grafana operator is already installed on project app-monitor
 
@@ -203,5 +203,5 @@ echo "https://$(oc get route grafana-route -n app-monitor -o jsonpath='{.spec.ho
 
 * Check for Grafana Dashboard. After login, click Home=>Backend App
 
-image::imagesdir/grafana-dashboard.png[Grafana Dashboard,80%,80%]
+image::imagesdir/grafana-dashboard.png[Grafana Dashboard,90%,90%]
 

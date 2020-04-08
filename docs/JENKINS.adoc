@@ -85,7 +85,7 @@ oc logs build/backend-build-pipeline-<build number> -n ci-cd
 
 Sample build pipeline result. Remark that Build Config already avaiable when this pipeline run then this step is skipped.
 
-image::imagesdir/build-pipeline.png[]
+image::imagesdir/build-pipeline.png[Build Pipeline,80%,80%]
 
 Check that backend app pod is created in dev project with label version and tag.
 [source,bash]
@@ -110,7 +110,7 @@ labels:
 
 You can also use Develop Console to view backend app in Development project
 
-image::imagesdir/dev-console-dev-project.png[]
+image::imagesdir/dev-console-dev-project.png[Dev Console,60%,60%]
 
 Sample release (to staging environment) pipeline that prompt for user to select build to be release.
 
