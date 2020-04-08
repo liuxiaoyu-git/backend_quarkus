@@ -49,7 +49,7 @@ curl -H "Accept: application/json" http://$(oc get route backend -n demo -o json
 == Setup Prometheus
 * Install Prometheus Operator to project app-monitor by login to Administrator Console. Browse to Operator=>Operator Hub and search for Prometheus. Select namespace app-monitor
 
-image::imagesdir/install-prometheus-operator.png[]
+image::imagesdir/install-prometheus-operator.png[Prometheus Operator,60%,60%]
 
 * Check that Prometheus operator is already installed on project app-monitor
 
@@ -131,19 +131,21 @@ echo "https://$(oc get route prometheus -n app-monitor -o jsonpath='{.spec.host}
 
 * Check Service Discovery status by browser to Status => Service Discovery and click "show more" to display more details
 
-image::imagesdir/prometheus-service-discovery.png[]
+image::imagesdir/prometheus-service-discovery.png[Service Discovery,60%,60%]
+
 
 * Check Target by browser to Status => Targets and click "show more" to display more details.
 
-image::imagesdir/prometheus-target.png[]
+image::imagesdir/prometheus-target.png[Target,60%,60%]
+
 
 * Click Graph. Then input query. (Prometheus provide type ahead functionality). Select one of application query. e.g. timeBackend_one_min_rate_per_second. Then click "Execute" and "Graph"
 
-image::imagesdir/prometheus-query.png[]
+image::imagesdir/prometheus-query.png[Prometheus Query,60%,60%]
 
 * With some load to bakend app. Promethus will display you graph.
 
-image::imagesdir/prometheus-request-per-minute.png[]
+image::imagesdir/prometheus-request-per-minute.png[Prometheus Graph,60%,60%]
 
 == Setup Grafana
 * Install PrometGrafanaheus Operator to project app-monitor by login to Administrator Console. Browse to Operator=>Operator Hub and search for Grafana. Select namespace app-monitor
@@ -201,5 +203,5 @@ echo "https://$(oc get route grafana-route -n app-monitor -o jsonpath='{.spec.ho
 
 * Check for Grafana Dashboard. After login, click Home=>Backend App
 
-image::imagesdir/grafana-dashboard.png[Grafana Dashboard,640,480]
+image::imagesdir/grafana-dashboard.png[Grafana Dashboard,80%,80%]
 
