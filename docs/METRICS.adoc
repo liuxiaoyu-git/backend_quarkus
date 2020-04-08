@@ -201,5 +201,5 @@ echo "https://$(oc get route grafana-route -n app-monitor -o jsonpath='{.spec.ho
 
 * Check for Grafana Dashboard. After login, click Home=>Backend App
 
-image::imagesdir/grafana-dashboard.png[]
+image::imagesdir/grafana-dashboard.png[Grafana Dashboard,640,480]
 
