@@ -7,11 +7,11 @@
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.jvm -t quarkus/freelancer-jvm .
+# docker build -f src/main/docker/Dockerfile.jvm -t quarkus/code-with-quarkus-jvm .
 #
 # Then run the container using:
 #
-# docker run -i --rm -p 8080:8080 quarkus/freelancer-jvm
+# docker run -i --rm -p 8080:8080 quarkus/code-with-quarkus-jvm
 #
 ###
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.1
@@ -23,8 +23,7 @@ ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en'
 
 # Install java and the run-java script
 # Also set up permissions for user `1001`
-# RUN microdnf install openssl curl ca-certificates ${JAVA_PACKAGE} \
-RUN microdnf install ca-certificates ${JAVA_PACKAGE} \
+RUN microdnf install curl ca-certificates ${JAVA_PACKAGE} \
     && microdnf update \
     && microdnf clean all \
     && mkdir /deployments \

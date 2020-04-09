@@ -6,4 +6,3 @@ TAG=v1
 mvn clean package -Dquarkus.native.container-build=true -DskipTests=true  -Pnative 
 docker build -f src/main/docker/Dockerfile.native \
 -t ${CONTAINER_NAME}:${TAG} .
-

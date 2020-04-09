@@ -1,6 +1,6 @@
 #!/bin/sh
 CONTAINER_NAME=backend-native
-TAG=java11
+TAG=v1
 mvn test
 if [ $? -eq 0 ];
 then
