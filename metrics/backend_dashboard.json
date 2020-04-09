@@ -1,21 +1,24 @@
 {
   "annotations": {
-    "list": [{
-      "builtIn": 1,
-      "datasource": "-- Grafana --",
-      "enable": true,
-      "hide": true,
-      "iconColor": "rgba(0, 211, 255, 1)",
-      "name": "Annotations & Alerts",
-      "type": "dashboard"
-    }]
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
   },
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
   "id": 2,
   "links": [],
-  "panels": [{
+  "panels": [
+    {
       "aliasColors": {},
       "bars": true,
       "dashLength": 10,
@@ -53,13 +56,15 @@
       "spaceLength": 10,
       "stack": true,
       "steppedLine": false,
-      "targets": [{
-        "expr": "application_com_example_quarkus_BackendResource_timeBackend_rate_per_second",
-        "format": "time_series",
-        "intervalFactor": 1,
-        "legendFormat": "",
-        "refId": "A"
-      }],
+      "targets": [
+        {
+          "expr": "application_com_example_quarkus_BackendResource_timeBackend_rate_per_second",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
       "thresholds": [],
       "timeFrom": "15m",
       "timeRegions": [],
@@ -79,7 +84,8 @@
         "show": true,
         "values": []
       },
-      "yaxes": [{
+      "yaxes": [
+        {
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -138,13 +144,15 @@
       "spaceLength": 10,
       "stack": false,
       "steppedLine": false,
-      "targets": [{
-        "expr": "base_memory_usedHeap_bytes",
-        "format": "time_series",
-        "intervalFactor": 1,
-        "legendFormat": "",
-        "refId": "A"
-      }],
+      "targets": [
+        {
+          "expr": "base_memory_usedHeap_bytes",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
       "thresholds": [],
       "timeFrom": "15m",
       "timeRegions": [],
@@ -163,7 +171,8 @@
         "show": true,
         "values": []
       },
-      "yaxes": [{
+      "yaxes": [
+        {
           "decimals": null,
           "format": "short",
           "label": "Bytes",
@@ -221,12 +230,14 @@
       "spaceLength": 10,
       "stack": false,
       "steppedLine": false,
-      "targets": [{
-        "expr": "application_com_example_quarkus_BackendResource_timeBackend_mean_seconds",
-        "format": "time_series",
-        "intervalFactor": 1,
-        "refId": "A"
-      }],
+      "targets": [
+        {
+          "expr": "application_com_example_quarkus_BackendResource_timeBackend_mean_seconds",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
       "thresholds": [],
       "timeFrom": "15m",
       "timeRegions": [],
@@ -245,7 +256,8 @@
         "show": true,
         "values": []
       },
-      "yaxes": [{
+      "yaxes": [
+        {
           "format": "short",
           "label": "ms",
           "logBase": 1,
@@ -291,17 +303,7 @@
       "2h",
       "1d"
     ],
-    "time_options": [
-      "5m",
-      "15m",
-      "1h",
-      "6h",
-      "12h",
-      "24h",
-      "2d",
-      "7d",
-      "30d"
-    ]
+    "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
   },
   "timezone": "GMT+7",
   "title": "Backend App",

@@ -31,7 +31,7 @@ oc set resources dc jenkins --limits=memory=2Gi,cpu=2 --requests=memory=1Gi,cpu=
 # No need to wait for jenkins to start
 # check_pod "jenkins"
 echo "########## Start build Nexus   ##########"
-oc new-app sonatype/nexus3:latest --name=nexus -n ${CICD_PROJECT}
+oc new-app sonatype/nexus3:3.18.1 --name=nexus -n ${CICD_PROJECT}
 #oc expose svc nexus -n ${CICD_PROJECT}
 oc create route edge nexus --service=nexus --port=8081
 oc rollout pause dc nexus -n ${CICD_PROJECT}

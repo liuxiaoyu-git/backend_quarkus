@@ -1,8 +1,8 @@
 #!/bin/sh
 CONTAINER_NAME=backend-native
-TAG=v1
+TAG=java11
 mvn test
-if [ $? - eq 0 ];
+if [ $? -eq 0 ];
 then
     echo "*" > .dockerignore
     echo "!src/*" >> .dockerignore
