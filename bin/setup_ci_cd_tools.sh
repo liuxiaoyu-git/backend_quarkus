@@ -1,5 +1,6 @@
 #!/bin/sh
 function check_pod(){
+    sleep 15
     READY="NO"
     while [ $READY = "NO" ];
     do
