@@ -31,7 +31,7 @@ See detail in link:./docs/BACKEND.adoc[Backend App]
 See detail in link:./docs/JENKINS.adoc[Jenkins Pipeline]
 
 == CI/CD with Tekton
-See detail in ...WIP...
+...WIP...
 
 == Metrics data with Prometheus and Grafana
 See detail in link:./docs/METRICS.adoc[Prometheus & Grafana]
