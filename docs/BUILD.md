@@ -4,6 +4,7 @@
 - [Build Quarkus](#build-quarkus)
   - [Build Java Application](#build-java-application)
     - [JAR](#jar)
+    - [Startup Time and Memory Usage](#startup-time-and-memory-usage)
     - [Uber JAR](#uber-jar)
   - [Build Native Application](#build-native-application)
     - [Install and Configure GraalVM](#install-and-configure-graalvm)
@@ -67,6 +68,7 @@ curl http://localhost:8080/health/liveness
 curl http://localhost:8080/health/readiness
 ```
 
+### Startup Time and Memory Usage
 Check Backend Application for elapsed time for start application. It took just **0.906** sec
 
 ```log
@@ -74,7 +76,9 @@ Check Backend Application for elapsed time for start application. It took just *
 22:43:28 INFO  [io.quarkus] (main) Profile prod activated.
 22:43:28 INFO  [io.quarkus] (main) Installed features: [cdi, kubernetes, resteasy, smallrye-health, smallrye-metrics, smallrye-openapi]
 ```
+Check for memory usage with **jconsole** and run load test with 10 concurrent requests.
 
+![JVM Heap](imagesdar/../imagesdir/jvm-heap-with-10-concurrent-requests.png)
 
 
 ### Uber JAR
@@ -147,9 +151,6 @@ Check Backend Application for elapsed time for start application. It took just *
 22:51:03 INFO  [io.quarkus] (main) Profile prod activated.
 22:51:03 INFO  [io.quarkus] (main) Installed features: [cdi, kubernetes, resteasy, smallrye-health, smallrye-metrics, smallrye-openapi]
 ```
-Check for memory usage with **jconsole** and run load test with 10 concurrent requests.
-
-![JVM Heap](imagesdar/../imagesdir/jvm-heap-with-10-concurrent-requests.png)
 
 ### Build Native Container Binary
 
