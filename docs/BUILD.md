@@ -67,6 +67,16 @@ curl http://localhost:8080/health/liveness
 curl http://localhost:8080/health/readiness
 ```
 
+Check Backend Application for elapsed time for start application. It took just **0.906** sec
+
+```log
+22:43:28 INFO  [io.quarkus] (main) backend 1.0.0 (powered by Quarkus 1.3.2.Final) started in 0.906s. Listening on: http://0.0.0.0:8080
+22:43:28 INFO  [io.quarkus] (main) Profile prod activated.
+22:43:28 INFO  [io.quarkus] (main) Installed features: [cdi, kubernetes, resteasy, smallrye-health, smallrye-metrics, smallrye-openapi]
+```
+
+
+
 ### Uber JAR
 
 Uber jar can be build with  parameter **quarkus.package.uber-jar=true**
@@ -130,6 +140,16 @@ curl -v http://localhost:8080
 
 You can use shell script *[build_native.sh](../code/build_native.sh)* to build native binary.
 
+Check Backend Application for elapsed time for start application. It took just **0.044s** sec
+
+```log
+22:51:03 INFO  [io.quarkus] (main) backend 1.0.0 (powered by Quarkus 1.3.2.Final) started in 0.044s. Listening on: http://0.0.0.0:8080
+22:51:03 INFO  [io.quarkus] (main) Profile prod activated.
+22:51:03 INFO  [io.quarkus] (main) Installed features: [cdi, kubernetes, resteasy, smallrye-health, smallrye-metrics, smallrye-openapi]
+```
+Check for memory usage with **jconsole** and run load test with 10 concurrent requests.
+
+![JVM Heap](imagesdar/../imagesdir/jvm-heap-with-10-concurrent-requests.png)
 
 ### Build Native Container Binary
 
