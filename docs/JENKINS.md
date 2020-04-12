@@ -11,7 +11,7 @@
     - [Create Pipeline](#create-pipeline)
   - [Jenkins Pipelines](#jenkins-pipelines)
     - [Build Pipeline](#build-pipeline)
-    - [Release Pipeline](#release-pipeline)
+    - [Release Staging Pipeline](#release-staging-pipeline)
     - [Release UAT Pipeline](#release-uat-pipeline)
     - [Production Pipeline](#production-pipeline)
   - [Run Pipelines](#run-pipelines)
@@ -109,12 +109,39 @@ Pipelines details
 |backend-release-prod-pipeline|Select image from image to deploy to production with blue/green deployment. Only image with tag YYYYMMDD-<build number> can be selected|[release-prod/Jenkinsfile](../Jenkinsfile/release-prod/Jenkinsfile)|
 
 ### Build Pipeline
+* Checkout code from Git
+* Build Uber JAR by using *[nexus_setting.xml](../code/nexus_settings.xml)* for load libaries from Nexus.
+* Tag with X.Y.Z-build_number. Remark that version (X.Y.Z) is retrived from [pom.xml](../code/pom.xml)
+* Parallel run Unit Test and scan code by SonarQube.
+* Archive Uber JAR to Nexus.
+* Create Build Config, Service and Route objects if not exists.
+* Build container and store container image in OpenShift's internal registry inside ci-cd project
+* Create Deployment Config. This will automatically deploy to dev project.
 
-### Release Pipeline
+### Release Staging Pipeline
+* Checkout code from Git
+* Query OpenShift's internal image registry for backend container image and list only image tagged with version in format X.Y.Z
+* Tag container image with format X.Y.Z-YYYYMMDD-build_number 
+* Archive container image to Nexus
+* Delete everythings related to backend app in staging project
+* Create Service, Route and Deployment Config.
 
 ### Release UAT Pipeline
+* Checkout code from Git
+* Query OpenShift's internal image registry for backend container image and list only image already passed Staging that is tagged with version in format X.Y.Z-YYYYMMDD-build_number
+* Delete everythings related to backend app in staging project
+* Create Service, Route and Deployment Config.
 
 ### Production Pipeline
+* Checkout code from Git
+* Query OpenShift's internal image registry for backend container image and list only image already passed Staiging and UAT that is tagged with version in format X.Y.Z-YYYYMMDD-build_number
+* Create Deployment Config for blue version and green version. (This will not automtically pods deployment)
+* Create Service and Route for blue version and green version.
+* Deploy to prod project with blue/green deployment
+  - Check for active version
+  - Deploy new version to inactive version
+  - Prompt for switch to new version. This will be done by switch route to new version (currently inactive version)
+  - Prompt to scaledown previously active version.
 
 ## Run Pipelines
 Start pipeline via CLI with oc command
