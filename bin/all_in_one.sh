@@ -1,8 +1,7 @@
 #!/bin/sh
-./setup_ci_cd_tools.sh
 ./setup_projects.sh
+./setup_ci_cd_tools.sh
 ./setup_maven36_slave.sh
-./create_pipelines.sh
 echo "#####################################################"
 echo "Login to https://$(oc get route nexus -n ci-cd -o jsonpath='{.spec.host}')"
 echo "User ID: admin"

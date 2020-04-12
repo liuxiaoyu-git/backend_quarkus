@@ -1,0 +1,85 @@
+# CI/CD with Jenkins
+
+<!-- TOC -->
+
+- [CI/CD with Jenkins](#cicd-with-jenkins)
+  - [Overview](#overview)
+    - [Environment](#environment)
+    - [CI/CD Pipelines](#cicd-pipelines)
+  - [Run Pipeline](#run-pipeline)
+  - [Pipeline - Build](#pipeline---build)
+  - [Pipeline - Release](#pipeline---release)
+
+<!-- /TOC -->
+
+## Overview
+
+### Environment
+
+### CI/CD Pipelines
+Strategy to CI/CD pipelines as follow: 
+* Jenkins and image registry stored in CI/CD project
+* Deploy to Dev project (namespace) by reading source code from Git then build container,tagged with version specified in POM concat with build number and deploy to Dev project.
+* Deploy to Staging project by provided drop-down menu to select container tag, then tag again with current date (YYYYMMDD) and build number, deploy to UAT Project. 
+* Deploy to UAT project by provided drop-down menu to select container tag. This list will included only images those passed UAT only (contain date in tag)
+* Deploy to Production by provided drop-down menu with blue/green deployment strategy.
+
+Check for Jenkinsfile
+
+* [Build](../Jenkinsfile/build/Jenkinsfile)
+* [Release Staging](../Jenkinsfile/relese/Jenkinsfile)
+* [Release UaT](../Jenkinsfile/release-uat/Jenkinsfile)
+* [Production](../Jenkinsfile/relese-prod/Jenkinsfile)
+
+## Run Pipeline
+
+You can run pipeline from Jenkins, OpenShift Console or by CLI (oc command). Sample of oc command to run pipeline show below.
+
+```bash
+oc start-build backend-build-pipeline -n ci-cd
+#Sample output
+build.build.openshift.io/backend-build-pipeline-2 started
+
+#Wait around 5 - 10 sec and run following command
+oc logs build/backend-build-pipeline-2 -n ci-cd
+#Sample output
+info: logs available at /https://jenkins-ci-cd.apps.cluster-953d.953d.example.opentlc.com/blue/organizations/jenkins/ci-cd%2Fci-cd-sample-build-pipeline/detail/ci-cd-backend-build-pipeline/1/
+
+#Open above URL for open Jenkins BlueOcean
+```
+
+## Pipeline - Build
+
+Pipeline build will checkout current FUSE code from git and build container along with creating OpenShift objects incuding build config, imagesteam, deployment config, service and route.
+
+Following show sample of the result from pipeline build for the first times.
+
+![pipeline build 1](images/pipeline-build-1.png)
+
+Following show sample of the result when re-run pipeline build. Remark that some steps will be skipped because that paticular object is already created. (Except for configmap that re-create everytime)
+
+![pipeline build 2](images/pipelien-build-2.png)
+
+Check OpenShift Dev console that pod is created in dev project
+
+![pod in dev](images/pod-in-dev.png)
+
+
+## Pipeline - Release
+
+Pipeline release will deploy application based on container images that already build by Pipeline Build and tag container image again with current date (YYYYMMDD) and build number for refrence to this UAT round.
+
+Pipeline will provided menu for select image version as follow
+
+![pipeline release 1](images/pipeline-release-1.png)
+
+Pipeline will always teardown everything before deploy
+
+![pipeline release 2](images/pipeline-release-2.png)
+
+Check OpenShift Dev console that pod is created in uat project
+
+![pod in uat](images/pod-in-uat.png)
+
+
+

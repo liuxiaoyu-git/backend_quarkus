@@ -2,22 +2,60 @@
 <!-- TOC -->
 
 - [Backend Application](#backend-application)
-    - [Overview](#overview)
-    - [Configuration Properties](#configuration-properties)
-    - [MicroProfile  Health Check](#microprofile--health-check)
-    - [MicroProfile OpenAPI](#microprofile-openapi)
-    - [MicroProfile Metrics](#microprofile-metrics)
+  - [Overview](#overview)
+    - [Application Config](#application-config)
+    - [URI Supported by](#uri-supported-by)
+  - [Start Coding with Quarkus](#start-coding-with-quarkus)
+  - [Configuration Properties](#configuration-properties)
+  - [MicroProfile  Health Check](#microprofile-health-check)
+  - [MicroProfile OpenAPI](#microprofile-openapi)
+  - [MicroProfile Metrics](#microprofile-metrics)
 
 <!-- /TOC -->
 
 ## Overview
-Simple RESTful Application with following features
+Simple RESTful Application that call another service via HTTP GET method with following features:
 
 * RESTful API with RestEasy
 * Configuration file and environment variables
 * MicroProfile  Health Check
 * MicroProfile OpenAPI
 * MicroProfile Metrics
+
+### Application Config
+
+|Variable|Description|Default Value| 
+| ------------- |:-------------|:----------|
+|app.version|Application Version|1.0.0| 
+|app.backend|target URL that backend request to|http://localhost:8080/version| 
+|app.message|Message return from application|Hello, World| 
+|app.showResponse|Show response from app.backend instead of app.message|false| 
+|app.errorCodeNotLive|Return Code when liveness is false|504| 
+|app.errorCodeNotReady|Return Code when readiness is false|503| 
+
+### URI Supported by 
+
+| URI        | Description  | 
+| ------------- |:-------------|
+|/|Return Hello Message|
+|/health/live|Livenness probe URL|
+|/health/ready|Readiness probe URL|
+|/stop|Set liveness to false|
+|/start|Set liveness to true|
+|/not_ready|Set readiness to false|
+|/ready|Set readiness to true|
+|/version|Return App version|
+|/openapi|Return OpenAPI (Swagger) document in yaml |
+|/openapi?format=json|Return OpenAPI (Swagger) document in JSON |
+|metrics/application|get metrics data|
+
+
+## Start Coding with Quarkus
+* Try [code.quarkus.org](https://code.quarkus.org) for bootstrap and discovers its extension
+* Development mode. Quarkus comes with development mode. With development mode, The Changes are automatically reloaded when you update codes and configurations.
+```bash
+mvn quarkus:dev
+```
 
 ## Configuration Properties
 * Quarkus uses MicroProfile Config to inject by *@ConfigurationProperty* annotation.
@@ -131,10 +169,12 @@ public class BackendApp extends Application {
 ```
 
 * Default URI for OpenAPI is */openapi*. This can be changed by setting parameter *quarkus.smallrye-openapi.path* in *[application.properties](../code/src/main/resources/application.properties)*
-```
-...
+```properties
 quarkus.smallrye-openapi.path=/openapi
-...
+```
+* By default, Swagger UI is included in development mode only. If you want swagger UI in your deployment. Update *quarkus.swagger-ui.always-include* to *true* in  *[application.properties](../code/src/main/resources/application.properties)*
+```properties
+quarkus.swagger-ui.always-include=true
 ```
 
 ## MicroProfile Metrics
@@ -160,3 +200,4 @@ mvn quarkus:add-extension -Dextensions="metrics"
 * URI for get metrics data
   - /metrics - all metrics data
   - /metrics/application - only application data (from annotated to code)
+  - Add header "Accept: application/json" if you want response in JSON format.

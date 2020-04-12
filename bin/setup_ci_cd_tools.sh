@@ -26,7 +26,7 @@ function check_pod(){
 }
 export CICD_PROJECT=ci-cd
 echo "########## Start build Jenkins ##########"
-oc new-project ${CICD_PROJECT} --display-name="CI/CD Tools"
+oc project ${CICD_PROJECT}
 oc new-app jenkins-persistent --param ENABLE_OAUTH=true --param MEMORY_LIMIT=2Gi --param VOLUME_CAPACITY=4Gi --param DISABLE_ADMINISTRATIVE_MONITORS=true
 oc set resources dc jenkins --limits=memory=2Gi,cpu=2 --requests=memory=1Gi,cpu=500m
 # No need to wait for jenkins to start
