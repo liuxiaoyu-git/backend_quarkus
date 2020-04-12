@@ -78,7 +78,7 @@ Check Backend Application for elapsed time for start application. It took just *
 ```
 Check for memory usage with **jconsole** and run load test with 10 concurrent requests.
 
-![JVM Heap](imagesdar/../imagesdir/jvm-heap-with-10-concurrent-requests.png)
+![JVM Heap](imagesdir/jvm-heap-with-10-concurrent-requests.png)
 
 
 ### Uber JAR
