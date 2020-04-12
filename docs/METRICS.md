@@ -1,70 +1,83 @@
-= Setup Prometheus and Grafana
+# Prometheus and Grafana
 
 We will use Prometheus to read metrics information from our Backend app and use Grafana to visualized these data
 
-We will use Operator to setup both Prometheus and Grafana.
-
-== Prepare Environment
+## Environment Preparation
 
 We will deploy backend application in project demo, Prometheus and Grafana in projct app-monitoring
 
-* Create project and deploy backend application
+* Create project demo for deploy Backend App
+  
+```
 
-[source,bash]
-----
 oc new-project demo --display-name="Demo"
-oc new-project app-monitor --display-name="Application Monitor"
+
 # Deploy Backend
 oc apply -f metrics/backend-deployment.yaml -n demo
+
 # Create Service
 oc apply -f metrics/backend-service.yaml -n demo
+
 # Create Route
 oc expose svc backend -n demo
+
 # Check for backend pods
 oc get pods -n demo
+
 # Test Backen App
-curl http://$(oc get route backend -n demo -o jsonpath='{.spec.host}')
-----
+curl http://$(oc get route backend -n demo -o jsonpath#'{.spec.host}')
 
 
-== Backend App Metrics data
+```
+* Create project app-monitor for deploy Prometheus and Grafana
+
+```
+
+oc new-project app-monitor --display-name="Application Monitor"
+
+
+```
+
+## Backend App Metrics data
 
 Our backend apps use microprofiles metrics along with annotation in code to exposes their statistics.  These can be acess via URI /metrics
 
 You can test this with Backend app running on your local machine.
 
-[source,bash]
-----
+```
 # Get all metrics
 curl http://$(oc get route backend -n demo -o jsonpath='{.spec.host}')/metrics
 
 # Get only app metrics
-curl http://$(oc get route backend -n demo -o jsonpath='{.spec.host}')/metrics/applications
+curl http://$(oc get route backend -n demo -o jsonpath='{.spec.host}')/metrics/application
 
 # Get only app metrics in JSON format
 curl -H "Accept: application/json" http://$(oc get route backend -n demo -o jsonpath='{.spec.host}')/metrics/application
 
-----
+```
 
-== Setup Prometheus
-* Install Prometheus Operator to project app-monitor by login to Administrator Console. Browse to Operator=>Operator Hub and search for Prometheus. Select namespace app-monitor
+## Setup Prometheus
 
-image::imagesdir/install-prometheus-operator.png[Prometheus Operator,40%,40%]
+* Install Prometheus Operator to project app-monitor by login to Administrator Console. Browse to Operator#>Operator Hub and search for Prometheus. Select namespace app-monitor
+
+![Prometheus Operator](imagesdir/install-prometheus-operator.png)
+<!-- image::imagesdir/install-prometheus-operator.png[Prometheus Operator,40%,40%] -->
 
 * Check that Prometheus operator is already installed on project app-monitor
 
-[source,bash]
-----
+```
+
 oc get pods -n app-monitor
 # Output
 NAME                                   READY   STATUS    RESTARTS   AGE
 prometheus-operator-849894cb8d-gdcd9   1/1     Running   0          111s
-----
+
+```
 
 * Create Service Account, Service Monitor and Prometheus 
 
-[source,bash]
-----
+```
+
 # Create Service Account, Service , Cluster Role and Cluster Role Binding
 oc apply -f metrics/service_account.yaml -n app-monitor
 # output
@@ -88,12 +101,13 @@ NAME                                   READY   STATUS    RESTARTS   AGE
 prometheus-operator-849894cb8d-gdcd9   1/1     Running   0          4m17s
 prometheus-prometheus-0                3/3     Running   1          97s
 prometheus-prometheus-1                3/3     Running   1          97s
-----
 
-* Take a look at link:../metrics/service_monitor.yaml[service_monitor.yaml]
+```
 
-[source,yaml]
-----
+* Take a look at [service_monitor.yaml](../metrics/service_monitor.yaml)
+
+```
+
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
@@ -115,47 +129,49 @@ spec:
     - interval: 30s
       # Read data from URI /metrics
       path: /metrics
-      # Port name need to be matched with port in service to be monitored 
+      # Port name need to be **matched** with port in service to be monitored 
       port: http
-----
+
+```
+
 * Create route for Prometheus
 
-[source,bash]
-----
+```
 oc create route edge prometheus --service=prometheus --port=9090 -n app-monitor
 # Output
 route.route.openshift.io/prometheus created
 
 echo "https://$(oc get route prometheus -n app-monitor -o jsonpath='{.spec.host}')"
-----
 
-* Check Service Discovery status by browser to Status => Service Discovery and click "show more" to display more details
-
-image::imagesdir/prometheus-service-discovery.png[Service Discovery,60%,60%]
+```
 
 
-* Check Target by browser to Status => Targets and click "show more" to display more details.
 
-image::imagesdir/prometheus-target.png[Target,60%,60%]
+* Check Service Discovery status by browser to Status #> Service Discovery and click "show more" to display more details
 
+![service discovery](imagesdir/prometheus-service-discovery.png)
+
+* Check Target by browser to Status #> Targets and click "show more" to display more details.
+
+![target](imagesdir/prometheus-target.png)
 
 * Click Graph. Then input query. (Prometheus provide type ahead functionality). Select one of application query. e.g. timeBackend_one_min_rate_per_second. Then click "Execute" and "Graph"
 
-image::imagesdir/prometheus-query.png[Prometheus Query,60%,60%]
+![Prometheus Query](prometheus-query.png)
 
 * With some load to bakend app. Promethus will display you graph.
 
-image::imagesdir/prometheus-request-per-minute.png[Prometheus Graph,60%,60%]
+![Prometheus Graph](prometheus-request-per-minute.png)
 
-== Setup Grafana
-* Install PrometGrafanaheus Operator to project app-monitor by login to Administrator Console. Browse to Operator=>Operator Hub and search for Grafana. Select namespace app-monitor
+## Setup Grafana
 
-image::imagesdir/grafana-operator.png[Grafana Operator,60%,60%]
+* Install Grafanaheus Operator to project app-monitor by login to Administrator Console. Browse to Operator#>Operator Hub and search for Grafana. Select namespace app-monitor
+
+![Grafana Operator](imagesdir/grafana-operator.png)
 
 * Check that Grafana operator is already installed on project app-monitor
 
-[source,bash]
-----
+```
 oc get pods -n app-monitor
 # Output
 NAME                                   READY   STATUS    RESTARTS   AGE
@@ -163,12 +179,12 @@ grafana-operator-7cfc8fd6c8-tp7bq      1/1     Running   0          21s
 prometheus-operator-849894cb8d-gdcd9   1/1     Running   0          27m
 prometheus-prometheus-0                3/3     Running   1          24m
 prometheus-prometheus-1                3/3     Running   1          24m
-----
+
+```
 
 * Create DataSource, Grafana and Dashboard
 
-[source,bash]
-----
+```
 oc apply -f metrics/grafana_datasource.yaml -n app-monitor
 # Output
 grafanadatasource.integreatly.org/grafana-datasource created
@@ -190,18 +206,21 @@ grafana-operator-7cfc8fd6c8-tp7bq      1/1     Running   0          2m50s
 prometheus-operator-849894cb8d-gdcd9   1/1     Running   0          29m
 prometheus-prometheus-0                3/3     Running   1          27m
 prometheus-prometheus-1                3/3     Running   1          27m
-----
+
+```
 
 * Login to Grafana. Check for URL by using following command
 
-[source,bash]
-----
-echo "https://$(oc get route grafana-route -n app-monitor -o jsonpath='{.spec.host}')"
-----
+```
 
-* Login to Grafana with default user and password (Check user and password in link:../metrics/grafana.yaml[grafana.yaml]
+echo "https://$(oc get route grafana-route -n app-monitor -o jsonpath#'{.spec.host}')"
 
-* Check for Grafana Dashboard. After login, click Home=>Backend App
+```
 
-image::imagesdir/grafana-dashboard.png[Grafana Dashboard,90%,90%]
+* Login to Grafana with default user and password (Check user and password in [grafana.yaml](../metrics/grafana.yaml)
+
+* Check for Grafana Dashboard. After login, click Home#>Backend App
+
+![Grafana Dashboard](imagesdir/grafana-dashboard.png)
+
 
