@@ -1,4 +1,14 @@
 # Backend Application
+```
+
+    ____             __                  __   ___                ___            __  _           
+   / __ )____ ______/ /_____  ____  ____/ /  /   |  ____  ____  / (_)________ _/ /_(_)___  ____ 
+  / __  / __ `/ ___/ //_/ _ \/ __ \/ __  /  / /| | / __ \/ __ \/ / / ___/ __ `/ __/ / __ \/ __ \
+ / /_/ / /_/ / /__/ ,< /  __/ / / / /_/ /  / ___ |/ /_/ / /_/ / / / /__/ /_/ / /_/ / /_/ / / / /
+/_____/\__,_/\___/_/|_|\___/_/ /_/\__,_/  /_/  |_/ .___/ .___/_/_/\___/\__,_/\__/_/\____/_/ /_/ 
+                                                /_/   /_/                                       
+
+```
 <!-- TOC -->
 
 - [Backend Application](#backend-application)
@@ -14,16 +24,7 @@
 <!-- /TOC -->
 
 ## Overview
-```
 
-    ____             __                  __   ___                ___            __  _           
-   / __ )____ ______/ /_____  ____  ____/ /  /   |  ____  ____  / (_)________ _/ /_(_)___  ____ 
-  / __  / __ `/ ___/ //_/ _ \/ __ \/ __  /  / /| | / __ \/ __ \/ / / ___/ __ `/ __/ / __ \/ __ \
- / /_/ / /_/ / /__/ ,< /  __/ / / / /_/ /  / ___ |/ /_/ / /_/ / / / /__/ /_/ / /_/ / /_/ / / / /
-/_____/\__,_/\___/_/|_|\___/_/ /_/\__,_/  /_/  |_/ .___/ .___/_/_/\___/\__,_/\__/_/\____/_/ /_/ 
-                                                /_/   /_/                                       
-
-```
 Simple RESTful Application that call another service via HTTP GET method with following features:
 
 * RESTful API with RestEasy
@@ -213,3 +214,4 @@ mvn quarkus:add-extension -Dextensions="metrics"
   - /metrics - all metrics data
   - /metrics/application - only application data (from annotated to code)
   - Add header "Accept: application/json" if you want response in JSON format.
+* (Optional) Setup Prometheus and Grafana for monitor application metrics. Click **[here](METRICS.md)**
