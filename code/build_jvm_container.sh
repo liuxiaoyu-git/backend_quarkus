@@ -1,6 +1,6 @@
 #!/bin/sh
 CONTAINER_NAME=backend
-TAG=v1
+TAG=v3
 mvn clean package -DskipTests=true
 echo "*" > .dockerignore
 echo "!target/*-runner" >>.dockerignore

@@ -19,4 +19,4 @@ oc set volume dc/${APP_NAME} --add --name=${APP_NAME}-config \
 oc expose svc ${APP_NAME}
 oc rollout resume dc ${APP_NAME}
 BACKEND_URL=$(oc get route backend -o jsonpath='{.spec.host}')
-echo "Frontend: http://${BACKEND_URL}"
+echo "Backend: http://${BACKEND_URL}"
