@@ -11,7 +11,6 @@ import org.eclipse.microprofile.health.Readiness;
 @Readiness
 @ApplicationScoped
 public class AppReadiness implements HealthCheck {
-
     @Override
     public HealthCheckResponse call() {
         if (ApplicationConfig.IS_READY.get())
@@ -19,6 +18,4 @@ public class AppReadiness implements HealthCheck {
         else
             return HealthCheckResponse.down("Ready");
     }
-
-
 }

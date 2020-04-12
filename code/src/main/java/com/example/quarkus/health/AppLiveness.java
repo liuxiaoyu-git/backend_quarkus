@@ -14,12 +14,9 @@ public class AppLiveness implements HealthCheck {
 
     @Override
     public HealthCheckResponse call() {
-        if(ApplicationConfig.IS_ALIVE.get())
+        if (ApplicationConfig.IS_ALIVE.get())
             return HealthCheckResponse.up("Live");
         else
             return HealthCheckResponse.down("Live");
-       
     }
-
-    
 }

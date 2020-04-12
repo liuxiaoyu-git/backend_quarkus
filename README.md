@@ -14,16 +14,8 @@ Story here...
 ```
 
 
-## Code, Build and Run
-### [Backend Application]()
-
-## CI/CD with OpenShift by Jenkins
-### [Jenkins and related tools]()
-
-## CI/CD with OpenShift by Tekton
-### [Tekton]()
-
-## Metrics data with Prometheus and Grafana
-### [Microprofiles Metrics]()
-### [Prometheus Operator]()
-### [Grafana Operator]()
+* [Code Quarkus](docs/CODE.md)
+* [Build Quarkus](docs/BUILD.md)
+* [CI/CD with OpenShift by Jenkins](docs/JENKINS.md)
+* CI/CD with OpenShift by Tekton - WIP
+* [Metrics data with Prometheus and Grafana](docs/METRICS.md)
