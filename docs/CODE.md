@@ -62,7 +62,9 @@ Simple RESTful Application that call another service via HTTP GET method with fo
 
 ## Start Coding with Quarkus
 * Try [code.quarkus.org](https://code.quarkus.org) for bootstrap and discovers its extension
-* Development mode. Quarkus comes with development mode. With development mode, The Changes are automatically reloaded when you update codes and configurations.
+* Development mode. Quarkus comes with development mode which support live reload. The Changes are automatically reloaded when you update codes and configurations.
+
+You can start development mode by using **quarkus:dev**
 ```bash
 mvn quarkus:dev
 ```
