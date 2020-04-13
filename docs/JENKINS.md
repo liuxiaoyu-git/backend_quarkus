@@ -206,7 +206,7 @@ Check that build pipeline load libaries through nexus repository maven-all-publi
 
 Check that build pipeline archived applcation JAR to nexus repository releases
 
-![Maven Repository Releases](images/../imagesdir/maven-release.png)
+![Maven Repository Releases](imagesdir/maven-release.png)
 
 You can also use Develop Console to view backend app in Development project
 
