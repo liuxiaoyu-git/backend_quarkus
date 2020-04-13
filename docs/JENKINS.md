@@ -31,6 +31,7 @@
 <!-- /TOC -->
 
 ## Overview
+
 Overview strategy to CI/CD pipelines as follow: 
 
 * Jenkins and image registry stored in CI/CD project
