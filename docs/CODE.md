@@ -185,6 +185,16 @@ public class BackendApp extends Application {
 ```properties
 quarkus.smallrye-openapi.path=/openapi
 ```
+* Test access to swagger-ui by run quarkus in developer mode using **quarkus:dev**
+```bash
+mvn quarkus:dev
+# Use browser connect to http://127.0.0.1/swagger-ui
+```
+
+Swagger UI page
+
+![Swagger UI](images/../imagesdir/swagger-ui.png)
+
 * By default, Swagger UI is included in development mode only. If you want swagger UI in your deployment. Update *quarkus.swagger-ui.always-include* to *true* in  *[application.properties](../code/src/main/resources/application.properties)*
 ```properties
 quarkus.swagger-ui.always-include=true
