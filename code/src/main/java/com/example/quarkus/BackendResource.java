@@ -9,6 +9,7 @@ import java.net.URL;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -57,12 +58,13 @@ public class BackendResource {
         description = "Times how long it takes to invoke the backend method", 
         unit = MetricUnits.MILLISECONDS
         )
-    public Response callBackend() throws IOException {
+    public Response callBackend(@HeaderParam("user-agent") String userAgent) throws IOException {
         if (ApplicationConfig.IS_ALIVE.get() && ApplicationConfig.IS_READY.get()) {
             URL url;
             try {
                 logger.info("Request to: " + backend);
                 logger.info("showResponse: "+showResponse);
+                logger.debug("User-Agent: "+userAgent);
                 url = new URL(backend);
                 final HttpURLConnection con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
