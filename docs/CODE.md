@@ -20,6 +20,8 @@
   - [MicroProfile  Health Check](#microprofile-health-check)
   - [MicroProfile OpenAPI](#microprofile-openapi)
   - [MicroProfile Metrics](#microprofile-metrics)
+  - [Logging](#logging)
+    - [Logging Banner](#logging-banner)
 
 <!-- /TOC -->
 
@@ -225,3 +227,89 @@ mvn quarkus:add-extension -Dextensions="metrics"
   - /metrics/application - only application data (from annotated to code)
   - Add header "Accept: application/json" if you want response in JSON format.
 * (Optional) Setup Prometheus and Grafana for monitor application metrics. Click **[here](METRICS.md)**
+
+## Logging
+
+By default, Quarkus log to console and supported for following logging APIs
+
+- JDK java.util.logging
+- JBoss Logging
+- SLF4J
+- Apache Commons Logging
+
+Logging configuration is configured in [application.properties](../code/src/man/resources/application.properties)
+
+Logging can be configured and applied to each category. The more specific level will overwrite the configured at higher level.
+
+```properties
+#Logging
+quarkus.log.level=INFO
+#quarkus.log.category."com.example.quarkus".level=INFO
+#quarkus.log.category."com.example.quarkus.health".level=DEBUG
+quarkus.log.console.enable=true
+quarkus.log.console.format=%d{HH:mm:ss} %-5p [%c{2.}] (%t) %s%e%n
+quarkus.log.console.color=true
+```
+Use following steps to log level configuration at each level
+
+* Start quarkus in development mode
+```bash
+mvn quarkus:dev
+```
+* Uncommment configuration [application.properties](../code/src/man/resources/application.properties) for **com.example.quarkus** and **com.example.quarkus.health** and save file.
+```properties 
+quarkus.log.category."com.example.quarkus".level=INFO
+quarkus.log.category."com.example.quarkus.health".level=DEBUG
+```
+* Test with cURL to /health/ready and / 
+```bash
+curl http://localhost:8080/health/ready
+curl http://localhost:8080/
+```
+* Check for console log. Package **co.ex.qu.he.AppReadiness** cotanins DEBUG level log
+```log
+22:53:56 INFO  [io.qu.dev] (vert.x-worker-thread-4) Hot replace total time: 0.490s
+22:53:56 DEBUG [co.ex.qu.he.AppReadiness] (vert.x-worker-thread-0) Readiness Healthcheck
+22:55:00 INFO  [co.ex.qu.BackendResource] (executor-thread-30) Request to: https://httpbin.org/status/200
+22:55:00 INFO  [co.ex.qu.BackendResource] (executor-thread-30) showResponse: false
+22:55:01 INFO  [co.ex.qu.BackendResource] (executor-thread-30) Return Code: 200
+```
+* Change log level for **com.example.quarkus** to DEBUG and **com.example.quarkus.health** to INFO
+```properties 
+quarkus.log.category."com.example.quarkus".level=DEBUG
+quarkus.log.category."com.example.quarkus.health".level=INFO
+```
+* Test with cURL to /health/ready and / again then check console log. Check for there is no DEBUG log for **co.ex.qu.he.AppReadiness** but  **co.ex.qu.BackendResource** contains DEBUG log
+```log
+23:00:43 INFO  [co.ex.qu.BackendResource] (executor-thread-30) Request to: https://httpbin.org/status/200
+23:00:43 INFO  [co.ex.qu.BackendResource] (executor-thread-30) showResponse: false
+23:00:43 DEBUG [co.ex.qu.BackendResource] (executor-thread-30) User-Agent: curl/7.64.1
+23:00:44 INFO  [co.ex.qu.BackendResource] (executor-thread-30) Return Code: 200
+```
+
+### Logging Banner
+* Quarkus console log show Quarkus banner by default. Like this
+```log
+__  ____  __  _____   ___  __ ____  ______
+ --/ __ \/ / / / _ | / _ \/ //_/ / / / __/
+ -/ /_/ / /_/ / __ |/ , _/ ,< / /_/ /\ \
+--\___\_\____/_/ |_/_/|_/_/|_|\____/___/
+```
+* You can turn off by set **quarkus.banner.enabled** to false.
+```property
+quarkus.banner.enabled=false
+```
+* You can make your own and save it as text file and set **quarkus.banner.path** to that text file.
+```property
+quarkus.banner.enabled=true
+quarkus.banner.path=banner.txt
+```
+* Our [banner.txt](../code/src/main/resources/banner.txt)
+```log
+    ____             __                  __   ___
+   / __ )____ ______/ /_____  ____  ____/ /  /   |  ____  ____
+  / __  / __ `/ ___/ //_/ _ \/ __ \/ __  /  / /| | / __ \/ __ \
+ / /_/ / /_/ / /__/ ,< /  __/ / / / /_/ /  / ___ |/ /_/ / /_/ /
+/_____/\__,_/\___/_/|_|\___/_/ /_/\__,_/  /_/  |_/ .___/ .___/
+                                                /_/   /_/
+```
