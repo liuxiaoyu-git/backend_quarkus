@@ -90,6 +90,72 @@ Check for memory usage with **jconsole** and run load test with 10 concurrent re
 
 ![JVM Heap](imagesdir/jvm-heap-with-10-concurrent-requests.png)
 
+You can also use Microprofile metrics to check for heap size. ( /metrics)
+```json
+{
+    "base": {
+        "gc.total;name=PS MarkSweep": 1,
+        "cpu.systemLoadAverage": 3.69921875,
+        "thread.count": 27,
+        "classloader.loadedClasses.count": 4421,
+        "classloader.unloadedClasses.total": 14,
+        "gc.total;name=PS Scavenge": 4,
+        "gc.time;name=PS MarkSweep": 24,
+        "jvm.uptime": 55038,
+        "thread.max.count": 30,
+        "memory.committedHeap": 153616384,
+        "classloader.loadedClasses.total": 4435,
+        "cpu.availableProcessors": 4,
+        "gc.time;name=PS Scavenge": 49,
+        "thread.daemon.count": 15,
+        "memory.maxHeap": 3817865216,
+        "cpu.processCpuLoad": 0.06357645696526383,
+        "memory.usedHeap": 32171864
+    },
+    "vendor": {
+        "memory.freePhysicalSize": 167227392,
+        "memoryPool.usage;name=Metaspace": 26855208,
+        "memoryPool.usage.max;name=PS Eden Space": 67108864,
+        "memoryPool.usage;name=PS Eden Space": 0,
+        "memoryPool.usage.max;name=PS Old Gen": 9774296,
+        "memoryPool.usage;name=PS Old Gen": 7849952,
+        "cpu.processCpuTime": 10158221000,
+        "memory.committedNonHeap": 44892160,
+        "memoryPool.usage.max;name=PS Survivor Space": 11009016,
+        "memoryPool.usage.max;name=Compressed Class Space": 3069176,
+        "memoryPool.usage;name=Code Cache": 13323520,
+        "memory.freeSwapSize": 168620032,
+        "memoryPool.usage.max;name=Metaspace": 26855208,
+        "cpu.systemCpuLoad": 0.3891074394614914,
+        "memoryPool.usage.max;name=Code Cache": 13330496,
+        "memory.usedNonHeap": 43247904,
+        "memoryPool.usage;name=PS Survivor Space": 11009016,
+        "memoryPool.usage;name=Compressed Class Space": 3069176,
+        "memory.maxNonHeap": -1
+    },
+    "application": {
+        "com.example.quarkus.BackendResource.countBackend": 690,
+        "com.example.quarkus.BackendResource.timeBackend": {
+            "p99": 1690.584713,
+            "min": 265.280565,
+            "max": 2285.616676,
+            "mean": 379.13525211755694,
+            "p50": 277.785304,
+            "p999": 2285.616676,
+            "stddev": 274.5684725716509,
+            "p95": 900.826063,
+            "p98": 997.362297,
+            "p75": 307.125509,
+            "fiveMinRate": 1.671313376057565,
+            "fifteenMinRate": 0.570043086274094,
+            "meanRate": 12.493649417000773,
+            "count": 681,
+            "oneMinRate": 7.310831119254727
+        }
+    }
+}
+```
+
 
 ### Uber JAR
 
