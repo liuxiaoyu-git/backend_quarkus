@@ -25,7 +25,10 @@ pipeline {
     version = ""
     imageName = "backend"
     devTag = "0.0-0"
-    sh "oc get secret nexus-credential"
+    script {
+      sh "oc get secret nexus-credential"
+    }
+    
   }
   stages {
     // Checkout Source Code.
