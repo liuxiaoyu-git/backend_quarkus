@@ -43,7 +43,8 @@ pipeline {
             echo "Backend URL: ${env.BACKEND_URL}"
             echo "CICD Project: ${env.CICD_PROJECT}"
             echo "Development Project: ${env.DEV_PROJECT}"
-            sh "oc get secret nexus-credential"
+            sh "export NEXUS_USER=$(oc get secret nexus-credential -o jsonpath='{.data.username}'|base64 -d -)"
+            echo "Nexus User: ${NEXUS_USER}"
             // Patch Source artifactId to include GUID
             //sh "sed -i 's/GUID/${GUID}/g' ./pom.xml"
           }
