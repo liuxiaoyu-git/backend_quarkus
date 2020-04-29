@@ -1,6 +1,4 @@
 def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
-def nexusUser
-def nexusPassword
 pipeline {
   agent {
     kubernetes {
@@ -27,6 +25,8 @@ pipeline {
     version = ""
     imageName = "backend"
     devTag = "0.0-0"
+    nexusUser = ""
+    nexusPassword =""
   }
   stages {
     // Checkout Source Code.
@@ -68,8 +68,7 @@ pipeline {
 
           echo "Building binary for ${imageName}"
           script {
-            sh(script: '${mvnCmd} clean package -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true -Dquarkus.package.uber-jar=true', returnStdout: 'true')
-            
+            sh "${mvnCmd} clean package -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true -Dquarkus.package.uber-jar=true"
           }
         }
       }
@@ -82,7 +81,7 @@ pipeline {
           steps {
             dir('code') {
               echo "Running Unit Tests"
-              sh(script: '${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} test',returnStdout: 'true')
+              sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} test"
               step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
             }
           }
