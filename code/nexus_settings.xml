@@ -12,7 +12,7 @@
     <server>
       <id>nexus</id>
       <username>admin</username>
-      <password>password1234</password>
+      <password>dummy</password>
     </server>
   </servers>
 </settings>
