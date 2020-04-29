@@ -1,24 +1,36 @@
 #!/bin/sh
 #NEXUS_VERSION=3.18.1
-NEXUS_VERSION=latest
+export NEXUS_VERSION=latest
+export CICD_PROJECT=ci-cd
+NEXUS_PVC_SIZE="8Gi"
+JENKINS_PVC_SIZE="4Gi"
+SONAR_PVC_SIZE="4Gi"
+NEXUS_USER=admin
+NEXUS_PASSWORD=password1234
+NEXUS_USER_SECRET=$(echo ${NEXUS_USER}|base64 -)
+NEXUS_PASSWORD_SECRET=$(echo ${NEXUS_PASSWORD}|base64 -)
 function check_pod(){
     sleep 15
     READY="NO"
     while [ $READY = "NO" ];
     do
         clear
-        echo "****** Wait for $1 pod to sucessfully start ******"
+        #echo "Wait for $1 pod to sucessfully start"
         MESSAGE=$(oc get pods  -n ${CICD_PROJECT}| grep $1 | grep -v deploy)
         STATUS=$(echo ${MESSAGE}| awk '{print $2}')
         if [ $(echo -n ${MESSAGE} | wc -c) -gt 0 ];
             then
-            echo "Current Status: ${MESSAGE}"
             if [ ${STATUS} = "1/1" ];
             then
                 READY="YES"
             else 
-                echo "*************   Wait another 5 sec   *************"
+                cat $1.txt
+                sleep 1
+                clear
+                echo "Current Status: ${MESSAGE}"
+                cat wait.txt
                 sleep 5
+
             fi
         else
             oc get pods -n ${CICD_PROJECT} | grep $1
@@ -26,14 +38,12 @@ function check_pod(){
         fi
     done
 }
-export CICD_PROJECT=ci-cd
-echo "########## Start build Jenkins ##########"
 oc project ${CICD_PROJECT}
-oc new-app jenkins-persistent --param ENABLE_OAUTH=true --param MEMORY_LIMIT=2Gi --param VOLUME_CAPACITY=4Gi --param DISABLE_ADMINISTRATIVE_MONITORS=true
+oc new-app jenkins-persistent --param ENABLE_OAUTH=true --param MEMORY_LIMIT=2Gi \
+--param VOLUME_CAPACITY=${JENKINS_PVC_SIZE} --param DISABLE_ADMINISTRATIVE_MONITORS=true
 oc set resources dc jenkins --limits=memory=2Gi,cpu=2 --requests=memory=1Gi,cpu=500m
 # No need to wait for jenkins to start
-# check_pod "jenkins"
-echo "########## Start build Nexus   ##########"
+check_pod "jenkins"
 oc new-app sonatype/nexus3:${NEXUS_VERSION} --name=nexus -n ${CICD_PROJECT}
 oc create route edge nexus --service=nexus --port=8081
 oc rollout pause dc nexus -n ${CICD_PROJECT}
@@ -42,13 +52,17 @@ oc set resources dc nexus --limits=memory=2Gi,cpu=2 --requests=memory=1Gi,cpu=50
 oc set volume dc/nexus --remove --confirm -n ${CICD_PROJECT}
 oc set volume dc/nexus --add --overwrite --name=nexus-pv-1 \
 --mount-path=/nexus-data/ --type persistentVolumeClaim \
---claim-name=nexus-pvc --claim-size=8Gi -n ${CICD_PROJECT}
+--claim-name=nexus-pvc --claim-size=${NEXUS_PVC_SIZE} -n ${CICD_PROJECT}
 oc set probe dc/nexus --liveness --failure-threshold 3 --initial-delay-seconds 60 -- echo ok -n ${CICD_PROJECT}
 oc set probe dc/nexus --readiness --failure-threshold 3 --initial-delay-seconds 60 --get-url=http://:8081/ -n ${CICD_PROJECT}
 oc rollout resume dc nexus -n ${CICD_PROJECT}
 check_pod "nexus"
-echo "########   Setup SonarQube   ##########"
-oc new-app --template=postgresql-persistent --param POSTGRESQL_USER=sonar --param POSTGRESQL_PASSWORD=sonar --param POSTGRESQL_DATABASE=sonar --param VOLUME_CAPACITY=2Gi --labels=app=sonarqube_db
+oc new-app --template=postgresql-persistent \
+--param POSTGRESQL_USER=sonar \
+--param POSTGRESQL_PASSWORD=sonar \
+--param POSTGRESQL_DATABASE=sonar \
+--param VOLUME_CAPACITY=${SONAR_PVC_SIZE} \
+--labels=app=sonarqube_db
 check_pod "postgresql"
 oc new-app --docker-image=quay.io/gpte-devops-automation/sonarqube:7.9.1 --env=SONARQUBE_JDBC_USERNAME=sonar --env=SONARQUBE_JDBC_PASSWORD=sonar --env=SONARQUBE_JDBC_URL=jdbc:postgresql://postgresql/sonar --labels=app=sonarqube
 oc rollout pause dc sonarqube
@@ -62,17 +76,14 @@ oc set probe dc/sonarqube --readiness --failure-threshold 3 --initial-delay-seco
 oc patch dc/sonarqube --type=merge -p '{"spec": {"template": {"metadata": {"labels": {"tuned.openshift.io/elasticsearch": "true"}}}}}'
 oc rollout resume dc sonarqube
 check_pod "sonarqube"
-echo "##########   Configure Nexus   ############"
-echo "Wait 10 sec..."
-sleep 10
 export NEXUS_POD=$(oc get pods | grep nexus | grep -v deploy | awk '{print $1}')
 oc cp $NEXUS_POD:/nexus-data/etc/nexus.properties nexus.properties
 echo nexus.scripts.allowCreation=true >>  nexus.properties
 oc cp nexus.properties $NEXUS_POD:/nexus-data/etc/nexus.properties
 rm -f nexus.properties
 oc delete pod $NEXUS_POD
-echo "Wait 5 sec..."
-sleep 5
+echo "Wait 10 sec..."
+sleep 10
 check_pod "nexus"
 export NEXUS_POD=$(oc get pods | grep nexus | grep -v deploy | awk '{print $1}')
 export NEXUS_PASSWORD=$(oc exec $NEXUS_POD -- cat /nexus-data/admin.password)
@@ -81,8 +92,17 @@ export NEXUS_PASSWORD=$(oc exec $NEXUS_POD -- cat /nexus-data/admin.password)
 echo "expose port 5000 for container registry"
 oc expose dc nexus --port=5000 --name=nexus-registry
 oc create route edge nexus-registry --service=nexus-registry --port=5000
+oc create -f - << EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nexus-credential
+type: Opaque 
+data:
+  username: ${NEXUS_USER_SECRET}
+  password: ${NEXUS_PASSWORD_SECRET}
+EOF
 echo "###########################################################################################"
-check_pod "jenkins"
 echo "Jenkins URL = $(oc get route jenkins -n ${CICD_PROJECT} -o jsonpath='{.spec.host}')"
 echo "NEXUS URL = $(oc get route nexus -n ${CICD_PROJECT} -o jsonpath='{.spec.host}') "
 echo "NEXUS Password = ${NEXUS_PASSWORD}"
