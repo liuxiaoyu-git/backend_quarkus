@@ -115,6 +115,5 @@ echo "Jenkins will use user/password store in secret nexus-credential to access 
 echo ${NEXUS_PASSWORD} > nexus_password.txt
 echo ${CICD_NEXUS_PASSWORD} >> nexus_password.txt
 echo "Record this password and change it via web console"
-echo "You need to enable anonymous access"
 echo "Start build pipeline and deploy to dev project by run start_build_pipeline.sh"
 echo "Elasped time to build is $(expr ${BUILD_TIME} / 60 ) minutes"
