@@ -25,7 +25,7 @@ pipeline {
     version = ""
     imageName = "backend"
     devTag = "0.0-0"
-    sh "oc get secret nexus-credential -o jsonpath='{.data.username}'"
+    sh "oc get secret nexus-credential"
   }
   stages {
     // Checkout Source Code.
