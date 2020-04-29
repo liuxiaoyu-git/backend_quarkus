@@ -45,7 +45,7 @@ pipeline {
               script: 'oc get secret nexus-credential -o jsonpath="{.data.password}"| base64 -d -',
               returnStdout: true
             ).trim()
-            sh (sed  's/<password>(.*)<\/password>/${nexusPassword}/g'  nexus_settings.xml, returnStdout: true)
+            // sh (sed  's/<password>(.*)<\/password>/${nexusPassword}/g'  nexus_settings.xml, returnStdout: true)
             echo "Image Name: ${imageName}"
             echo "version: ${version}"
             echo "devTag: ${devTag}"
