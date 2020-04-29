@@ -66,7 +66,7 @@ pipeline {
 
           echo "Building binary for ${imageName}"
           script {
-            sh(script: '${mvnCmd} clean package -DskipTests=true -Dquarkus.package.uber-jar=true', returnStdout: 'true')
+            sh(script: '${mvnCmd} clean package -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true -Dquarkus.package.uber-jar=true', returnStdout: 'true')
             
           }
         }
@@ -80,7 +80,7 @@ pipeline {
           steps {
             dir('code') {
               echo "Running Unit Tests"
-              sh "${mvnCmd} test"
+              sh(script: '${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} test',returnStdout: 'true')
               step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
             }
           }
@@ -91,7 +91,7 @@ pipeline {
             dir('code') {
               script {
                 echo "Running Code Analysis"
-                sh "${mvnCmd} sonar:sonar -Dsonar.host.url=${env.SONARQUBE_SVC} -Dsonar.projectName=${imageName}-${devTag} -Dsonar.projectVersion=${devTag}"
+                sh(script: '${mvnCmd} sonar:sonar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -Dsonar.host.url=${env.SONARQUBE_SVC} -Dsonar.projectName=${imageName}-${devTag} -Dsonar.projectVersion=${devTag}',returnStdout: 'true')
               }
             }
           }
@@ -104,7 +104,7 @@ pipeline {
         dir('code') {
           echo "Publish to Nexus"
           sh "mv target/${imageName}-${version}-runner.jar target/${imageName}-${version}.jar"
-          sh "${mvnCmd} deploy -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true -DaltDeploymentRepository=nexus::default::${env.NEXUS_SVC}/repository/releases"
+          sh(script: '${mvnCmd} deploy -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true -DaltDeploymentRepository=nexus::default::${env.NEXUS_SVC}/repository/releases',returnStdout: 'true')
           //sh "${mvnCmd} deploy:deploy-file -DskipTests=true -DaltDeploymentRepository=nexus::default::${env.NEXUS_SVC}/repository/releases -Dfile=target/${imageName}-${version}-runner.jar"
           sh "mv target/${imageName}-${version}.jar target/${imageName}-${version}-runner.jar"
         }
