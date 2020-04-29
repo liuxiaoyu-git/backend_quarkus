@@ -11,6 +11,7 @@
 # Add a NPM Proxy Repo to Nexus3
 # add_nexus3_proxy_repo [repo-id] [repo-url] [nexus-username] [nexus-password] [nexus-url]
 #
+set -x
 function add_nexus3_npmproxy_repo() {
   local _REPO_ID=$1
   local _REPO_URL=$2

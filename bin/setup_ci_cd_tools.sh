@@ -1,4 +1,6 @@
 #!/bin/sh
+#NEXUS_VERSION=3.18.1
+NEXUS_VERSION=latest
 function check_pod(){
     sleep 15
     READY="NO"
@@ -32,27 +34,19 @@ oc set resources dc jenkins --limits=memory=2Gi,cpu=2 --requests=memory=1Gi,cpu=
 # No need to wait for jenkins to start
 # check_pod "jenkins"
 echo "########## Start build Nexus   ##########"
-oc new-app sonatype/nexus3:3.18.1 --name=nexus -n ${CICD_PROJECT}
-#oc expose svc nexus -n ${CICD_PROJECT}
+oc new-app sonatype/nexus3:${NEXUS_VERSION} --name=nexus -n ${CICD_PROJECT}
 oc create route edge nexus --service=nexus --port=8081
 oc rollout pause dc nexus -n ${CICD_PROJECT}
 oc patch dc nexus --patch='{ "spec": { "strategy": { "type": "Recreate" }}}' -n ${CICD_PROJECT}
 oc set resources dc nexus --limits=memory=2Gi,cpu=2 --requests=memory=1Gi,cpu=500m -n ${CICD_PROJECT}
-oc set volume dc/nexus --add --overwrite --name=nexus-pv-1 --mount-path=/nexus-data/ --type persistentVolumeClaim --claim-name=nexus-pvc --claim-size=1Gi -n ${CICD_PROJECT}
+oc set volume dc/nexus --remove --confirm -n ${CICD_PROJECT}
+oc set volume dc/nexus --add --overwrite --name=nexus-pv-1 \
+--mount-path=/nexus-data/ --type persistentVolumeClaim \
+--claim-name=nexus-pvc --claim-size=8Gi -n ${CICD_PROJECT}
 oc set probe dc/nexus --liveness --failure-threshold 3 --initial-delay-seconds 60 -- echo ok -n ${CICD_PROJECT}
 oc set probe dc/nexus --readiness --failure-threshold 3 --initial-delay-seconds 60 --get-url=http://:8081/ -n ${CICD_PROJECT}
 oc rollout resume dc nexus -n ${CICD_PROJECT}
 check_pod "nexus"
-# echo "##########   Configure Nexus   ############"
-# echo "Wait 10 sec..."
-# sleep 10
-# export NEXUS_POD=$(oc get pods | grep nexus | grep -v deploy | awk '{print $1}')
-# export NEXUS_PASSWORD=$(oc rsh $NEXUS_POD cat /nexus-data/admin.password)
-# # https://raw.githubusercontent.com/redhat-gpte-devopsautomation/ocp_advanced_development_resources/master/nexus/setup_nexus3.sh
-# ./setup_nexus3.sh admin $NEXUS_PASSWORD http://$(oc get route nexus --template='{{ .spec.host }}')
-# echo "expose port 5000 for container registry"
-# oc expose dc nexus --port=5000 --name=nexus-registry
-# oc create route edge nexus-registry --service=nexus-registry --port=5000
 echo "########   Setup SonarQube   ##########"
 oc new-app --template=postgresql-persistent --param POSTGRESQL_USER=sonar --param POSTGRESQL_PASSWORD=sonar --param POSTGRESQL_DATABASE=sonar --param VOLUME_CAPACITY=2Gi --labels=app=sonarqube_db
 check_pod "postgresql"
@@ -68,26 +62,27 @@ oc set probe dc/sonarqube --readiness --failure-threshold 3 --initial-delay-seco
 oc patch dc/sonarqube --type=merge -p '{"spec": {"template": {"metadata": {"labels": {"tuned.openshift.io/elasticsearch": "true"}}}}}'
 oc rollout resume dc sonarqube
 check_pod "sonarqube"
-# echo "####### Maven 3.5 Jenkins Slave with Skopeo #########"
-# oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-maven:4.1.0\n
-#    USER root\n
-#    RUN curl https://copr.fedorainfracloud.org/coprs/alsadi/dumb-init/repo/epel-7/alsadi-dumb-init-epel-7.repo -o /etc/yum.repos.d/alsadi-dumb-init-epel-7.repo && \ \n
-#    curl https://raw.githubusercontent.com/cloudrouter/centos-repo/master/CentOS-Base.repo -o /etc/yum.repos.d/CentOS-Base.repo && \ \n
-#    curl http://mirror.centos.org/centos-7/7/os/x86_64/RPM-GPG-KEY-CentOS-7 -o /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 && \ \n
-#    DISABLES="--disablerepo=rhel-server-extras --disablerepo=rhel-server --disablerepo=rhel-fast-datapath --disablerepo=rhel-server-optional --disablerepo=rhel-server-ose --disablerepo=rhel-server-rhscl" && \ \n
-#    yum $DISABLES -y --setopt=tsflags=nodocs install skopeo && yum clean all\n
-#    USER 1001' --name=mvn-with-skopeo
 echo "##########   Configure Nexus   ############"
 echo "Wait 10 sec..."
 sleep 10
 export NEXUS_POD=$(oc get pods | grep nexus | grep -v deploy | awk '{print $1}')
-export NEXUS_PASSWORD=$(oc rsh $NEXUS_POD cat /nexus-data/admin.password)
+oc cp $NEXUS_POD:/nexus-data/etc/nexus.properties nexus.properties
+echo nexus.scripts.allowCreation=true >>  nexus.properties
+oc cp nexus.properties $NEXUS_POD:/nexus-data/etc/nexus.properties
+rm -f nexus.properties
+oc delete pod $NEXUS_POD
+echo "Wait 5 sec..."
+sleep 5
+check_pod "nexus"
+export NEXUS_POD=$(oc get pods | grep nexus | grep -v deploy | awk '{print $1}')
+export NEXUS_PASSWORD=$(oc exec $NEXUS_POD -- cat /nexus-data/admin.password)
 # https://raw.githubusercontent.com/redhat-gpte-devopsautomation/ocp_advanced_development_resources/master/nexus/setup_nexus3.sh
 ./setup_nexus3.sh admin $NEXUS_PASSWORD https://$(oc get route nexus --template='{{ .spec.host }}')
 echo "expose port 5000 for container registry"
 oc expose dc nexus --port=5000 --name=nexus-registry
 oc create route edge nexus-registry --service=nexus-registry --port=5000
 echo "###########################################################################################"
+check_pod "jenkins"
 echo "Jenkins URL = $(oc get route jenkins -n ${CICD_PROJECT} -o jsonpath='{.spec.host}')"
 echo "NEXUS URL = $(oc get route nexus -n ${CICD_PROJECT} -o jsonpath='{.spec.host}') "
 echo "NEXUS Password = ${NEXUS_PASSWORD}"
