@@ -25,10 +25,6 @@ pipeline {
     version = ""
     imageName = "backend"
     devTag = "0.0-0"
-    script {
-      sh "oc get secret nexus-credential"
-    }
-    
   }
   stages {
     // Checkout Source Code.
@@ -47,6 +43,7 @@ pipeline {
             echo "Backend URL: ${env.BACKEND_URL}"
             echo "CICD Project: ${env.CICD_PROJECT}"
             echo "Development Project: ${env.DEV_PROJECT}"
+            sh "oc get secret nexus-credential"
             // Patch Source artifactId to include GUID
             //sh "sed -i 's/GUID/${GUID}/g' ./pom.xml"
           }
