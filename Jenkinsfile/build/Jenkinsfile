@@ -38,11 +38,11 @@ pipeline {
             version = pom.version
             devTag = "${version}-" + currentBuild.number
             nexusUser = sh (
-              script: 'oc get secret nexus-credential -o jsonpath='{.data.username}'| base64 -d -',
+              script: 'oc get secret nexus-credential -o jsonpath="{.data.username}"| base64 -d -',
               returnStdout: true
             ).trim()
             nexusPassword = sh (
-              script: 'oc get secret nexus-credential -o jsonpath='{.data.password}'| base64 -d -',
+              script: 'oc get secret nexus-credential -o jsonpath="{.data.password}"| base64 -d -',
               returnStdout: true
             ).trim()
             sh (sed  's/<password>(.*)<\/password>/${nexusPassword}/g'  nexus_settings.xml, returnStdout: true)
