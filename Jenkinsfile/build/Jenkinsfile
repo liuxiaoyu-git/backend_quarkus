@@ -25,6 +25,8 @@ pipeline {
     version = ""
     imageName = "backend"
     devTag = "0.0-0"
+    sh "export USER=$(oc get secret nexus-credential -o jsonpath='{.data.username}') | base64 -d -"
+    sh "User ID: ${USERID}"
   }
   stages {
     // Checkout Source Code.
