@@ -68,7 +68,7 @@ pipeline {
 
           echo "Building binary for ${imageName}"
           script {
-            sh "${mvnCmd} clean package -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true -Dquarkus.package.uber-jar=true"
+            sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true -Dquarkus.package.uber-jar=true clean package"
           }
         }
       }
@@ -92,7 +92,7 @@ pipeline {
             dir('code') {
               script {
                 echo "Running Code Analysis"
-                sh(script: '${mvnCmd} sonar:sonar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -Dsonar.host.url=${env.SONARQUBE_SVC} -Dsonar.projectName=${imageName}-${devTag} -Dsonar.projectVersion=${devTag}',returnStdout: 'true')
+                sh "${mvnCmd} sonar:sonar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -Dsonar.host.url=${env.SONARQUBE_SVC} -Dsonar.projectName=${imageName}-${devTag} -Dsonar.projectVersion=${devTag}"
               }
             }
           }
@@ -105,7 +105,7 @@ pipeline {
         dir('code') {
           echo "Publish to Nexus"
           sh "mv target/${imageName}-${version}-runner.jar target/${imageName}-${version}.jar"
-          sh(script: '${mvnCmd} deploy -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true -DaltDeploymentRepository=nexus::default::${env.NEXUS_SVC}/repository/releases',returnStdout: 'true')
+          sh "${mvnCmd} deploy -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true -DaltDeploymentRepository=nexus::default::${env.NEXUS_SVC}/repository/releases"
           //sh "${mvnCmd} deploy:deploy-file -DskipTests=true -DaltDeploymentRepository=nexus::default::${env.NEXUS_SVC}/repository/releases -Dfile=target/${imageName}-${version}-runner.jar"
           sh "mv target/${imageName}-${version}.jar target/${imageName}-${version}-runner.jar"
         }

@@ -35,6 +35,8 @@ pipeline {
   environment {
     mvnCmd = "mvn -s ./nexus_settings.xml "
     imageName="backend"
+    nexusUser = ""
+    nexusPassword =""
   }
   stages {
     stage('Choose Staging Version') {
