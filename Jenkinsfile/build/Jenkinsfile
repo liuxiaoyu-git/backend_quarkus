@@ -34,7 +34,7 @@ pipeline {
         checkout scm
         dir('code') {
           script {
-            def pom = readMavenPom file: 'pom.xml'
+            pom = readMavenPom file: 'pom.xml'
             version = pom.version
             devTag = "${version}-" + currentBuild.number
             nexusUser = sh (
