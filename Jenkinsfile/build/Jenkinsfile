@@ -1,4 +1,6 @@
 def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
+def nexusUser
+def nexusPassword
 pipeline {
   agent {
     kubernetes {

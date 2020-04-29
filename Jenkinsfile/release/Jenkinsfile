@@ -3,6 +3,8 @@ def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
 def selectTag
 def releaseTag
 def tag
+def nexusUser
+def nexusPassword
 node {
   def dateFormat = new SimpleDateFormat("yyyyMMdd")
   def date = new Date()
