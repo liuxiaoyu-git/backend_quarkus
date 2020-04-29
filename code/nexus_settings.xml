@@ -11,8 +11,8 @@
   <servers>
     <server>
       <id>nexus</id>
-      <username>admin</username>
-      <password>dummy</password>
+      <username>${internal.repo.username}</username>
+      <password>${internal.repo.password}</password>
     </server>
   </servers>
 </settings>
