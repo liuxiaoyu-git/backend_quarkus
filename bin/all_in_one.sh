@@ -6,8 +6,11 @@ banner (){
     echo "***********************************************************************************"
     read -p ""
 }
+banner "Create ci-cd,dev,stage,uat and prod project"
 ./setup_projects.sh
+banner "Build jenkins slave with maven36"
 ./setup_maven36_slave.sh
+banner "Start build CI/CD Tools"
 ./setup_ci_cd_tools.sh
-banner "Pess any key to create pipelines"
+banner "Create pipelines for backend app (Quarkus)"
 ./create_pipelines.sh
