@@ -1,12 +1,11 @@
 # CI/CD with Jenkins
 ```
-
-   __________   ____________ 
-  / ____/  _/ _/_/ ____/ __ \
- / /    / / _/_// /   / / / /
-/ /____/ /_/_/ / /___/ /_/ / 
-\____/___/_/   \____/_____/  
-                             
+   _____ _____     _______ _____                  _            _    _           
+  / ____|_   _|   / / ____|  __ \                | |          | |  (_)          
+ | |      | |    / / |    | |  | |  ______       | | ___ _ __ | | ___ _ __  ___ 
+ | |      | |   / /| |    | |  | | |______|  _   | |/ _ \ '_ \| |/ / | '_ \/ __|
+ | |____ _| |_ / / | |____| |__| |          | |__| |  __/ | | |   <| | | | \__ \
+  \_____|_____/_/   \_____|_____/            \____/ \___|_| |_|_|\_\_|_| |_|___/
 
 ```
 <!-- TOC -->
@@ -67,6 +66,28 @@ OpenShift has security to isolate each project then we need to
 Shell script [setup_projects.sh](../bin/setup_projects.sh) will do all above jobs.
 
 ```bash
+echo "Creating Projects ..."
+CI_CD=ci-cd
+DEV=dev
+STAGE=stage
+UAT=uat
+PROD=prod
+oc new-project $DEV  --display-name="Development Environment"
+oc new-project $STAGE  --display-name="Staging Environment"
+oc new-project $UAT --display-name="User Acceptance Test Environment"
+oc new-project $PROD --display-name="Production Environment"
+oc new-project $CI_CD  --display-name="CI/CD Tools"
+echo "Set $DEV,$STAGE,$UAT,$PROD to pull image from CI_CD"
+oc policy add-role-to-group system:image-puller system:serviceaccounts:${DEV} -n ${CI_CD}
+oc policy add-role-to-group system:image-puller system:serviceaccounts:${STAGE} -n ${CI_CD}
+oc policy add-role-to-group system:image-puller system:serviceaccounts:${UAT} -n ${CI_CD}
+oc policy add-role-to-group system:image-puller system:serviceaccounts:${PROD} -n ${CI_CD}
+
+echo "Set ${CI_CD} to manage $DEV,$STAGE,$UAT,$PROD"
+oc policy add-role-to-user edit system:serviceaccount:${CI_CD}:jenkins -n ${DEV}
+oc policy add-role-to-user edit system:serviceaccount:${CI_CD}:jenkins -n ${STAGE}
+oc policy add-role-to-user edit system:serviceaccount:${CI_CD}:jenkins -n ${UAT}
+oc policy add-role-to-user edit system:serviceaccount:${CI_CD}:jenkins -n ${PROD}
 ```
 
 ### Setup CI/CD Tools
