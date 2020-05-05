@@ -34,12 +34,12 @@ public class ExampleResourceTest {
              .statusCode(200);
     }
     
-    @Test
-    public void testService() {
-        given()
-          .when().get("/")
-          .then()
-             .statusCode(200);
-    }
+    // @Test
+    // public void testService() {
+    //     given()
+    //       .when().get("/")
+    //       .then()
+    //          .statusCode(200);
+    // }
 
 }
