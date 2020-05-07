@@ -138,12 +138,13 @@ spec:
   selector:
     matchLabels:
       #Read data from service with label app eqauls to backend
+      #Service need label app = bakend  not Pod!!
       app: backend
   endpoints:
     - interval: 30s
       #Read data from URI /metrics
       path: /metrics
-      #Port name need to be **matched** with port in service to be monitored 
+      #Port name need to be **matched** with **name** of port in service to be monitored 
       port: http
 ```
 
