@@ -1,0 +1,19 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineRun
+metadata:
+  generateName: backend-deploy-dev-run-
+  name: pipeline-deploy-dev
+spec:
+  pipelineRef:
+    name: backend-deploy-dev
+  resources:
+  - name: app-git
+    resourceRef:
+      name: backend-git
+  - name: app-image
+    resourceRef:
+      name: backend-image
+  # workspaces:
+  # - name: local-maven-repo
+  #   persistentVolumeClaim:
+  #     claimName: maven-repo-pvc

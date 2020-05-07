@@ -1,16 +1,18 @@
-# CI/CD with Jenkins
-```
-   _____ _____     _______ _____                  _            _    _           
-  / ____|_   _|   / / ____|  __ \                | |          | |  (_)          
- | |      | |    / / |    | |  | |  ______       | | ___ _ __ | | ___ _ __  ___ 
- | |      | |   / /| |    | |  | | |______|  _   | |/ _ \ '_ \| |/ / | '_ \/ __|
- | |____ _| |_ / / | |____| |__| |          | |__| |  __/ | | |   <| | | | \__ \
-  \_____|_____/_/   \_____|_____/            \____/ \___|_| |_|_|\_\_|_| |_|___/
+# Continuous Integration & Continuous Delivery
 
 ```
+   _____ _____     _______ _____  
+  / ____|_   _|   / / ____|  __ \ 
+ | |      | |    / | |    | |  | |
+ | |      | |   / /| |    | |  | |
+ | |____ _| |_ / / | |____| |__| |
+  \_____|_____/_/   \_____|_____/ 
+```
+Setup Jenkins, Nexus and Sonarqube for Continuous Intgration (CI) and Jenkins also managing Continuous Delivery (CD) to deploy backend application to OpenShift
+
 <!-- TOC -->
 
-- [CI/CD with Jenkins](#cicd-with-jenkins)
+- [Continuous Integration & Continuous Delivery](#continuous-integration--continuous-delivery)
   - [Overview](#overview)
   - [Setup](#setup)
     - [Create Projects (Namespaces)](#create-projects-namespaces)

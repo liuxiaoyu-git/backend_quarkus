@@ -1,0 +1,9 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: backend-git
+spec:
+  type: git
+  params:
+  - name: url
+    value: https://gitlab.com/ocp-demo/backend_quarkus.git
