@@ -1,23 +1,27 @@
-# Prometheus and Grafana
+# Visualize Metrics Data
+
+We will setup Prometheus to read metrics information from our Backend app and use Grafana to visualized these data.
+```
+______                         _   _                    
+| ___ \                       | | | |                   
+| |_/ / __ ___  _ __ ___   ___| |_| |__   ___ _   _ ___ 
+|  __/ '__/ _ \| '_ ` _ \ / _ \ __| '_ \ / _ \ | | / __|
+| |  | | | (_) | | | | | |  __/ |_| | | |  __/ |_| \__ \
+\_|  |_|  \___/|_| |_| |_|\___|\__|_| |_|\___|\__,_|___/
+                                                        
+          _____            __                  
+  ___    |  __ \          / _|                 
+ ( _ )   | |  \/_ __ __ _| |_ __ _ _ __   __ _ 
+ / _ \/\ | | __| '__/ _` |  _/ _` | '_ \ / _` |
+| (_>  < | |_\ \ | | (_| | || (_| | | | | (_| |
+ \___/\/  \____/_|  \__,_|_| \__,_|_| |_|\__,_|
+                                               
 ```
 
-    ____                            __  __                       
-   / __ \_________  ____ ___  ___  / /_/ /_  ___  __  _______    
-  / /_/ / ___/ __ \/ __ `__ \/ _ \/ __/ __ \/ _ \/ / / / ___/    
- / ____/ /  / /_/ / / / / / /  __/ /_/ / / /  __/ /_/ (__  )     
-/_/___/_/   \_______ /_/ /_/\_______/_/ /_/\___/\__,_/____/      
-  ( _ )      / ____/________ _/ __/___ _____  ____ _             
- / __ \/|   / / __/ ___/ __ `/ /_/ __ `/ __ \/ __ `/             
-/ /_/  <   / /_/ / /  / /_/ / __/ /_/ / / / / /_/ /              
-\____/\/   \____/_/   \__,_/_/  \__,_/_/ /_/\__,_/               
-                                                                 
-
-```
-We will use Prometheus to read metrics information from our Backend app and use Grafana to visualized these data
 
 <!-- TOC -->
 
-- [Prometheus and Grafana](#prometheus-and-grafana)
+- [Visualize Metrics Data](#visualize-metrics-data)
   - [Environment Preparation](#environment-preparation)
   - [Backend App Metrics data](#backend-app-metrics-data)
   - [Setup Prometheus](#setup-prometheus)
@@ -149,7 +153,7 @@ spec:
 ```
 
 * Create route for Prometheus
-* 
+
 ```bash
 oc create route edge prometheus --service=prometheus --port=9090 -n app-monitor
 #Output
@@ -165,17 +169,17 @@ echo "https://$(oc get route prometheus -n app-monitor -o jsonpath='{.spec.host}
 
 ![service discovery](imagesdir/prometheus-service-discovery.png)
 
-* Check Target by browser to Status #> Targets and click "show more" to display more details.
+* Check Target by browser to Status, Targets and click "show more" to display more details.
 
 ![target](imagesdir/prometheus-target.png)
 
 * Click Graph. Then input query. (Prometheus provide type ahead functionality). Select one of application query. e.g. timeBackend_one_min_rate_per_second. Then click "Execute" and "Graph"
 
-![Prometheus Query](prometheus-query.png)
+![Prometheus Query](imagesdir/prometheus-query.png)
 
 * With some load to bakend app. Promethus will display you graph.
 
-![Prometheus Graph](prometheus-request-per-minute.png)
+![Prometheus Graph](imagesdir/prometheus-request-per-minute.png)
 
 ## Setup Grafana
 
@@ -226,7 +230,7 @@ prometheus-prometheus-1                3/3     Running   1          27m
 * Login to Grafana. Check for URL by using following command
 
 ```bash
-echo "https://$(oc get route grafana-route -n app-monitor -o jsonpath#'{.spec.host}')"
+echo "https://$(oc get route grafana-route -n app-monitor -o jsonpath='{.spec.host}')"
 ```
 
 * Login to Grafana with default user and password (Check user and password in [grafana.yaml](../metrics/grafana.yaml)

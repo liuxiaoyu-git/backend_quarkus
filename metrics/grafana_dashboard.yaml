@@ -63,17 +63,17 @@ spec:
           "stack": true,
           "steppedLine": false,
           "targets": [{
-            "expr": "application_com_example_quarkus_BackendResource_timeBackend_rate_per_second",
+            "expr": "application_com_example_quarkus_BackendResource_countBackend_total",
             "format": "time_series",
             "intervalFactor": 1,
             "legendFormat": "",
             "refId": "A"
           }],
           "thresholds": [],
-          "timeFrom": "15m",
+          "timeFrom": "5m",
           "timeRegions": [],
           "timeShift": null,
-          "title": "Backend Request/sec",
+          "title": "Total Count",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -155,7 +155,7 @@ spec:
             "refId": "A"
           }],
           "thresholds": [],
-          "timeFrom": "15m",
+          "timeFrom": "5m",
           "timeRegions": [],
           "timeShift": null,
           "title": "Heap Size",
@@ -231,16 +231,16 @@ spec:
           "stack": false,
           "steppedLine": false,
           "targets": [{
-            "expr": "application_com_example_quarkus_BackendResource_timeBackend_mean_seconds",
+            "expr": "application_com_example_quarkus_BackendResource_timeBackend_max_seconds",
             "format": "time_series",
             "intervalFactor": 1,
             "refId": "A"
           }],
           "thresholds": [],
-          "timeFrom": "15m",
+          "timeFrom": "5m",
           "timeRegions": [],
           "timeShift": null,
-          "title": "Response Time",
+          "title": "Max Response Time",
           "tooltip": {
             "shared": true,
             "sort": 0,
