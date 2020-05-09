@@ -39,6 +39,10 @@ pipeline {
             pom = readMavenPom file: 'pom.xml'
             version = pom.version
             devTag = "${version}-" + currentBuild.number
+            podman = sh (
+              script: 'podman --help',
+              returnStdout: true
+            )
             nexusUser = sh (
               script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.username}"| base64 -d -',
               returnStdout: true
