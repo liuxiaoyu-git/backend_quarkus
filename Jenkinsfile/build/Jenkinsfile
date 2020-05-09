@@ -54,7 +54,7 @@ pipeline {
               returnStdout: true
             ).trim()
             login = sh (
-              script: 'podman login -u ${nexusUser} -p ${nexusPassword} --tls-verify=false ${nexus}' ,
+              script: "podman login -u ${nexusUser} -p ${nexusPassword} --tls-verify=false ${nexus}" ,
               returnStdout: true
             ).trim()
             // sh (sed  's/<password>(.*)<\/password>/${nexusPassword}/g'  nexus_settings.xml, returnStdout: true)
