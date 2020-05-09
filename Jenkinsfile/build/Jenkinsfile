@@ -40,11 +40,6 @@ pipeline {
             pom = readMavenPom file: 'pom.xml'
             version = pom.version
             devTag = "${version}-" + currentBuild.number
-            nexus = "${env.NEXUS_REGISTRY_SVC}"
-            // podman = sh (
-            //   script: 'podman image ls quay.io/voravitl/backend | awk 'NR>1 {print $2}' ',
-            //   returnStdout: true
-            // )
             nexusUser = sh (
               script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.username}"| base64 -d -',
               returnStdout: true
@@ -54,7 +49,7 @@ pipeline {
               returnStdout: true
             ).trim()
             list = sh (
-              script: '../bin/get-container-list.sh',
+              script: "../bin/get-container-list.sh ${env.NEXUS_SVC} ${nexusUser} ${nexusPassword} ${imageName}",
               returnStdout: true
             ).trim()
             // sh (sed  's/<password>(.*)<\/password>/${nexusPassword}/g'  nexus_settings.xml, returnStdout: true)
