@@ -1,2 +1,13 @@
 #!/bin/sh
-curl -X GET "https://nexus-ci-cd.apps.cluster-bkk19-0fd1.bkk19-0fd1.example.opentlc.com/service/rest/v1/search?sort=version&direction=desc&repository=docker&docker.imageName=backend" -H "accept: application/json" -u admin:r3dh4t1! | grep version | awk -F':' '{print $2}' |\nsed s/\"//g | sed s/,//
+NEXUS=$1
+USER=$2
+PASSWORD=$3
+IMAGE_NAME=$4
+curl -X GET \
+"$NEXUS/service/rest/v1/search?sort=version&direction=desc&repository=docker&docker.imageName=${IMAGE_NAME}" \
+-H "accept: application/json" \
+-u $USER:$PASSWORD | \
+grep version | \
+awk -F':' '{print $2}' | \
+sed s/\"//g | \
+sed s/,//
