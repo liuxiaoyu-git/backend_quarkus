@@ -54,10 +54,9 @@ pipeline {
               returnStdout: true
             ).trim()
             list = sh (
-              script: "url -X GET https://nexus-ci-cd.apps.cluster-bkk19-0fd1.bkk19-0fd1.example.opentlc.com/service/rest/v1/search?sort=version&direction=desc&repository=docker&docker.imageName=backend -H \"accept: application/json\" -u admin:r3dh4t1! | grep version | awk -F\':\' \'{print $2}\' |
-sed s/\"//g | sed s/,//" ,
+              script: 'bin/get-container-list.sh',
               returnStdout: true
-            ).trim()
+            )
             // sh (sed  's/<password>(.*)<\/password>/${nexusPassword}/g'  nexus_settings.xml, returnStdout: true)
             echo "Image Name: ${imageName}"
             echo "version: ${version}"
@@ -66,7 +65,7 @@ sed s/\"//g | sed s/,//" ,
             echo "CICD Project: ${env.CICD_PROJECT}"
             echo "Development Project: ${env.DEV_PROJECT}"
             echo "Nexus User: ${nexusUser}"
-            echo "result: ${list}"
+            echo "List: ${list}"
 
           }
         }
