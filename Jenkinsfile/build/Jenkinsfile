@@ -63,6 +63,7 @@ pipeline {
             echo "CICD Project: ${env.CICD_PROJECT}"
             echo "Development Project: ${env.DEV_PROJECT}"
             echo "Nexus User: ${nexusUser}"
+            echo "Login result: ${login}"
 
           }
         }
