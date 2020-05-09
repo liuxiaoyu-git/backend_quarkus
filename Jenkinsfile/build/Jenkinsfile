@@ -53,8 +53,9 @@ pipeline {
               script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
               returnStdout: true
             ).trim()
-            login = sh (
-              script: "podman login -u ${nexusUser} -p ${nexusPassword} --tls-verify=false ${nexus}" ,
+            list = sh (
+              script: "url -X GET https://nexus-ci-cd.apps.cluster-bkk19-0fd1.bkk19-0fd1.example.opentlc.com/service/rest/v1/search?sort=version&direction=desc&repository=docker&docker.imageName=backend -H "accept: application/json" -u admin:r3dh4t1! | grep version | awk -F':' '{print $2}' |
+sed s/\"//g | sed s/,//" ,
               returnStdout: true
             ).trim()
             // sh (sed  's/<password>(.*)<\/password>/${nexusPassword}/g'  nexus_settings.xml, returnStdout: true)
@@ -65,7 +66,7 @@ pipeline {
             echo "CICD Project: ${env.CICD_PROJECT}"
             echo "Development Project: ${env.DEV_PROJECT}"
             echo "Nexus User: ${nexusUser}"
-            echo "Login result: ${login}"
+            echo "result: ${list}"
 
           }
         }
