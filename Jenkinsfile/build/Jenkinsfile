@@ -54,9 +54,9 @@ pipeline {
               returnStdout: true
             ).trim()
             list = sh (
-              script: 'bin/get-container-list.sh',
+              script: '../bin/get-container-list.sh',
               returnStdout: true
-            )
+            ).trim()
             // sh (sed  's/<password>(.*)<\/password>/${nexusPassword}/g'  nexus_settings.xml, returnStdout: true)
             echo "Image Name: ${imageName}"
             echo "version: ${version}"
