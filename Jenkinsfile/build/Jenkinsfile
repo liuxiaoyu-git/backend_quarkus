@@ -40,7 +40,7 @@ pipeline {
             pom = readMavenPom file: 'pom.xml'
             version = pom.version
             devTag = "${version}-" + currentBuild.number
-            nexus = ${env.NEXUS_REGISTRY_SVC}
+            nexus = "${env.NEXUS_REGISTRY_SVC}"
             // podman = sh (
             //   script: 'podman image ls quay.io/voravitl/backend | awk 'NR>1 {print $2}' ',
             //   returnStdout: true
