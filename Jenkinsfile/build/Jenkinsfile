@@ -27,6 +27,7 @@ pipeline {
     devTag = "0.0-0"
     nexusUser = ""
     nexusPassword =""
+    nexus = ${env.NEXUS_REGISTRY_SVC}
   }
   stages {
     // Checkout Source Code.
@@ -39,6 +40,7 @@ pipeline {
             pom = readMavenPom file: 'pom.xml'
             version = pom.version
             devTag = "${version}-" + currentBuild.number
+            
             // podman = sh (
             //   script: 'podman image ls quay.io/voravitl/backend | awk 'NR>1 {print $2}' ',
             //   returnStdout: true
@@ -52,7 +54,7 @@ pipeline {
               returnStdout: true
             ).trim()
             login = sh (
-              script: 'podman login -u ${nexusUser} -p ${nexusPassword} --tls-verify=false ${env.NEXUS_REGISTRY_SVC}' ,
+              script: 'podman login -u ${nexusUser} -p ${nexusPassword} --tls-verify=false ${nexus}' ,
               returnStdout: true
             ).trim()
             // sh (sed  's/<password>(.*)<\/password>/${nexusPassword}/g'  nexus_settings.xml, returnStdout: true)
