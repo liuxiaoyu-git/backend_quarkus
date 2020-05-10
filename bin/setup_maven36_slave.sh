@@ -1,7 +1,6 @@
 #!/bin/sh
 PROJECT=ci-cd
 JENKINS_SLAVE=maven36-with-tools
-echo "####### Maven 3.6 Jenkins Slave with Skopeo #########"
 echo "################  ${JENKINS_SLAVE} ##################"
 oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-maven:4.1.0\n
    USER root\n
@@ -15,7 +14,8 @@ oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-
    chmod -R 755 /opt/apache-maven-3.6.3 && \ \n
    chown -R 1001:0 /opt/apache-maven-3.6.3 && \ \n
    DISABLES="--disablerepo=rhel-server-extras --disablerepo=rhel-server --disablerepo=rhel-fast-datapath --disablerepo=rhel-server-optional --disablerepo=rhel-server-ose --disablerepo=rhel-server-rhscl" && \ \n
-   yum $DISABLES -y --setopt=tsflags=nodocs install skopeo && yum clean all\n
+   yum $DISABLES -y --setopt=tsflags=nodocs install podman && \ \n
+   yum $DISABLES -y --setopt=tsflags=nodocs install skopeo && yum clean all \n
    ENV PATH=/opt/apache-maven-3.6.3/bin:$PATH\n
    USER 1001' --name=${JENKINS_SLAVE} -n ${PROJECT}
 echo "Wait 5 sec for build to start"
