@@ -203,6 +203,12 @@ export GRAALVM_HOME=${HOME}/opt/graalvm-ce-${JAVA_VERSION}-${GRAALVM_VERSION}/Co
 ${GRAALVM_HOME}/bin/gu install native-image
 ```
 
+**Remark**: for OSX Catalina, you may need to run following command
+
+```bash
+sudo xattr -r -d com.apple.quarantine <path-to-graal>/graalvm-ce-java11-20.0.0
+```
+
 ### Build Native binary
 
 Native binary (native to your OS) can be build with parameter **-Pnative**
