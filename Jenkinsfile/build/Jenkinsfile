@@ -48,10 +48,10 @@ pipeline {
               script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
               returnStdout: true
             ).trim()
-            list = sh (
-              script: "../bin/get-container-list.sh ${env.NEXUS_SVC} ${nexusUser} ${nexusPassword} ${imageName}",
-              returnStdout: true
-            ).trim()
+            // list = sh (
+            //   script: "../bin/get-container-list.sh ${env.NEXUS_SVC} ${nexusUser} ${nexusPassword} ${imageName}",
+            //   returnStdout: true
+            // ).trim()
             // sh (sed  's/<password>(.*)<\/password>/${nexusPassword}/g'  nexus_settings.xml, returnStdout: true)
             echo "Image Name: ${imageName}"
             echo "version: ${version}"
@@ -60,8 +60,6 @@ pipeline {
             echo "CICD Project: ${env.CICD_PROJECT}"
             echo "Development Project: ${env.DEV_PROJECT}"
             echo "Nexus User: ${nexusUser}"
-            echo "List: ${list}"
-
           }
         }
       }
