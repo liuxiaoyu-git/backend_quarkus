@@ -1,6 +1,7 @@
 #!/bin/sh 
 APP_NAME=backend-native
-BASE_IMAGE=quay.io/quarkus/ubi-quarkus-native-s2i:19.3.1-java8
+#BASE_IMAGE=quay.io/quarkus/ubi-quarkus-native-s2i:19.3.1-java8
+BASE_IMAGE=quay.io/quarkus/ubi-quarkus-native-s2i:20.0.0-java11
 CONTEXT_DIR=code 
 APP_REPOSITORY=https://gitlab.com/ocp-demo/backend_quarkus.git
 
