@@ -1,9 +1,10 @@
 #!/bin/sh
 CONTAINER_NAME=backend-native
-TAG=v1
+TAG=graalvm20
 # Use native container build
 START_BUILD_APP=$(date +%s)
-mvn clean package -Dquarkus.native.container-build=true -DskipTests=true  -Pnative 
+mvn clean package -Dquarkus.native.container-build=true \
+-DskipTests=true  -Pnative -Dnative-image.xmx=5g
 END_BUILD_APP=$(date +%s)
 START_BUILD_CONTAINER=$(date +%s)
 docker build -f src/main/docker/Dockerfile.native \
