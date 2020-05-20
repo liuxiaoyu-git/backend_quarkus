@@ -14,6 +14,7 @@
     - [URI Supported by](#uri-supported-by)
   - [Start Coding with Quarkus](#start-coding-with-quarkus)
     - [Development Mode](#development-mode)
+    - [Unit Test](#unit-test)
   - [Configuration Properties](#configuration-properties)
   - [MicroProfile  Health Check](#microprofile-health-check)
   - [MicroProfile OpenAPI](#microprofile-openapi)
@@ -72,6 +73,12 @@ With development mode. You can start development mode. When you modify your java
 Reload brower (or call you applicaton with cRUL or other tools) java files are recompiled and deployed.
 ```bash
 mvn quarkus:dev
+```
+
+### Unit Test
+```bash
+mvn test
+mvn test -Dquarkus.test.profile=dev
 ```
 
 ## Configuration Properties

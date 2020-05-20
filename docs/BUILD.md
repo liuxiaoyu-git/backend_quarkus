@@ -238,12 +238,25 @@ Check Backend Application for elapsed time for start application. It took just *
 
 Native binary for Container (Linux x64) can be build from your machine which may be not Linux by using parameter **-Dquarkus.native.container-build=true**
 
-*Remark: Build container binary is quite CPU intensive. It will take some minutes to build*
+*Remark: Build container binary is quite CPU and also memory intensive. It will take some minutes to build*
 
 ```bash
 mvn clean package \
 -Dquarkus.native.container-build=true \
--Pnative 
+-DskipTests=true \
+-Pnative
+```
+
+Build native container quite consume memory. You may need to configure maximum memory limits at
+- Maven with option -Dnative-image.xmx=5g
+- For Docker, configure maximum of Docker to 8 GB. Docker => Preference => Resources => Advance
+
+```bash
+mvn clean package \
+-Dquarkus.native.container-build=true \
+-Pnative \
+-DskipTests=true \
+-Dnative-image.xmx=5g
 ```
 
 You can use shell script [build_native_container.sh](../code/build_native_container.sh) to build native  container binary.
