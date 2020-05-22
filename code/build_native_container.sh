@@ -1,6 +1,6 @@
 #!/bin/sh
 CONTAINER_NAME=backend-native
-TAG=graalvm20
+TAG=v1
 # Use native container build
 START_BUILD_APP=$(date +%s)
 mvn clean package -Dquarkus.native.container-build=true \

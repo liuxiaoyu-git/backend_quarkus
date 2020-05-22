@@ -24,7 +24,7 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 @Path("/")
 public class BackendResource {
-    @ConfigProperty(name = "app.version", defaultValue = "1.0.0")
+    @ConfigProperty(name = "app.version", defaultValue = "v1")
     String version;
 
     @ConfigProperty(name = "app.backend", defaultValue = "http://localhost:8080/version")
@@ -112,7 +112,7 @@ public class BackendResource {
         @Operation(summary = "Show Version")
         @APIResponse(responseCode = "200", content = @Content(mediaType = MediaType.TEXT_PLAIN))
         public Response version() {
-            logger.info("Get Version");
+            logger.info("Get Version:"+version);
             return Response.ok().encoding("text/plain").entity(generateMessage("", "200")).build();
         }
 
