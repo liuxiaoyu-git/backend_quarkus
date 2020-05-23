@@ -6,7 +6,8 @@ mvn clean package -DskipTests=true
 oc new-build --binary --name=${APP_NAME} -l app=${APP_NAME}
 oc patch bc/${APP_NAME} -p "{\"spec\":{\"strategy\":{\"dockerStrategy\":{\"dockerfilePath\":\"src/main/docker/Dockerfile.jvm\"}}}}"
 oc start-build ${APP_NAME} --from-dir=. --follow
-oc new-app --image-stream=${APP_NAME}:latest
+oc new-app --image-stream=${APP_NAME}:latest \
+--labels=app.kubernetes.io/name=java,app.openshift.io/runtime=quarkus
 oc rollout pause dc ${APP_NAME}
 oc set probe dc/${APP_NAME} --readiness --get-url=http://:8080/health/ready --initial-delay-seconds=15 --failure-threshold=1 --period-seconds=10
 oc set probe dc/${APP_NAME} --liveness --get-url=http://:8080/health/live --initial-delay-seconds=10 --failure-threshold=3 --period-seconds=10

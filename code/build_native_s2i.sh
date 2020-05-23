@@ -15,6 +15,7 @@ fi
 oc new-app \
 ${BASE_IMAGE}~${APP_REPOSITORY} \
 --context-dir=${CONTEXT_DIR} \
+--labels=app.kubernetes.io/name=java,app.openshift.io/runtime=quarkus \ 
 --name=${APP_NAME}
 echo "##### Wait for 3 sec #####"
 sleep 3
