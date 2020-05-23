@@ -27,6 +27,7 @@
   - [Deploy on OpenShift](#deploy-on-openshift)
     - [Binary Build Strategy](#binary-build-strategy)
     - [Source-to-Image Strategy](#source-to-image-strategy)
+    - [Quarkus Extensions](#quarkus-extensions)
 
 <!-- /TOC -->
 
@@ -475,3 +476,23 @@ ${BASE_IMAGE}~${APP_REPOSITORY} \
 --name=${APP_NAME}
 ```
 
+### Quarkus Extensions
+
+Quarkus support for automatic deployment to kubernetes, OpenShift (and KNative)
+- quarkus-kubernetes
+- quarkus-kubernetes-client
+- quarkus-openshift
+
+Following show sample configuration in application.properties
+```properties
+quarkus.kubernetes.deployment-target=openshift
+quarkus.openshift.part-of=demo
+quarkus.kubernetes-client.trust-certs=true
+quarkus.openshift.labels.app=greeting
+quarkus.openshift.replicas=2
+quarkus.openshift.expose=true
+```
+Deploy with following command
+```bash
+mvn clean package -Dquarkus.kubernetes.deploy=true
+```
