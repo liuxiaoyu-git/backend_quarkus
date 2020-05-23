@@ -22,7 +22,7 @@
     - [Build Native Container Binary](#build-native-container-binary)
   - [Build JVM Container Image](#build-jvm-container-image)
     - [Dockerfile](#dockerfile)
-    - [Quarkus plugin](#quarkus-plugin)
+    - [Quarkus Extension](#quarkus-extension)
   - [Build Native Container Image](#build-native-container-image)
   - [Deploy on OpenShift](#deploy-on-openshift)
     - [Binary Build Strategy](#binary-build-strategy)
@@ -305,9 +305,9 @@ docker run -p 8080:8080 \
 ${CONTAINERNAME}:${TAG}
 ```
 
-### Quarkus plugin
+### Quarkus Extension
 
-* Quarkus provide plugin **container-image-docker** to build container image. ( jib plugin also available). You can use **quarkus:add-extension** to add extension to *pom.xml*
+* Quarkus provide Extension **container-image-docker** to build container image. ( jib plugin also available). You can use **quarkus:add-extension** to add extension to *pom.xml*
 
 ```bash
 mvn quarkus:add-extension -Dextensions="container-image-docker"
@@ -326,9 +326,9 @@ mvn quarkus:add-extension -Dextensions="container-image-docker"
   
 | Parameter        | Description  | 
 | ------------- |:-------------|
-|quarkus.container-image.build   | set to true to build image|
-| quarkus.container-image.push | set to true to push image tor remote registry  | 
-|quarkus.container-image.registry |  Remote container registry  |  
+|quarkus.container-image.build | set to true to build image|
+|quarkus.container-image.push| set to true to push image tor remote registry  | 
+|quarkus.container-image.registry|  Remote container registry  |  
 |quarkus.container-image.name| Image name. Default is name in pom.xml|
 |quarkus.container-image.group|Group. Default is user name|
 |quarkus.container-image.tag|Image tag. Default is version in pom.xml|
