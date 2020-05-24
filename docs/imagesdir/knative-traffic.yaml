@@ -1,0 +1,29 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  template:
+    metadata:
+      name: backend-v2
+    spec:
+      containerConcurrency: 0
+      containers:
+      - env:
+        - name: APP_MESSAGE
+          value: Hola Mundo
+        image: quay.io/voravitl/backend-native:v2
+        name: user-container
+        readinessProbe:
+          successThreshold: 1
+          tcpSocket:
+            port: 0
+        resources: {}
+      timeoutSeconds: 300
+  traffic:
+  - revisionName: backend-v1
+    tag: v1
+    percent: 100
+  - revisionName: backend-v2
+    tag: v2
+    percent: 0

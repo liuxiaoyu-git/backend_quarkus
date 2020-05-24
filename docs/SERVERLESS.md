@@ -1,4 +1,14 @@
 # OpenShift Serverless - Knative
+<!-- TOC -->
+
+- [OpenShift Serverless - Knative](#openshift-serverless---knative)
+  - [Knative Service](#knative-service)
+  - [Revision](#revision)
+  - [Route](#route)
+  - [Traffic Management](#traffic-management)
+
+<!-- /TOC -->
+
 ## Knative Service
 - Create service with kn CLI
 ```bash
@@ -74,6 +84,7 @@ Conditions:
 ```bash
 kn service delete backend
 ```
+
 ## Revision
 - list revision
 ```bash
@@ -85,7 +96,8 @@ backend-rpbcx-1   backend                    1            4m28s   3 OK / 4     T
 - Describe revision
 ```bash
 kn revision describe backend-rpbcx-1
-#Output
+
+# Output
 Name:       backend-rpbcx-1
 Namespace:  demo2
 Age:        8m
@@ -102,14 +114,16 @@ Conditions:
 - Delete revision
 ```bash
 kn revision delete backend-bnlvt-2
-#Output
+
+# Output
 Revision 'backend-bnlvt-2' deleted in namespace 'demo2'.
 ```
 ## Route
 - List route
 ```bash
 kn route list
-#Output
+
+# Output
 NAME      URL                                                                           READY
 backend   http://backend-demo2.apps.cluster-bkk17-d5a2.bkk17-d5a2.example.opentlc.com   True
 ```
