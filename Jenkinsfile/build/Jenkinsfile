@@ -72,7 +72,7 @@ pipeline {
 
           echo "Building binary for ${imageName}"
           script {
-            sh "${mvnCmd} version"
+            sh "${mvnCmd} -version"
             sh "java -version"
             sh "whereis java"
             sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true -Dquarkus.package.uber-jar=true clean package"
