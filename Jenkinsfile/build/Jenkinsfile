@@ -3,7 +3,7 @@ def JENKINS_SLAVE_IMAGE = "quarkus-maven-slave"
 pipeline {
   agent {
     kubernetes {
-      label "maven36-with-tools"
+      label "quarkus-maven-slave"
       cloud "openshift"
       inheritFrom "maven"
       containerTemplate {
