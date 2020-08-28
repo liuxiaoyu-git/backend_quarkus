@@ -73,6 +73,7 @@ pipeline {
           echo "Building binary for ${imageName}"
           script {
             sh "export PATH=/usr/lib/jvm/java-11-openjdk/bin:/opt/apache-maven-3.6.3/bin:$PATH"
+            sh "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk"
             sh "${mvnCmd} -version"
             sh "java -version"
             sh "sleep 30000"
