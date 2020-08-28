@@ -75,6 +75,7 @@ pipeline {
             sh "export PATH=/usr/lib/jvm/java-11-openjdk/bin:/opt/apache-maven-3.6.3/bin:$PATH"
             sh "${mvnCmd} -version"
             sh "java -version"
+            sh "sleep 30000"
             sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true -Dquarkus.package.uber-jar=true clean package"
           }
         }
