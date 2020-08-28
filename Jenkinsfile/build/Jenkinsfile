@@ -72,11 +72,8 @@ pipeline {
 
           echo "Building binary for ${imageName}"
           script {
-            sh "export PATH=/usr/lib/jvm/java-11-openjdk/bin:/opt/apache-maven-3.6.3/bin:$PATH"
-            sh "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk"
             sh "${mvnCmd} -version"
             sh "java -version"
-            sh "sleep 30000"
             sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true -Dquarkus.package.uber-jar=true clean package"
           }
         }
@@ -143,7 +140,7 @@ pipeline {
                 "--binary=true"
               )
               def bc = openshift.selector("bc/${imageName}").object()
-              bc.spec.strategy.dockerStrategy.dockerfilePath = "src/main/docker/Dockerfile.jvm"
+              bc.spec.strategy.dockerStrategy.dockerfilePath = "src/main/docker/Dockerfile.jvm_uberjar"
               openshift.apply(bc)
             }
           }
