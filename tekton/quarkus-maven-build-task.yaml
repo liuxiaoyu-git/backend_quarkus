@@ -1,0 +1,26 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: quarkus-maven-build
+spec:
+  inputs:
+    resources:
+    - name: freelancer-git
+      # targetPath: code
+      type: git
+  steps:
+  - name: test
+    image: quay.io/quarkus/centos-quarkus-maven:20.1.0-java11
+    imagePullPolicy: IfNotPresent
+    command: ["/usr/bin/mvn"]
+    args:
+       - "test"
+  - name: package
+    image: quay.io/quarkus/centos-quarkus-maven:20.1.0-java11
+    imagePullPolicy: IfNotPresent
+    command: ["/usr/bin/mvn"]
+    args:
+       - "clean"
+       - "install"
+       - "-DskipTests=true"
+       - "-Dquarkus.package.uber-jar=true"

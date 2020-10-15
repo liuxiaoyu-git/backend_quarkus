@@ -1,0 +1,31 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: backend-git
+spec:
+  type: git
+  params:
+  - name: url
+    value: https://gitlab.com/ocp-demo/freelancer-quarkus.git
+  - name: revision
+    value: master
+  - name: submodules
+    value: 'true'
+  - name: depth
+    value: '1'
+  - name: sslVerify
+    value: 'true'
+  # - name: subdirectory
+  #   value: code
+  - name: deleteExisting
+    value: 'true'
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: backend-image
+spec:
+  type: image
+  params:
+  - name: url
+    value: image-registry.openshift-image-registry.svc:5000/ci-cd/backend-tekton:latest

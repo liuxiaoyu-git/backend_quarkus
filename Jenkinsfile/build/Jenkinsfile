@@ -111,7 +111,7 @@ pipeline {
         dir('code') {
           echo "Publish to Nexus"
           //sh "mv target/${imageName}-${version}-runner.jar target/${imageName}-${version}.jar"
-          sh "${mvnCmd} deploy -Dquarkus.package.uber-jar=true -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true -DaltDeploymentRepository=nexus::default::${env.NEXUS_SVC}/repository/releases"
+          sh "${mvnCmd} deploy -Dquarkus.package.uber-jar=true -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true -DaltDeploymentRepository=nexus::default::${env.NEXUS_SVC}/repository/maven-releases"
           //sh "${mvnCmd} deploy:deploy-file -DskipTests=true -DaltDeploymentRepository=nexus::default::${env.NEXUS_SVC}/repository/releases -Dfile=target/${imageName}-${version}-runner.jar"
           //sh "mv target/${imageName}-${version}.jar target/${imageName}-${version}-runner.jar"
         }
