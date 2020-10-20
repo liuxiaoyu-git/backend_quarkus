@@ -1,6 +1,7 @@
 #!/bin/sh
-oc delete project ci-cd
-oc delete project dev
-oc delete project stage
-oc delete project uat
-oc delete project prod
+for i in ci-cd dev stage uat prod
+do
+   oc delete all --all -n $i
+   oc delete pvc --all -n $i
+   oc delete project $i
+done

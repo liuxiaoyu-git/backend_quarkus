@@ -43,6 +43,7 @@ oc new-app --as-deployment-config=true jenkins-persistent --param ENABLE_OAUTH=t
 --param VOLUME_CAPACITY=${JENKINS_PVC_SIZE} --param DISABLE_ADMINISTRATIVE_MONITORS=true
 oc set resources dc jenkins --limits=memory=2Gi,cpu=2 --requests=memory=1Gi,cpu=500m
 oc label dc jenkins app.kubernetes.io/name=Jenkins -n ${CICD_PROJECT}
+oc label dc jenkins app.openshift.io/runtime=jenkins -n ${CICD_PROJECT}
 # No need to wait for jenkins to start
 check_pod "jenkins"
 oc new-app --as-deployment-config=true sonatype/nexus3:${NEXUS_VERSION} --name=nexus -n ${CICD_PROJECT}
@@ -64,7 +65,7 @@ oc new-app --as-deployment-config=true --template=postgresql-persistent \
 --param POSTGRESQL_PASSWORD=sonar \
 --param POSTGRESQL_DATABASE=sonar \
 --param VOLUME_CAPACITY=${SONAR_PVC_SIZE} \
---labels=app=sonarqube_db
+--labels=app=sonarqube_db,app.openshift.io/runtime=postgresql
 check_pod "postgresql"
 oc new-app --as-deployment-config=true --docker-image=quay.io/gpte-devops-automation/sonarqube:7.9.1 --env=SONARQUBE_JDBC_USERNAME=sonar --env=SONARQUBE_JDBC_PASSWORD=sonar --env=SONARQUBE_JDBC_URL=jdbc:postgresql://postgresql/sonar --labels=app=sonarqube
 oc rollout pause dc sonarqube
