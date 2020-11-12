@@ -17,6 +17,7 @@ import javax.ws.rs.core.Response;
 import org.jboss.logging.Logger;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.metrics.MetricUnits;
+import org.eclipse.microprofile.metrics.annotation.ConcurrentGauge;
 import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -58,6 +59,11 @@ public class BackendResource {
         description = "Times how long it takes to invoke the backend method", 
         unit = MetricUnits.MILLISECONDS
         )
+    @ConcurrentGauge(
+        name = "concurrentBackend",
+        description = "Concurrent connection"
+        )
+    
     public Response callBackend(@HeaderParam("user-agent") String userAgent) throws IOException {
         if (ApplicationConfig.IS_ALIVE.get() && ApplicationConfig.IS_READY.get()) {
             URL url;
