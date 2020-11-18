@@ -9,9 +9,11 @@ import java.net.URL;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
+//import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.jboss.logging.Logger;
@@ -63,14 +65,19 @@ public class BackendResource {
         name = "concurrentBackend",
         description = "Concurrent connection"
         )
-    
-    public Response callBackend(@HeaderParam("user-agent") String userAgent) throws IOException {
+    public Response callBackend(@Context HttpHeaders headers) throws IOException {
+    //public Response callBackend(@HeaderParam("user-agent") String userAgent) throws IOException {
         if (ApplicationConfig.IS_ALIVE.get() && ApplicationConfig.IS_READY.get()) {
             URL url;
             try {
                 logger.info("Request to: " + backend);
                 logger.info("showResponse: "+showResponse);
-                logger.debug("User-Agent: "+userAgent);
+                logger.info("User-Agent: "+logHeaders(headers,"user-agent"));
+                logger.info("x-b3-traceid: "+logHeaders(headers,"x-b3-traceid"));
+                logger.info("x-b3-spanid: "+logHeaders(headers,"x-b3-spanid"));
+                logger.info("x-b3-parentspanid: "+logHeaders(headers,"x-b3-parentspanid"));
+                logger.info("x-b3-sampled: "+logHeaders(headers,"x-b3-sampled"));
+                logger.info("x-b3-flags: "+logHeaders(headers,"x-b3-flags"));
                 url = new URL(backend);
                 final HttpURLConnection con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
@@ -203,4 +210,12 @@ public class BackendResource {
             }
             return hostname;
         }
+        private String logHeaders(HttpHeaders headers,String header){
+            //logger.debug("User-Agent: "+headers.getRequestHeader("user-agent").get(0));
+            if(headers.getRequestHeaders().containsKey(header))
+                return headers.getRequestHeader(header).get(0);
+            else
+                return "";
+        }
+        
     }
