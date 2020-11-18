@@ -72,12 +72,12 @@ public class BackendResource {
             try {
                 logger.info("Request to: " + backend);
                 logger.info("showResponse: "+showResponse);
-                logger.info("User-Agent: "+logHeaders(headers,"user-agent"));
-                logger.info("x-b3-traceid: "+logHeaders(headers,"x-b3-traceid"));
-                logger.info("x-b3-spanid: "+logHeaders(headers,"x-b3-spanid"));
-                logger.info("x-b3-parentspanid: "+logHeaders(headers,"x-b3-parentspanid"));
-                logger.info("x-b3-sampled: "+logHeaders(headers,"x-b3-sampled"));
-                logger.info("x-b3-flags: "+logHeaders(headers,"x-b3-flags"));
+                logger.info("User-Agent: "+logHeader(headers,"user-agent"));
+                logger.debug("x-b3-traceid: "+logHeader(headers,"x-b3-traceid"));
+                logger.debug("x-b3-spanid: "+logHeader(headers,"x-b3-spanid"));
+                logger.debug("x-b3-parentspanid: "+logHeader(headers,"x-b3-parentspanid"));
+                logger.debug("x-b3-sampled: "+logHeader(headers,"x-b3-sampled"));
+                logger.debug("x-b3-flags: "+logHeader(headers,"x-b3-flags"));
                 url = new URL(backend);
                 final HttpURLConnection con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
@@ -210,8 +210,7 @@ public class BackendResource {
             }
             return hostname;
         }
-        private String logHeaders(HttpHeaders headers,String header){
-            //logger.debug("User-Agent: "+headers.getRequestHeader("user-agent").get(0));
+        private String logHeader(HttpHeaders headers,String header){
             if(headers.getRequestHeaders().containsKey(header))
                 return headers.getRequestHeader(header).get(0);
             else
