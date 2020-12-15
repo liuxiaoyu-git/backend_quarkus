@@ -67,19 +67,22 @@ public class BackendResource {
         )
     public Response callBackend(@Context HttpHeaders headers) throws IOException {
     //public Response callBackend(@HeaderParam("user-agent") String userAgent) throws IOException {
-        if (ApplicationConfig.IS_ALIVE.get() && ApplicationConfig.IS_READY.get()) {
+        if (ApplicationConfig.IS_ALIVE.get() && ApplicationConfig.IS_READY.get()) { 
             URL url;
             try {
                 logger.info("Request to: " + backend);
                 logger.info("showResponse: "+showResponse);
-                logger.info("User-Agent: "+logHeader(headers,"user-agent"));
-                logger.debug("x-b3-traceid: "+logHeader(headers,"x-b3-traceid"));
-                logger.debug("x-b3-spanid: "+logHeader(headers,"x-b3-spanid"));
-                logger.debug("x-b3-parentspanid: "+logHeader(headers,"x-b3-parentspanid"));
-                logger.debug("x-b3-sampled: "+logHeader(headers,"x-b3-sampled"));
-                logger.debug("x-b3-flags: "+logHeader(headers,"x-b3-flags"));
+                logger.info("User-Agent: "+getHeader(headers,"user-agent"));
                 url = new URL(backend);
                 final HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                String b3[] = {"x-b3-traceid","x-b3-spanid","x-b3-parentspanid","x-b3-sampled","x-b3-flags","x-request-id"};
+                for(int i=0;i<b3.length;i++){
+                    String trace=getHeader(headers, b3[i]);
+                    if(trace.length()>0){
+                        con.setRequestProperty(b3[i],trace);
+                        logger.info(b3[i]+": "+trace);
+                    }
+                }
                 con.setRequestMethod("GET");
                 final int returnCode = con.getResponseCode();
                 logger.info("Return Code: " + returnCode);
@@ -210,7 +213,7 @@ public class BackendResource {
             }
             return hostname;
         }
-        private String logHeader(HttpHeaders headers,String header){
+        private String getHeader(HttpHeaders headers,String header){
             if(headers.getRequestHeaders().containsKey(header))
                 return headers.getRequestHeader(header).get(0);
             else
