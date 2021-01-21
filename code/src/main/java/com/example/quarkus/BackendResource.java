@@ -8,6 +8,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
+
 import javax.ws.rs.GET;
 //import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
@@ -99,11 +103,14 @@ public class BackendResource {
                     }
 
                     return Response.status(returnCode).encoding("text/plain")
-                        .entity(generateMessage(message, Integer.toString(returnCode))).build();
+                        .entity(generateMessage(message, Integer.toString(returnCode)))
+                        .expires(Date.from(Instant.now().plus(Duration.ofMillis(500))))
+                        .build();
                 }
                 catch (final IOException e) {
                     return Response.status(503).encoding("text/plain")
                         .entity(generateMessage(e.getMessage(), "503"))
+                        .expires(Date.from(Instant.now().plus(Duration.ofMillis(500))))
                         .build();
                 }
             } else {
@@ -111,11 +118,13 @@ public class BackendResource {
                     logger.info("Applicartion liveness is set to false, return " + errorCodeNotLive);
                     return Response.status(Integer.parseInt(errorCodeNotLive)).encoding("text/plain")
                         .entity(generateMessage("Application liveness is set to fasle", errorCodeNotLive))
+                        .expires(Date.from(Instant.now().plus(Duration.ofMillis(500))))
                         .build();
                 } else {
                     logger.info("Applicartion readiness is set to false, return " + errorCodeNotReady);
                     return Response.status(Integer.parseInt(errorCodeNotReady)).encoding("text/plain")
                         .entity(generateMessage("Application readiness is set to false", errorCodeNotReady))
+                        .expires(Date.from(Instant.now().plus(Duration.ofMillis(500))))
                         .build();
                 }
 
@@ -129,7 +138,11 @@ public class BackendResource {
         @APIResponse(responseCode = "200", content = @Content(mediaType = MediaType.TEXT_PLAIN))
         public Response version() {
             logger.info("Get Version:"+version);
-            return Response.ok().encoding("text/plain").entity(generateMessage("", "200")).build();
+            return Response.ok()
+                    .encoding("text/plain")
+                    .entity(generateMessage("", "200"))
+                    .expires(Date.from(Instant.now().plus(Duration.ofMillis(500))))
+                    .build();
         }
 
         @GET
@@ -140,8 +153,10 @@ public class BackendResource {
         public Response stopApp() {
             ApplicationConfig.IS_ALIVE.set(false);
             logger.info("Set Liveness to false");
-            return Response.ok().encoding("text/plain")
+            return Response.ok()
+                .encoding("text/plain")
                 .entity(generateMessage("Liveness: " + ApplicationConfig.IS_ALIVE.get(), "200"))
+                .expires(Date.from(Instant.now().plus(Duration.ofMillis(500))))
                 .build();
         }
 
@@ -155,6 +170,7 @@ public class BackendResource {
             logger.info("Set Readiness to false");
             return Response.ok().encoding("text/plain")
                 .entity(generateMessage("Readiness: " + ApplicationConfig.IS_READY.get(), "200"))
+                .expires(Date.from(Instant.now().plus(Duration.ofMillis(500))))
                 .build();
         }
 
@@ -169,6 +185,7 @@ public class BackendResource {
                 ApplicationConfig.IS_ALIVE.set(true);
             return Response.ok().encoding("text/plain")
                 .entity(generateMessage("Liveness: " + ApplicationConfig.IS_ALIVE.get(), "200"))
+                .expires(Date.from(Instant.now().plus(Duration.ofMillis(500))))
                 .build();
         }
 
@@ -182,6 +199,7 @@ public class BackendResource {
             ApplicationConfig.IS_READY.set(true);
             return Response.ok().encoding("text/plain")
                 .entity(generateMessage("Readiness: " + ApplicationConfig.IS_READY.get(), "200"))
+                .expires(Date.from(Instant.now().plus(Duration.ofMillis(500))))
                 .build();
         }
 
@@ -194,7 +212,10 @@ public class BackendResource {
             logger.info("Check status");
             final String msg = "Liveness=" + ApplicationConfig.IS_ALIVE.get() + " Readiness=" +
                 ApplicationConfig.IS_READY.get();
-            return Response.ok().entity(generateMessage(msg, "200")).build();
+            return Response.ok()
+                    .entity(generateMessage(msg, "200"))
+                    .expires(Date.from(Instant.now().plus(Duration.ofMillis(500))))
+                    .build();
         }
 
         private String generateMessage(final String msg, final String status) {
