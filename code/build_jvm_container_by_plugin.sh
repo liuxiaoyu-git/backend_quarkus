@@ -16,3 +16,4 @@ mvn clean package \
 -Dquarkus.container-image.name=${IMAGE_NAME} \
 -Dquarkus.container-image.group=${IMAGE_GROUP} \
 -Dquarkus.container-image.tag=${IMAGE_TAG}
+#quarkus:add-extension -Dextensions="container-image-s2i"
