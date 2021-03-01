@@ -104,13 +104,13 @@ public class BackendResource {
 
                     return Response.status(returnCode).encoding("text/plain")
                         .entity(generateMessage(message, Integer.toString(returnCode)))
-                        .expires(Date.from(Instant.now().plus(Duration.ofMillis(500))))
+                        .expires(Date.from(Instant.now().plus(Duration.ofMillis(0))))
                         .build();
                 }
                 catch (final IOException e) {
                     return Response.status(503).encoding("text/plain")
                         .entity(generateMessage(e.getMessage(), "503"))
-                        .expires(Date.from(Instant.now().plus(Duration.ofMillis(500))))
+                        .expires(Date.from(Instant.now().plus(Duration.ofMillis(0))))
                         .build();
                 }
             } else {
@@ -118,13 +118,13 @@ public class BackendResource {
                     logger.info("Applicartion liveness is set to false, return " + errorCodeNotLive);
                     return Response.status(Integer.parseInt(errorCodeNotLive)).encoding("text/plain")
                         .entity(generateMessage("Application liveness is set to fasle", errorCodeNotLive))
-                        .expires(Date.from(Instant.now().plus(Duration.ofMillis(500))))
+                        .expires(Date.from(Instant.now().plus(Duration.ofMillis(0))))
                         .build();
                 } else {
                     logger.info("Applicartion readiness is set to false, return " + errorCodeNotReady);
                     return Response.status(Integer.parseInt(errorCodeNotReady)).encoding("text/plain")
                         .entity(generateMessage("Application readiness is set to false", errorCodeNotReady))
-                        .expires(Date.from(Instant.now().plus(Duration.ofMillis(500))))
+                        .expires(Date.from(Instant.now().plus(Duration.ofMillis(0))))
                         .build();
                 }
 
@@ -141,7 +141,7 @@ public class BackendResource {
             return Response.ok()
                     .encoding("text/plain")
                     .entity(generateMessage("", "200"))
-                    .expires(Date.from(Instant.now().plus(Duration.ofMillis(500))))
+                    .expires(Date.from(Instant.now().plus(Duration.ofMillis(0))))
                     .build();
         }
 
@@ -156,7 +156,7 @@ public class BackendResource {
             return Response.ok()
                 .encoding("text/plain")
                 .entity(generateMessage("Liveness: " + ApplicationConfig.IS_ALIVE.get(), "200"))
-                .expires(Date.from(Instant.now().plus(Duration.ofMillis(500))))
+                .expires(Date.from(Instant.now().plus(Duration.ofMillis(0))))
                 .build();
         }
 
@@ -170,7 +170,7 @@ public class BackendResource {
             logger.info("Set Readiness to false");
             return Response.ok().encoding("text/plain")
                 .entity(generateMessage("Readiness: " + ApplicationConfig.IS_READY.get(), "200"))
-                .expires(Date.from(Instant.now().plus(Duration.ofMillis(500))))
+                .expires(Date.from(Instant.now().plus(Duration.ofMillis(0))))
                 .build();
         }
 
@@ -185,7 +185,7 @@ public class BackendResource {
                 ApplicationConfig.IS_ALIVE.set(true);
             return Response.ok().encoding("text/plain")
                 .entity(generateMessage("Liveness: " + ApplicationConfig.IS_ALIVE.get(), "200"))
-                .expires(Date.from(Instant.now().plus(Duration.ofMillis(500))))
+                .expires(Date.from(Instant.now().plus(Duration.ofMillis(0))))
                 .build();
         }
 
@@ -199,7 +199,7 @@ public class BackendResource {
             ApplicationConfig.IS_READY.set(true);
             return Response.ok().encoding("text/plain")
                 .entity(generateMessage("Readiness: " + ApplicationConfig.IS_READY.get(), "200"))
-                .expires(Date.from(Instant.now().plus(Duration.ofMillis(500))))
+                .expires(Date.from(Instant.now().plus(Duration.ofMillis(0))))
                 .build();
         }
 
@@ -214,7 +214,7 @@ public class BackendResource {
                 ApplicationConfig.IS_READY.get();
             return Response.ok()
                     .entity(generateMessage(msg, "200"))
-                    .expires(Date.from(Instant.now().plus(Duration.ofMillis(500))))
+                    .expires(Date.from(Instant.now().plus(Duration.ofMillis(0))))
                     .build();
         }
 
