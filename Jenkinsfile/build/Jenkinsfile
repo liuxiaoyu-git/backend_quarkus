@@ -117,15 +117,15 @@ pipeline {
     // }
     // Create Build Config
     stage('Create Build Config') {
-      // when {
-      //   expression {
-      //     openshift.withCluster() {
-      //       openshift.withProject(env.CICD_PROJECT) {
-      //         return !openshift.selector("bc", "${imageName}").exists()
-      //       }
-      //     }
-      //   }
-      // }
+      when {
+        expression {
+          openshift.withCluster() {
+            openshift.withProject(env.CICD_PROJECT) {
+              return !openshift.selector("bc", "${imageName}").exists()
+            }
+          }
+        }
+      }
       steps {
         echo "Create build config ${imageName}:latest"
         script {
