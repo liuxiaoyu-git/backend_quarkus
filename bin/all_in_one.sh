@@ -9,7 +9,7 @@ banner (){
 banner "Create ci-cd,dev,stage,uat and prod project"
 ./setup_projects.sh
 banner "Start build CI/CD Tools"
-./setup_ci_cd_tools_ocp45.sh
+./setup_ci_cd_tools.sh
 banner "Build jenkins slave with maven36"
 ./setup_maven36_slave.sh
 banner "Create jenkins pipelines for backend app (Quarkus)"
