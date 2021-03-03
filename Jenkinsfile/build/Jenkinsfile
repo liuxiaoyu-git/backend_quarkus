@@ -72,9 +72,8 @@ pipeline {
 
           echo "Building binary for ${imageName}"
           script {
-            //sh "${mvnCmd} -version"
-            //sh "java -version"
-            sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true -Dquarkus.package.uber-jar=true clean package"
+            // if uberJar => -Dquarkus.package.uber-jar=true 
+            sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
           }
         }
       }
@@ -106,17 +105,16 @@ pipeline {
       }
     }
     // Publish the uberjar file to Nexus
-    stage('Publish to Nexus') {
-      steps {
-        dir('code') {
-          echo "Publish to Nexus"
-          //sh "mv target/${imageName}-${version}-runner.jar target/${imageName}-${version}.jar"
-          sh "${mvnCmd} deploy -Dquarkus.package.uber-jar=true -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true -DaltDeploymentRepository=nexus::default::${env.NEXUS_SVC}/repository/maven-releases"
-          //sh "${mvnCmd} deploy:deploy-file -DskipTests=true -DaltDeploymentRepository=nexus::default::${env.NEXUS_SVC}/repository/releases -Dfile=target/${imageName}-${version}-runner.jar"
-          //sh "mv target/${imageName}-${version}.jar target/${imageName}-${version}-runner.jar"
-        }
-      }
-    }
+    // stage('Publish to Nexus') {
+    //   steps {
+    //     dir('code') {
+    //       echo "Publish to Nexus"
+          //sh "${mvnCmd} deploy -Dquarkus.package.uber-jar=true -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true -DaltDeploymentRepository=nexus::default::${env.NEXUS_SVC}/repository/maven-releases"
+    //       sh "${mvnCmd} deploy -Dquarkus.package.uber-jar=true -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true"
+
+    //     }
+    //   }
+    // }
     // Create Build Config
     stage('Create Build Config') {
       when {
@@ -140,7 +138,7 @@ pipeline {
                 "--binary=true"
               )
               def bc = openshift.selector("bc/${imageName}").object()
-              bc.spec.strategy.dockerStrategy.dockerfilePath = "src/main/docker/Dockerfile.jvm_uberjar.old"
+              bc.spec.strategy.dockerStrategy.dockerfilePath = "src/main/docker/Dockerfile.jvm"
               openshift.apply(bc)
             }
           }
