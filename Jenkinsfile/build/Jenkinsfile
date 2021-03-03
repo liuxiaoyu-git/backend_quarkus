@@ -127,7 +127,7 @@ pipeline {
         }
       }
       steps {
-        echo "Create build config ${imageName}:latest"
+        // echo "Create build config ${imageName}:latest"
         script {
           openshift.withCluster() {
             openshift.withProject(env.CICD_PROJECT) {
