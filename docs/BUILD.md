@@ -20,14 +20,8 @@
     - [Install and Configure GraalVM](#install-and-configure-graalvm)
     - [Build Native binary](#build-native-binary)
     - [Build Native Container Binary](#build-native-container-binary)
-  - [Build JVM Container Image](#build-jvm-container-image)
-    - [Dockerfile](#dockerfile)
-    - [Quarkus Extension](#quarkus-extension)
-  - [Build Native Container Image](#build-native-container-image)
   - [Deploy on OpenShift](#deploy-on-openshift)
     - [Binary Build Strategy](#binary-build-strategy)
-    - [Source-to-Image Strategy](#source-to-image-strategy)
-    - [Quarkus Extensions](#quarkus-extensions)
 
 <!-- /TOC -->
 
@@ -44,16 +38,16 @@ Ramark that *Quarkus 1.3.2.Final needs maven 3.6.3+*
 cd code
 mvn clean package
 
-#Check target directory for *-runner.jar and Java classes in lib directory
-ls target/*.jar
-ls target/lib
+#Check quarkus-app under target directory for quarus-run.jar and libraries under lib
+ls target/quarkus-app/quarkus-run.jar
+ls target/quarkus-app/lib
 
 #Run
-java -jar target/backend-1.0.0-runner.jar
+java -jar target/quarkus-app/quarkus-run.jar
 
 #Remark: Check that how fast it is!
 #Test environment variables
-java -Dapp.showResponse=true -Dapp.backend=https://httpbin.org/delay/2 -jar target/backend-1.0.0-runner.jar
+java -Dapp.showResponse=true -Dapp.backend=https://httpbin.org/delay/3 -jar target/quarkus-app/quarkus-run.jar
 
 #Use environment variable
 export APP_SHOWRESPONSE=true
@@ -64,94 +58,112 @@ java -jar  target/backend-1.0.0-runner.jar
 curl http://localhost:8080/
 
 #OpenAPI docs
-curl http://localhost:8080/openapi
+curl -L http://localhost:8080/openapi
+curl -L http://localhost:8080/openapi?format=json
 
 #Get Metrics
-curl http://localhost:8080/metrics
+curl -L http://localhost:8080/metrics
 
 #Health Check
-curl http://localhost:8080/health
+curl -L http://localhost:8080/health
 
 #Health Check - Liveness
-curl http://localhost:8080/health/liveness
+curl -L http://localhost:8080/health/live
 
 #Health Check - Readiness
-curl http://localhost:8080/health/readiness
+curl -L http://localhost:8080/health/ready
+
 ```
 
 ### Startup Time and Memory Usage
 Check Backend Application for elapsed time for start application. It took just **0.906** sec
 
 ```log
-22:43:28 INFO  [io.quarkus] (main) backend 1.0.0 (powered by Quarkus 1.3.2.Final) started in 0.906s. Listening on: http://0.0.0.0:8080
-22:43:28 INFO  [io.quarkus] (main) Profile prod activated.
-22:43:28 INFO  [io.quarkus] (main) Installed features: [cdi, kubernetes, resteasy, smallrye-health, smallrye-metrics, smallrye-openapi]
+08:34:00 INFO  [io.quarkus] (main) backend 1.0.0 on JVM (powered by Quarkus 1.12.0.Final) started in 1.084s. Listening on: http://0.0.0.0:8080
+08:34:00 INFO  [io.quarkus] (main) Profile prod activated.
+08:34:00 INFO  [io.quarkus] (main) Installed features: [cdi, kubernetes, resteasy, smallrye-health, smallrye-metrics, smallrye-openapi]
 ```
 Check for memory usage with **jconsole** and run load test with 10 concurrent requests.
 
 ![JVM Heap](imagesdir/jvm-heap-with-10-concurrent-requests.png)
 
 You can also use Microprofile metrics to check for heap size. ( /metrics)
+
+```bash
+curl -L  -H"Accept: application/json" http://localhost:8080/metrics
+```
+
+Sample output
+
 ```json
 {
     "base": {
-        "gc.total;name=PS MarkSweep": 1,
-        "cpu.systemLoadAverage": 3.69921875,
-        "thread.count": 27,
-        "classloader.loadedClasses.count": 4421,
-        "classloader.unloadedClasses.total": 14,
-        "gc.total;name=PS Scavenge": 4,
-        "gc.time;name=PS MarkSweep": 24,
-        "jvm.uptime": 55038,
-        "thread.max.count": 30,
-        "memory.committedHeap": 153616384,
-        "classloader.loadedClasses.total": 4435,
+        "cpu.systemLoadAverage": 7.02587890625,
+        "thread.count": 30,
+        "classloader.loadedClasses.count": 6121,
+        "classloader.unloadedClasses.total": 0,
+        "gc.total;name=G1 Young Generation": 6,
+        "jvm.uptime": 474156,
+        "thread.max.count": 38,
+        "memory.committedHeap": 268435456,
+        "classloader.loadedClasses.total": 6122,
         "cpu.availableProcessors": 4,
-        "gc.time;name=PS Scavenge": 49,
-        "thread.daemon.count": 15,
-        "memory.maxHeap": 3817865216,
-        "cpu.processCpuLoad": 0.06357645696526383,
-        "memory.usedHeap": 32171864
+        "thread.daemon.count": 9,
+        "gc.total;name=G1 Old Generation": 0,
+        "memory.maxHeap": 4294967296,
+        "cpu.processCpuLoad": 0.000417185512741686,
+        "gc.time;name=G1 Old Generation": 0,
+        "memory.usedHeap": 101828192,
+        "gc.time;name=G1 Young Generation": 59
     },
     "vendor": {
-        "memory.freePhysicalSize": 167227392,
-        "memoryPool.usage;name=Metaspace": 26855208,
-        "memoryPool.usage.max;name=PS Eden Space": 67108864,
-        "memoryPool.usage;name=PS Eden Space": 0,
-        "memoryPool.usage.max;name=PS Old Gen": 9774296,
-        "memoryPool.usage;name=PS Old Gen": 7849952,
-        "cpu.processCpuTime": 10158221000,
-        "memory.committedNonHeap": 44892160,
-        "memoryPool.usage.max;name=PS Survivor Space": 11009016,
-        "memoryPool.usage.max;name=Compressed Class Space": 3069176,
-        "memoryPool.usage;name=Code Cache": 13323520,
-        "memory.freeSwapSize": 168620032,
-        "memoryPool.usage.max;name=Metaspace": 26855208,
-        "cpu.systemCpuLoad": 0.3891074394614914,
-        "memoryPool.usage.max;name=Code Cache": 13330496,
-        "memory.usedNonHeap": 43247904,
-        "memoryPool.usage;name=PS Survivor Space": 11009016,
-        "memoryPool.usage;name=Compressed Class Space": 3069176,
-        "memory.maxNonHeap": -1
+        "memoryPool.usage.max;name=G1 Survivor Space": 6291456,
+        "memory.freePhysicalSize": 197578752,
+        "memoryPool.usage.max;name=CodeHeap 'non-profiled nmethods'": 3350400,
+        "memoryPool.usage;name=Metaspace": 39884320,
+        "memoryPool.usage;name=G1 Eden Space": 0,
+        "memoryPool.usage;name=CodeHeap 'non-profiled nmethods'": 3350400,
+        "memoryPool.usage;name=CodeHeap 'profiled nmethods'": 15034752,
+        "memoryPool.usage;name=G1 Old Gen": 0,
+        "memoryPool.usage.max;name=CodeHeap 'non-nmethods'": 1309952,
+        "memoryPool.usage.max;name=G1 Old Gen": 13747808,
+        "cpu.processCpuTime": 22003009000,
+        "memory.committedNonHeap": 67313664,
+        "memoryPool.usage.max;name=Compressed Class Space": 4250152,
+        "memoryPool.usage.max;name=G1 Eden Space": 84934656,
+        "memory.freeSwapSize": 1008730112,
+        "memoryPool.usage.max;name=Metaspace": 39878096,
+        "cpu.systemCpuLoad": 0.45880149812734083,
+        "memory.usedNonHeap": 63789336,
+        "memoryPool.usage;name=CodeHeap 'non-nmethods'": 1247232,
+        "memoryPool.usage;name=G1 Survivor Space": 3145728,
+        "memoryPool.usage;name=Compressed Class Space": 4250152,
+        "memory.maxNonHeap": -1,
+        "memoryPool.usage.max;name=CodeHeap 'profiled nmethods'": 15008512
     },
     "application": {
-        "com.example.quarkus.BackendResource.countBackend": 690,
+        "com.example.quarkus.BackendResource.countBackend": 1925,
+        "com.example.quarkus.BackendResource.concurrentBackend": {
+            "current": 0,
+            "min": 0,
+            "max": 0
+        },
         "com.example.quarkus.BackendResource.timeBackend": {
-            "p99": 1690.584713,
-            "min": 265.280565,
-            "max": 2285.616676,
-            "mean": 379.13525211755694,
-            "p50": 277.785304,
-            "p999": 2285.616676,
-            "stddev": 274.5684725716509,
-            "p95": 900.826063,
-            "p98": 997.362297,
-            "p75": 307.125509,
-            "fiveMinRate": 1.671313376057565,
-            "fifteenMinRate": 0.570043086274094,
-            "meanRate": 12.493649417000773,
-            "count": 681,
-            "oneMinRate": 7.310831119254727
+            "p99": 851.840647,
+            "min": 254.953659,
+            "max": 1719.537727,
+            "mean": 300.24028149427653,
+            "p50": 271.035883,
+            "p999": 1135.913466,
+            "stddev": 102.52063708298743,
+            "p95": 448.512492,
+            "p98": 718.985401,
+            "p75": 278.653653,
+            "fiveMinRate": 2.2703813234668577,
+            "fifteenMinRate": 1.6216041617988017,
+            "meanRate": 4.065283396672213,
+            "count": 1925,
+            "oneMinRate": 0.16722634503546238
         }
     }
 }
@@ -171,43 +183,43 @@ mvn clean package \
 #Check for Uber JAR in target directory
 
 #Remark that there is no directory lib
-ls target/*.jar
+ls target/*-runner.jar
 ```
 
 ## Build Native Application
 
-For build binary application you need GraalVM vesion 19.3.1 or 20.0.0. For OSX user, you also need XCode.
+Quarkus 1.12 need need GraalVM vesion 21. For OSX user for build binary application.
 
 ### Install and Configure GraalVM
 
 * Download GraalVM & Untar it
   
 ```bash
-export GRAALVM_VERSION=19.3.1
-export JAVA_VERSION=java8
+export GRAALVM_VERSION=21.0.0.2
+export JAVA_VERSION=java11
 
 #Example for OSX
-curl -o ~/Downloads/graalvm-ce-${JAVA_VERSION}-darwin-amd64-${GRAALVM_VERSION}.tar.gz \
--L https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-${GRAALVM_VERSION}/graalvm-ce-${JAVA_VERSION}-darwin-amd64-${GRAALVM_VERSION}.tar.gz
+curl -o ~/Downloads/graalvm-ce-$JAVA_VERSION-darwin-amd64-$GRAALVM_VERSION.tar.gz \
+-L https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$GRAALVM_VERSION/graalvm-ce-$JAVA_VERSION-darwin-amd64-$GRAALVM_VERSION.tar.gz
 ```
 
 * Setup GRAALVM_HOME environment variable
   
 ```bash
 #Sample for OSX
-export GRAALVM_HOME=${HOME}/opt/graalvm-ce-${JAVA_VERSION}-${GRAALVM_VERSION}/Contents/Home
+export GRAALVM_HOME=$HOME/opt/graalvm-ce-$JAVA_VERSION-$GRAALVM_VERSION/Contents/Home
 ```
 
 * Install Native Image by *gu*
 
 ```bash
-${GRAALVM_HOME}/bin/gu install native-image
+$GRAALVM_HOME/bin/gu install native-image
 ```
 
 **Remark**: for OSX Catalina, you may need to run following command
 
 ```bash
-sudo xattr -r -d com.apple.quarantine <path-to-graal>/graalvm-ce-java11-20.0.0
+sudo xattr -r -d com.apple.quarantine $HOME/opt/graalvm-ce-$JAVA_VERSION-$GRAALVM_VERSION
 ```
 
 ### Build Native binary
@@ -218,28 +230,34 @@ Native binary (native to your OS) can be build with parameter **-Pnative**
 #Package
 mvn clean package -Pnative -DskipTests=true
 
+#Check for binary executable file
+file target/backend-1.0.0-runner
+
+#Sample Output on OSX
+target/backend-1.0.0-runner: Mach-O 64-bit executable x86_64
+
 #Run
 target/backend-1.0.0-runner
 
 #Then cURL
-curl -v http://localhost:8080
+curl http://localhost:8080
 ```
 
 You can use shell script *[build_native.sh](../code/build_native.sh)* to build native binary.
 
-Check Backend Application for elapsed time for start application. It took just **0.044s** sec
+Check Backend Application for elapsed time for start application. It took just **0.078s** sec
 
 ```log
-22:51:03 INFO  [io.quarkus] (main) backend 1.0.0 (powered by Quarkus 1.3.2.Final) started in 0.044s. Listening on: http://0.0.0.0:8080
-22:51:03 INFO  [io.quarkus] (main) Profile prod activated.
-22:51:03 INFO  [io.quarkus] (main) Installed features: [cdi, kubernetes, resteasy, smallrye-health, smallrye-metrics, smallrye-openapi]
+09:10:09 INFO  [io.quarkus] (main) backend 1.0.0 native (powered by Quarkus 1.12.0.Final) started in 0.078s. Listening on: http://0.0.0.0:8080
+09:10:09 INFO  [io.quarkus] (main) Profile prod activated.
+09:10:09 INFO  [io.quarkus] (main) Installed features: [cdi, kubernetes, resteasy, smallrye-health, smallrye-metrics, smallrye-openapi]
 ```
 
 ### Build Native Container Binary
 
 Native binary for Container (Linux x64) can be build from your machine which may be not Linux by using parameter **-Dquarkus.native.container-build=true**
-
-*Remark: Build container binary is quite CPU and also memory intensive. It will take some minutes to build*
+Build native container quite consume memory. You may need to configure maximum memory of your docker to 5GB
+<!-- *Remark: Build container binary is quite CPU and also memory intensive. It will take some minutes to build* -->
 
 ```bash
 mvn clean package \
@@ -247,34 +265,49 @@ mvn clean package \
 -DskipTests=true \
 -Pnative
 ```
-
-Build native container quite consume memory. You may need to configure maximum memory limits at
-- Maven with option -Dnative-image.xmx=5g
-- For Docker, configure maximum of Docker to 8 GB. Docker => Preference => Resources => Advance
+Check for executable binary on linux format
 
 ```bash
+file target/backend-1.0.0-runner
+
+#Sample output
+target/backend-1.0.0-runner: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0, BuildID[sha1]=9658827db4fe64a490f8fafa42093da597bb3302, with debug_info, not stripped
+```
+
+<!-- - Maven with option -Dnative-image.xmx=5g -->
+<!-- - For Docker, configure maximum of Docker to 5 GB. Docker => Preference => Resources => Advance -->
+
+<!-- ```bash
 mvn clean package \
 -Dquarkus.native.container-build=true \
 -Pnative \
 -DskipTests=true \
 -Dnative-image.xmx=5g
+``` -->
+Build container image
+
+```bash
+docker build -f src/main/docker/Dockerfile.native \
+-t backend-native:v1 .
+#Run
+docker run -p 8080:8080  backend-native:v1
 ```
 
-You can use shell script [build_native_container.sh](../code/build_native_container.sh) to build native  container binary.
+You can use shell script [build_native_container.sh](../code/build_native_container.sh) to build quarkus native container .
 
 ## Build JVM Container Image 
 
 ### Dockerfile
 
 * Build JAR
-* Create *[.dockerignore](../code/.dockerignore)* to included JAR and lib in target directory.
+<!-- * Create *[.dockerignore](../code/.dockerignore)* to included JAR and lib in target directory.
   
 ```
 *
 !target/*-runner
 !target/*-runner.jar
 !target/lib/*
-```
+``` -->
 
 * Build container image by using **[Dockerfile.jvm](../code/src/main/docker/Dockerfile.jvm)**
   
@@ -360,7 +393,7 @@ mvn clean package \
 -Dquarkus.container-image.tag=${IMAGE_TAG}
 ```
 
-## Build Native Container Image 
+<!-- ## Build Native Container Image 
 
 * Build native container
 * Create [.dockerignore](../code/.dockerignore) to included JAR and lib in target directory.
@@ -379,12 +412,12 @@ docker build -f src/main/docker/Dockerfile.native \
 
 * Shell script to build JVM container [build_native_container.sh](../code/build_native_container.sh)
   
-* Test container
+* Test container -->
 
 ## Deploy on OpenShift
 
 ### Binary Build Strategy
-* Build JAR (or Uber JAR)
+* Build JAR 
 * Create binary build and patch to change strategy to docker strategy
 
 ```bash
@@ -408,20 +441,20 @@ oc new-app --image-stream=backend:latest
 
 ```bash
 #Pause Rollout
-oc rollout pause dc backend
+oc rollout pause deployment backend
 
 #Set Readiness Probe
-oc set probe dc/backend --readiness --get-url=http://:8080/health/ready --initial-delay-seconds=15 --failure-threshold=1 --period-seconds=10
+oc set probe deployment/backend --readiness --get-url=http://:8080/health/ready --initial-delay-seconds=15 --failure-threshold=1 --period-seconds=10
 
 #Set Liveness Probe
-oc set probe dc/backend --liveness --get-url=http://:8080/health/live --initial-delay-seconds=10 --failure-threshold=3 --period-seconds=10
+oc set probe deployment/backend --liveness --get-url=http://:8080/health/live --initial-delay-seconds=10 --failure-threshold=3 --period-seconds=10
 ```
 
 * (Optional) Set external configuration file. Quarkus will overwrite default configuration with configuration resides at *config/application.properites* relative to Quarkus binary or JAR directory.
 
 ```bash
 oc create configmap backend --from-file=manifests/application.properties
-oc set volume dc/backend --add --name=backend-config \
+oc set volume deployment/backend --add --name=backend-config \
 --mount-path=/deployments/config/application.properties \
 --sub-path=application.properties \
 --configmap-name=backend
@@ -437,9 +470,9 @@ echo "Backend: http://$BACKEND_URL"
 ```
 
 * All in one shell script, [build_ocp_jvm.sh](../code/build_ocp_jvm.sh)
-* All in one shell script for Uber JAR, [build_ocp_jvm_uberjar.sh](../code/build_ocp_jvm_uberjar.sh)
+<!-- * All in one shell script for Uber JAR, [build_ocp_jvm_uberjar.sh](../code/build_ocp_jvm_uberjar.sh) -->
   
-### Source-to-Image Strategy
+<!-- ### Source-to-Image Strategy
 
 S2I support both JVM and native container. You need to specified which S2I to use for build Quarkus container
 
@@ -485,14 +518,20 @@ Quarkus support for automatic deployment to kubernetes, OpenShift (and KNative)
 
 Following show sample configuration in application.properties
 ```properties
+
+# Kubernetes plugin
 quarkus.kubernetes.deployment-target=openshift
 quarkus.openshift.part-of=demo
 quarkus.kubernetes-client.trust-certs=true
-quarkus.openshift.labels.app=greeting
+quarkus.openshift.labels.app=backend
 quarkus.openshift.replicas=2
 quarkus.openshift.expose=true
+
+# Traditional JAR
+quarkus.package.type=legacy-jar
 ```
 Deploy with following command
+
 ```bash
 mvn clean package -Dquarkus.kubernetes.deploy=true
-```
+``` -->
