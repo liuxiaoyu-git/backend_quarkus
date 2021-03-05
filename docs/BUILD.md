@@ -515,7 +515,7 @@ ${BASE_IMAGE}~${APP_REPOSITORY} \
 ```bash
 #Set image builder and Git Repository URL
 APP_NAME=backend-native
-BASE_IMAGE=quay.io/quarkus/ubi-quarkus-native-s2i:20.2.0-java11
+BASE_IMAGE=quay.io/quarkus/ubi-quarkus-native-s2i:21.0.0-java11
 CONTEXT_DIR=code 
 APP_REPOSITORY=https://gitlab.com/ocp-demo/backend_quarkus.git
 
@@ -526,7 +526,7 @@ ${BASE_IMAGE}~${APP_REPOSITORY} \
 --name=${APP_NAME}
 ```
 
-<!--### Quarkus Extensions
+<!-- ### Quarkus Extensions
 
 Quarkus support for automatic deployment to kubernetes, OpenShift (and KNative)
 - quarkus-kubernetes
@@ -551,4 +551,4 @@ Deploy with following command
 
 ```bash
 mvn clean package -Dquarkus.kubernetes.deploy=true
-``` -->
+```  -->
