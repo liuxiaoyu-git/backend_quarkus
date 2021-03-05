@@ -12,29 +12,27 @@
 <!-- TOC -->
 
 - [Build Quarkus](#build-quarkus)
-  - [Build Java Application](#build-java-application)
-    - [JAR](#jar)
-    - [Startup Time and Memory Usage](#startup-time-and-memory-usage)
+  - [JVM Mode](#jvm-mode)
+    - [Fast JAR](#fast-jar)
+      - [Startup Time and Memory Usage](#startup-time-and-memory-usage)
+    - [Legacy JAR](#legacy-jar)
     - [Uber JAR](#uber-jar)
-  - [Build Native Application](#build-native-application)
+  - [Native Mode](#native-mode)
     - [Install and Configure GraalVM](#install-and-configure-graalvm)
     - [Build Native binary](#build-native-binary)
     - [Build Native Container Binary](#build-native-container-binary)
   - [Deploy on OpenShift](#deploy-on-openshift)
     - [Binary Build Strategy](#binary-build-strategy)
     - [Source-to-Image Strategy](#source-to-image-strategy)
-      - [JVM mode](#jvm-mode)
-      - [Native mode](#native-mode)
+      - [JVM mode](#jvm-mode-1)
+      - [Native mode](#native-mode-1)
 
 <!-- /TOC -->
 
-
-## Build Java Application
-
-### JAR
-
+## JVM Mode
+### Fast JAR
 Build JAR is simple as simple maven project with **mvn package**
-Ramark that *Quarkus 1.3.2.Final needs maven 3.6.3+* 
+Ramark that *Quarkus 1.3.2.Final and higher needs maven 3.6.3+* 
 
 ```bash
 #package JAR
@@ -78,7 +76,7 @@ curl -L http://localhost:8080/health/ready
 
 ```
 
-### Startup Time and Memory Usage
+#### Startup Time and Memory Usage
 Check Backend Application for elapsed time for start application. It took just **0.906** sec
 
 ```log
@@ -172,6 +170,7 @@ Sample output
 }
 ```
 
+### Legacy JAR
 
 ### Uber JAR
 
@@ -189,7 +188,7 @@ mvn clean package \
 ls target/*-runner.jar
 ```
 
-## Build Native Application
+## Native Mode
 
 Quarkus 1.12 need need GraalVM vesion 21. For OSX user for build binary application.
 
@@ -314,49 +313,49 @@ You can use shell script [build_native_container.sh](../code/build_native_contai
 
 * Build container image by using **[Dockerfile.jvm](../code/src/main/docker/Dockerfile.jvm)**
   
-```bash
-docker build -f src/main/docker/Dockerfile.jvm \
--t ${CONTAINER_NAME}:${TAG} .
-```
+  ```bash
+  docker build -f src/main/docker/Dockerfile.jvm \
+  -t ${CONTAINER_NAME}:${TAG} .
+  ```
 
 * For uber jar, using [Dockerfile.jvm_uberjar](../code/src/main/docker/Dockerfile.jvm_uberjar)
 
-```bash
-docker build -f src/main/docker/Dockerfile.jvm_uberjar \
--t ${CONTAINER_NAME}:${TAG} .
-```
+  ```bash
+  docker build -f src/main/docker/Dockerfile.jvm_uberjar \
+  -t ${CONTAINER_NAME}:${TAG} .
+  ```
 
 * Shell script to build JVM container [build_jvm_container.sh](../code/build_jvm_container.sh) and [build_jvm_uberjar_container.sh](../code/build_jvm_uberjar_container.sh)
   
 * Test container
   
-```bash
-#run container with port 8080
-docker run -p 8080:8080 ${CONTAINER_NAME}:${TAG} 
+  ```bash
+  #run container with port 8080
+  docker run -p 8080:8080 ${CONTAINER_NAME}:${TAG} 
 
-#run container and pass environment variable 
-docker run -p 8080:8080 \
--e app.showResponse=true \
--e app.backend=https://httpbin.org/delay/1 \
-${CONTAINERNAME}:${TAG}
-```
+  #run container and pass environment variable 
+  docker run -p 8080:8080 \
+  -e app.showResponse=true \
+  -e app.backend=https://httpbin.org/delay/1 \
+  ${CONTAINERNAME}:${TAG}
+  ```
 
 ### Quarkus Extension
 
 * Quarkus provide Extension **container-image-docker** to build container image. ( jib plugin also available). You can use **quarkus:add-extension** to add extension to *pom.xml*
 
-```bash
-mvn quarkus:add-extension -Dextensions="container-image-docker"
+  ```bash
+  mvn quarkus:add-extension -Dextensions="container-image-docker"
 
-#Sample Output
-✅ Adding extension io.quarkus:quarkus-container-image-docker
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  4.718 s
-[INFO] Finished at: 2020-04-11T19:15:21+07:00
-[INFO] ------------------------------------------------------------------------
-```
+  #Sample Output
+  ✅ Adding extension io.quarkus:quarkus-container-image-docker
+  [INFO] ------------------------------------------------------------------------
+  [INFO] BUILD SUCCESS
+  [INFO] ------------------------------------------------------------------------
+  [INFO] Total time:  4.718 s
+  [INFO] Finished at: 2020-04-11T19:15:21+07:00
+  [INFO] ------------------------------------------------------------------------
+  ```
 
 * Behavior of plugin can be controlled by parmaeters. Following table depicts some of useful parameters. Check for Quarkus Document for full document. ()
   
@@ -423,60 +422,60 @@ docker build -f src/main/docker/Dockerfile.native \
 * Build JAR 
 * Create binary build and patch to change strategy to docker strategy
 
-```bash
-oc new-build --binary --name=backend -l app=backend
-oc patch bc/backend -p "{\"spec\":{\"strategy\":{\"dockerStrategy\":{\"dockerfilePath\":\"src/main/docker/Dockerfile.jvm\"}}}}"
-```
+  ```bash
+  oc new-build --binary --name=backend -l app=backend
+  oc patch bc/backend -p "{\"spec\":{\"strategy\":{\"dockerStrategy\":{\"dockerfilePath\":\"src/main/docker/Dockerfile.jvm\"}}}}"
+  ```
 
 * Start build from current directory
 
-```bash
-oc start-build backend --from-dir=. --follow
-```
+  ```bash
+  oc start-build backend --from-dir=. --follow
+  ```
 
 * Deploy Application
 
-```bash
-oc new-app --image-stream=backend:latest
-```
+  ```bash
+  oc new-app --image-stream=backend:latest
+  ```
 
 * (Optional) Pause deployment and set for liveness and readiness
 
-```bash
-#Pause Rollout
-oc rollout pause deployment backend
+  ```bash
+  #Pause Rollout
+  oc rollout pause deployment backend
 
-#Set Readiness Probe
-oc set probe deployment/backend --readiness --get-url=http://:8080/health/ready --initial-delay-seconds=15 --failure-threshold=1 --period-seconds=10
+  #Set Readiness Probe
+  oc set probe deployment/backend --readiness --get-url=http://:8080/health/ready --initial-delay-seconds=15 --failure-threshold=1 --period-seconds=10
 
-#Set Liveness Probe
-oc set probe deployment/backend --liveness --get-url=http://:8080/health/live --initial-delay-seconds=10 --failure-threshold=3 --period-seconds=10
-```
+  #Set Liveness Probe
+  oc set probe deployment/backend --liveness --get-url=http://:8080/health/live --initial-delay-seconds=10 --failure-threshold=3 --period-seconds=10
+  ```
 
 * (Optional) Set external configuration file. Quarkus will overwrite default configuration with configuration resides at *config/application.properites* relative to Quarkus binary or JAR directory.
 
-```bash
-oc create configmap backend --from-file=config/application.properties
-oc set volume deployment/backend --add --name=backend-config \
---mount-path=/deployments/config/application.properties \
---sub-path=application.properties \
---configmap-name=backend
-
-```
+  ```bash
+  oc create configmap backend --from-file=config/application.properties
+  oc set volume deployment/backend --add --name=backend-config \
+  --mount-path=/deployments/config/application.properties \
+  --sub-path=application.properties \
+  --configmap-name=backend
+  ```
+  
 * Expose service (create route) and resume rollout
 
-```bash
-oc expose svc backend
-# or for route with TLS terminate at OpenShift router
-oc create route edge jackie --service=jackie --port=8080
-```
+  ```bash
+  oc expose svc backend
+  # or for route with TLS terminate at OpenShift router
+  oc create route edge jackie --service=jackie --port=8080
+  ```
 * Resume rollout
 
-```bash
-oc rollout resume dc backend
-BACKEND_URL=$(oc get route backend -o jsonpath='{.spec.host}')
-echo "Backend: http://$BACKEND_URL"
-```
+  ```bash
+  oc rollout resume dc backend
+  BACKEND_URL=$(oc get route backend -o jsonpath='{.spec.host}')
+  echo "Backend: http://$BACKEND_URL"
+  ```
 
 * All in one shell script, [build_ocp_jvm.sh](../code/build_ocp_jvm.sh)
 <!-- * All in one shell script for Uber JAR, [build_ocp_jvm_uberjar.sh](../code/build_ocp_jvm_uberjar.sh) -->
@@ -490,42 +489,57 @@ S2I support both JVM and native container. You need to specified which S2I to us
 
 #### JVM mode
 You can use **oc new-app** to create container image and deploy to OpenShift from your source code in Git.
-Remark that for now you need to specified **quarkus.package.type=legacy-jar** in application.properites
 
-```bash
-#Import openjdk-11 if you don't do this before
-oc import-image ubi8/openjdk-11 --from=registry.access.redhat.com/ubi8/openjdk-11 -n openshift --confirm
+* Source-to-Image (S2I) use [.s2i/environment](../code/.s2i/environment) for build.
+* Start build
 
-#Set image builder and Git Repository URL
-APP_NAME=backend
-BASE_IMAGE=openjdk-11
-CONTEXT_DIR=code 
-APP_REPOSITORY=https://gitlab.com/ocp-demo/backend_quarkus.git
+  ```bash
+  #Import openjdk-11 if you don't do this before
+  oc import-image ubi8/openjdk-11 --from=registry.access.redhat.com/ubi8/openjdk-11 -n openshift --confirm
 
-#Use oc new-app to build and deploy
-oc new-app \
-${BASE_IMAGE}~${APP_REPOSITORY} \
---context-dir=${CONTEXT_DIR} \
---name=${APP_NAME}
-```
+  #Set image builder and Git Repository URL
+  APP_NAME=backend
+  BASE_IMAGE=openjdk-11
+  CONTEXT_DIR=code 
+  APP_REPOSITORY=https://gitlab.com/ocp-demo/backend_quarkus.git
 
-#### Native mode
+  #Use oc new-app to build and deploy
+  oc new-app \
+  ${BASE_IMAGE}~${APP_REPOSITORY} \
+  --context-dir=${CONTEXT_DIR} \
+  --name=${APP_NAME}
+  ```
+
+ #### Native mode
+* Check [application.properties](../code/src/main/resources/application.properties) for max heap size of for build native image.
+  
+  ```properties
+  # Set maximum memory for build native
+  quarkus.native.native-image-xmx=4096m
+  ```
 * Build Native container by following command or use shell [build_native_s2i.sh](../code/build_jvm_container_by_plugin.sh)
 
-```bash
-#Set image builder and Git Repository URL
-APP_NAME=backend-native
-BASE_IMAGE=quay.io/quarkus/ubi-quarkus-native-s2i:21.0.0-java11
-CONTEXT_DIR=code 
-APP_REPOSITORY=https://gitlab.com/ocp-demo/backend_quarkus.git
+  ```bash
+  #Set image builder and Git Repository URL
+  APP_NAME=backend-native
+  BASE_IMAGE=quay.io/quarkus/ubi-quarkus-native-s2i:21.0.0.2-java11
+  CONTEXT_DIR=code 
+  APP_REPOSITORY=https://gitlab.com/ocp-demo/backend_quarkus.git
 
-#Use oc new-app to build
-oc new-app \
-${BASE_IMAGE}~${APP_REPOSITORY} \
---context-dir=${CONTEXT_DIR} \
---name=${APP_NAME}
-```
+  #Use oc new-app to build
+  oc new-app \
+  ${BASE_IMAGE}~${APP_REPOSITORY} \
+  --context-dir=${CONTEXT_DIR} \
+  --name=${APP_NAME}
 
+  # Set max heap size of build pod to 4 GB
+  oc patch bc/backend-native -p '{"spec":{"resources":{"limits":{"cpu":"4", "memory":"5Gi"}}}}'
+  oc get build
+  oc logs -f bc/backend-native
+  ```
+* Memory used by build pod
+
+  ![](imagesdir/memory-used-by-build-native-image-pod.png)
 <!-- ### Quarkus Extensions
 
 Quarkus support for automatic deployment to kubernetes, OpenShift (and KNative)

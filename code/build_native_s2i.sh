@@ -1,6 +1,6 @@
 #!/bin/sh 
 APP_NAME=backend-native
-BASE_IMAGE=quay.io/quarkus/ubi-quarkus-native-s2i:21.0.0-java11
+BASE_IMAGE=quay.io/quarkus/ubi-quarkus-native-s2i:21.0.0.2-java11
 CONTEXT_DIR=code 
 APP_REPOSITORY=https://gitlab.com/ocp-demo/backend_quarkus.git
 
@@ -16,6 +16,8 @@ ${BASE_IMAGE}~${APP_REPOSITORY} \
 --context-dir=${CONTEXT_DIR} \
 --labels=app.kubernetes.io/name=java,app.openshift.io/runtime=quarkus \ 
 --name=${APP_NAME}
+oc patch bc/backend-native -p '{"spec":{"resources":{"limits":{"cpu":"4", "memory":"5Gi"}}}}'
+  
 echo "##### Wait for 3 sec #####"
 sleep 3
 # View build log
@@ -27,3 +29,5 @@ oc expose svc/${APP_NAME}
 # oc create route edge ${APP_NAME}  --service=${APP_NAME} --port=8080 
 # Get the route URL
 echo "URL: http://$(oc get route | grep ${APP_NAME} | awk '{print $2}')"
+
+## quarkus.native.native-image-xmx
