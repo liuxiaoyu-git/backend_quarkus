@@ -72,8 +72,7 @@ pipeline {
 
           echo "Building binary for ${imageName}"
           script {
-            // if uberJar => -Dquarkus.package.uber-jar=true 
-            sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
+            sh "${mvnCmd} -Dquarkus.package.type=fast-jar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
           }
         }
       }
