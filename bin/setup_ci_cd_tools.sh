@@ -1,6 +1,6 @@
 #!/bin/sh
 START_BUILD=$(date +%s)
-#NEXUS_VERSION=3.18.1
+#export NEXUS_VERSION=3.18.1
 export NEXUS_VERSION=latest
 export CICD_PROJECT=ci-cd
 NEXUS_PVC_SIZE="8Gi"
@@ -79,8 +79,8 @@ oc set resources deployment sonarqube --limits=memory=3Gi,cpu=2 --requests=memor
 oc set probe deployment/sonarqube --liveness --failure-threshold 3 --initial-delay-seconds 40 --get-url=http://:9000/about
 oc set probe deployment/sonarqube --readiness --failure-threshold 3 --initial-delay-seconds 20 --get-url=http://:9000/about
 oc patch deployment/sonarqube --type=merge -p '{"spec": {"template": {"metadata": {"labels": {"tuned.openshift.io/elasticsearch": "true"}}}}}'
-oc label deployment postgresql app.kubernetes.io/part-of=Code-Quality -n ${CICD_PROJECT}
-oc label deployment postgresql app.kubernetes.io/name=posgresql -n ${CICD_PROJECT}
+oc label dc postgresql app.kubernetes.io/part-of=Code-Quality -n ${CICD_PROJECT}
+oc label dc postgresql app.kubernetes.io/name=posgresql -n ${CICD_PROJECT}
 oc rollout resume deployment sonarqube
 check_pod "sonarqube"
 export NEXUS_POD=$(oc get pods | grep nexus | grep -v deploy | awk '{print $1}')
@@ -98,7 +98,7 @@ CICD_NEXUS_PASSWORD=${NEXUS_PASSWORD}-$(date +%s)
 # https://raw.githubusercontent.com/redhat-gpte-devopsautomation/ocp_advanced_development_resources/master/nexus/setup_nexus3.sh
 ./setup_nexus3.sh admin $NEXUS_PASSWORD https://$(oc get route nexus --template='{{ .spec.host }}') ${CICD_NEXUS_USER} ${CICD_NEXUS_PASSWORD}
 echo "expose port 5000 for container registry"
-oc expose dc nexus --port=5000 --name=nexus-registry
+oc expose deployment nexus --port=5000 --name=nexus-registry
 oc create route edge nexus-registry --service=nexus-registry --port=5000
 CICD_NEXUS_PASSWORD_SECRET=$(echo ${CICD_NEXUS_PASSWORD}|base64 -)
 oc create -f - << EOF
