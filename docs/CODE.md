@@ -16,7 +16,7 @@
     - [Development Mode](#development-mode)
     - [Unit Test](#unit-test)
   - [Configuration Properties](#configuration-properties)
-  - [MicroProfile  Health Check](#microprofile-health-check)
+  - [MicroProfile  Health Check](#microprofile--health-check)
   - [MicroProfile OpenAPI](#microprofile-openapi)
   - [MicroProfile Metrics](#microprofile-metrics)
   - [Logging](#logging)
@@ -71,11 +71,13 @@ Quarkus support development mode. This support for backgroud compilation for hot
 
 With development mode. You can start development mode. When you modify your java files and/or cofiguration file. Those changes will automatically effect.
 Reload brower (or call you applicaton with cRUL or other tools) java files are recompiled and deployed.
+
 ```bash
 mvn quarkus:dev
 ```
 
 ### Unit Test
+
 ```bash
 mvn test
 mvn test -Dquarkus.test.profile=dev
@@ -158,9 +160,13 @@ mvn quarkus:dev
 ```
 * Call health check for both liveness and readiness by using /health, /health/live and /health/ready
 ```bash
-curl http://localhost:8080/health
-curl http://localhost:8080/health/live
-curl http://localhost:8080/health/ready
+curl http://localhost:8080/q/health
+curl http://localhost:8080/q/health/live
+curl http://localhost:8080/q/health/ready
+# or use option -L to follow redirect
+curl -L http://localhost:8080/health
+curl -L http://localhost:8080/health/live
+curl -L http://localhost:8080/health/ready
 ```
 * Sample out from /health/ready
 ```json
@@ -177,11 +183,13 @@ curl http://localhost:8080/health/ready
 
 ## MicroProfile OpenAPI
 * Add Microprofile OpenAPI extension
+  
 ```bash
 mvn quarkus:add-extension -Dextensions="openapi"
 ```
 
 * Annotate API information for method level.(*[BackendResource.java](../code/src/main/java/com/example/quarkus/BackendResource.java)*)
+
 ```java
     @GET
     @Path("/")
@@ -194,6 +202,7 @@ mvn quarkus:add-extension -Dextensions="openapi"
 ```
 
 * Create JAX-RS Application class for annotate global API information. Remark that JAX-RS Application class is not needed for Quarkus. (*[BackendApp.class](../code/src/main/java/com/example/quarkus/BackendApp.java)*)
+
 ```java
 @ApplicationPath("/")
 @OpenAPIDefinition(
@@ -266,7 +275,9 @@ mvn quarkus:add-extension -Dextensions="metrics"
   #At another terminal/sheel
   curl http://localhost:8080/
   #Check for metrics
-  curl -H "Accept: application/json" http://localhost:8080/metrics/application
+  curl -H "Accept: application/json" http://localhost:8080/q/metrics/application
+  # or
+  curl -L -H "Accept: application/json" http://localhost:8080/metrics/application
   ```
 * Metrics will show that *com.example.quarkus.BackendResource.countBackend* is 1
 ```json
@@ -396,7 +407,7 @@ quarkus.log.category."com.example.quarkus.health".level=DEBUG
 ```
 * Test with cURL to /health/ready and / 
 ```bash
-curl http://localhost:8080/health/ready
+curl http://localhost:8080/q/health/ready
 curl http://localhost:8080/
 ```
 * Check for console log. Package **co.ex.qu.he.AppReadiness** cotanins DEBUG level log
