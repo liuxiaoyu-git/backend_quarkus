@@ -1,6 +1,6 @@
 #!/bin/sh 
 APP_NAME=backend
-BASE_IMAGE=registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift
+BASE_IMAGE=registry.access.redhat.com/ubi8/openjdk-11
 CONTEXT_DIR=code 
 APP_REPOSITORY=https://gitlab.com/ocp-demo/backend_quarkus.git
 

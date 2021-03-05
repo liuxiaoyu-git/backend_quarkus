@@ -22,6 +22,9 @@
     - [Build Native Container Binary](#build-native-container-binary)
   - [Deploy on OpenShift](#deploy-on-openshift)
     - [Binary Build Strategy](#binary-build-strategy)
+    - [Source-to-Image Strategy](#source-to-image-strategy)
+      - [JVM mode](#jvm-mode)
+      - [Native mode](#native-mode)
 
 <!-- /TOC -->
 
@@ -453,7 +456,7 @@ oc set probe deployment/backend --liveness --get-url=http://:8080/health/live --
 * (Optional) Set external configuration file. Quarkus will overwrite default configuration with configuration resides at *config/application.properites* relative to Quarkus binary or JAR directory.
 
 ```bash
-oc create configmap backend --from-file=manifests/application.properties
+oc create configmap backend --from-file=config/application.properties
 oc set volume deployment/backend --add --name=backend-config \
 --mount-path=/deployments/config/application.properties \
 --sub-path=application.properties \
@@ -464,6 +467,12 @@ oc set volume deployment/backend --add --name=backend-config \
 
 ```bash
 oc expose svc backend
+# or for route with TLS terminate at OpenShift router
+oc create route edge jackie --service=jackie --port=8080
+```
+* Resume rollout
+
+```bash
 oc rollout resume dc backend
 BACKEND_URL=$(oc get route backend -o jsonpath='{.spec.host}')
 echo "Backend: http://$BACKEND_URL"
@@ -472,33 +481,41 @@ echo "Backend: http://$BACKEND_URL"
 * All in one shell script, [build_ocp_jvm.sh](../code/build_ocp_jvm.sh)
 <!-- * All in one shell script for Uber JAR, [build_ocp_jvm_uberjar.sh](../code/build_ocp_jvm_uberjar.sh) -->
   
-<!-- ### Source-to-Image Strategy
+ ### Source-to-Image Strategy
 
 S2I support both JVM and native container. You need to specified which S2I to use for build Quarkus container
 
-* Quarkus S2I need additional configuration in [.s2i/environment](../code/.s2i/environment)
-* Build JVM container by following command or [build_jvm_s2i.sh](../code/build_jvm_s2i.sh)
+<!-- * Quarkus S2I need additional configuration in [.s2i/environment](../code/.s2i/environment)
+* Build JVM container by following command or [build_jvm_s2i.sh](../code/build_jvm_s2i.sh) -->
+
+#### JVM mode
+You can use **oc new-app** to create container image and deploy to OpenShift from your source code in Git.
+Remark that for now you need to specified **quarkus.package.type=legacy-jar** in application.properites
 
 ```bash
+#Import openjdk-11 if you don't do this before
+oc import-image ubi8/openjdk-11 --from=registry.access.redhat.com/ubi8/openjdk-11 -n openshift --confirm
+
 #Set image builder and Git Repository URL
 APP_NAME=backend
-BASE_IMAGE=registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift
+BASE_IMAGE=openjdk-11
 CONTEXT_DIR=code 
 APP_REPOSITORY=https://gitlab.com/ocp-demo/backend_quarkus.git
 
-#Use oc new-app to build
+#Use oc new-app to build and deploy
 oc new-app \
 ${BASE_IMAGE}~${APP_REPOSITORY} \
 --context-dir=${CONTEXT_DIR} \
 --name=${APP_NAME}
 ```
 
+#### Native mode
 * Build Native container by following command or use shell [build_native_s2i.sh](../code/build_jvm_container_by_plugin.sh)
 
 ```bash
 #Set image builder and Git Repository URL
 APP_NAME=backend-native
-BASE_IMAGE=quay.io/quarkus/ubi-quarkus-native-s2i:19.3.1-java8
+BASE_IMAGE=quay.io/quarkus/ubi-quarkus-native-s2i:20.2.0-java11
 CONTEXT_DIR=code 
 APP_REPOSITORY=https://gitlab.com/ocp-demo/backend_quarkus.git
 
@@ -509,7 +526,7 @@ ${BASE_IMAGE}~${APP_REPOSITORY} \
 --name=${APP_NAME}
 ```
 
-### Quarkus Extensions
+<!--### Quarkus Extensions
 
 Quarkus support for automatic deployment to kubernetes, OpenShift (and KNative)
 - quarkus-kubernetes
