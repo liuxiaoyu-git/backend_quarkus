@@ -1,2 +1,2 @@
-ARTIFACT_COPY_ARGS=-p -r lib/ *-runner.jar
+ARTIFACT_COPY_ARGS=-p -r target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/
 JAVA_OPTIONS=-Dquarkus.http.host=0.0.0.0
