@@ -507,7 +507,9 @@ You can use **oc new-app** to create container image and deploy to OpenShift fro
   oc new-app \
   ${BASE_IMAGE}~${APP_REPOSITORY} \
   --context-dir=${CONTEXT_DIR} \
+  --build-env=QUARKUS_PACKAGE_TYPE=legacy-jar \
   --name=${APP_NAME}
+  oc logs -f bc/${APP_NAME}
   ```
 
  #### Native mode
@@ -526,16 +528,17 @@ You can use **oc new-app** to create container image and deploy to OpenShift fro
   CONTEXT_DIR=code 
   APP_REPOSITORY=https://gitlab.com/ocp-demo/backend_quarkus.git
 
-  #Use oc new-app to build
+  #Use oc new-app to build 
+  #Optional MAVEN_MIRROR_URL
   oc new-app \
   ${BASE_IMAGE}~${APP_REPOSITORY} \
   --context-dir=${CONTEXT_DIR} \
   --name=${APP_NAME}
 
-  # Set max heap size of build pod to 4 GB
+  # Set max heap size of build pod to 5 GB
   oc patch bc/backend-native -p '{"spec":{"resources":{"limits":{"cpu":"4", "memory":"5Gi"}}}}'
   oc get build
-  oc logs -f bc/backend-native
+  oc logs -f bc/${APP_NAME}
   ```
 * Memory used by build pod
 
