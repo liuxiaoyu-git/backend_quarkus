@@ -513,7 +513,7 @@ You can use **oc new-app** to create container image and deploy to OpenShift fro
   ```
 
  #### Native mode
-* Check [application.properties](../code/src/main/resources/application.properties) for max heap size of for build native image.
+* Check [application.properties](../code/src/main/resources/application.properties) for max heap size of for build native image or pass environment variable **QUARKUS_NATIVE_NATIVE-IMAGE-XMX** with build
   
   ```properties
   # Set maximum memory for build native
@@ -529,10 +529,11 @@ You can use **oc new-app** to create container image and deploy to OpenShift fro
   APP_REPOSITORY=https://gitlab.com/ocp-demo/backend_quarkus.git
 
   #Use oc new-app to build 
-  #Optional MAVEN_MIRROR_URL
+  #Optional MAVEN_MIRROR_URL  quarkus.native.native-image-xmx=4096m
   oc new-app \
   ${BASE_IMAGE}~${APP_REPOSITORY} \
   --context-dir=${CONTEXT_DIR} \
+  --build-env=QUARKUS_NATIVE_NATIVE-IMAGE-XMX=4096m \
   --name=${APP_NAME}
 
   # Set max heap size of build pod to 5 GB
