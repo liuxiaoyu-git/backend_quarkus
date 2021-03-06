@@ -31,146 +31,177 @@
 
 ## JVM Mode
 ### Fast JAR
-Build JAR is simple as simple maven project with **mvn package**
-Ramark that *Quarkus 1.3.2.Final and higher needs maven 3.6.3+* 
+* Build JAR is simple as simple maven project with **mvn package**. You need maven 3.6.3 or later for build quarkus
+  - Build and package
+  - 
+    ```bash
+    #package JAR
+    cd code
+    mvn clean package
+    ```
 
-```bash
-#package JAR
-cd code
-mvn clean package
+  - Check for fast-jar under directory target/quarkus-app
+  
+    ```
+    #Check quarkus-app under target directory for quarus-run.jar and libraries under lib
+    ls target/quarkus-app/quarkus-run.jar
+    ls target/quarkus-app/lib
+    ```
+    
+  - Run
 
-#Check quarkus-app under target directory for quarus-run.jar and libraries under lib
-ls target/quarkus-app/quarkus-run.jar
-ls target/quarkus-app/lib
+    ```bash
+    java -jar target/quarkus-app/quarkus-run.jar
+    ```
 
-#Run
-java -jar target/quarkus-app/quarkus-run.jar
+  - Run with environment variables
+  
+    ```bash
+    java -Dapp.showResponse=true -Dapp.backend=https://httpbin.org/delay/3 -jar target/quarkus-app/quarkus-run.jar
+    ```
 
-#Remark: Check that how fast it is!
-#Test environment variables
-java -Dapp.showResponse=true -Dapp.backend=https://httpbin.org/delay/3 -jar target/quarkus-app/quarkus-run.jar
+  - Run with system environment variables
+  
+    ```bash
+    #Use environment variable
+    export APP_SHOWRESPONSE=true
+    export APP_BACKEND=https://httpbin.org/delay/2
+    java -jar  target/backend-1.0.0-runner.jar
+    ```
 
-#Use environment variable
-export APP_SHOWRESPONSE=true
-export APP_BACKEND=https://httpbin.org/delay/2
-java -jar  target/backend-1.0.0-runner.jar
+  - Test with cURL
+  
+    ```bash
+    curl http://localhost:8080/
 
-#Test by cURL
-curl http://localhost:8080/
+    #OpenAPI docs
+    curl -L http://localhost:8080/openapi
+    curl -L http://localhost:8080/openapi?format=json
 
-#OpenAPI docs
-curl -L http://localhost:8080/openapi
-curl -L http://localhost:8080/openapi?format=json
+    #Get Metrics
+    curl -L http://localhost:8080/metrics
 
-#Get Metrics
-curl -L http://localhost:8080/metrics
+    #Health Check
+    curl -L http://localhost:8080/health
 
-#Health Check
-curl -L http://localhost:8080/health
+    #Health Check - Liveness
+    curl -L http://localhost:8080/health/live
 
-#Health Check - Liveness
-curl -L http://localhost:8080/health/live
-
-#Health Check - Readiness
-curl -L http://localhost:8080/health/ready
-
-```
+    #Health Check - Readiness
+    curl -L http://localhost:8080/health/ready
+    ```
 
 #### Startup Time and Memory Usage
-Check Backend Application for elapsed time for start application. It took just **0.906** sec
+* Check Backend Application for elapsed time for start application. It took just **0.906** sec
 
-```log
-08:34:00 INFO  [io.quarkus] (main) backend 1.0.0 on JVM (powered by Quarkus 1.12.0.Final) started in 1.084s. Listening on: http://0.0.0.0:8080
-08:34:00 INFO  [io.quarkus] (main) Profile prod activated.
-08:34:00 INFO  [io.quarkus] (main) Installed features: [cdi, kubernetes, resteasy, smallrye-health, smallrye-metrics, smallrye-openapi]
-```
-Check for memory usage with **jconsole** and run load test with 10 concurrent requests.
+  ```log
+  08:34:00 INFO  [io.quarkus] (main) backend 1.0.0 on JVM (powered by Quarkus 1.12.0.Final) started in 1.084s. Listening on: http://0.0.0.0:8080
+  08:34:00 INFO  [io.quarkus] (main) Profile prod activated.
+  08:34:00 INFO  [io.quarkus] (main) Installed features: [cdi, kubernetes, resteasy, smallrye-health, smallrye-metrics, smallrye-openapi]
+  ```
+* Check for memory usage with **jconsole** and run load test with 10 concurrent requests.
 
-![JVM Heap](imagesdir/jvm-heap-with-10-concurrent-requests.png)
+  ![JVM Heap](imagesdir/jvm-heap-with-10-concurrent-requests.png)
 
-You can also use Microprofile metrics to check for heap size. ( /metrics)
+* Check heap size with microprofiles metrics
 
-```bash
-curl -L  -H"Accept: application/json" http://localhost:8080/metrics
-```
+  ```bash
+  curl -L  -H"Accept: application/json" http://localhost:8080/metrics
+  curl -L  http://localhost:8080/metrics
+  #or
+  curl -H"Accept: application/json" http://localhost:8080/q/metrics
+  ```
 
-Sample output
+  Sample output
 
-```json
-{
-    "base": {
-        "cpu.systemLoadAverage": 7.02587890625,
-        "thread.count": 30,
-        "classloader.loadedClasses.count": 6121,
-        "classloader.unloadedClasses.total": 0,
-        "gc.total;name=G1 Young Generation": 6,
-        "jvm.uptime": 474156,
-        "thread.max.count": 38,
-        "memory.committedHeap": 268435456,
-        "classloader.loadedClasses.total": 6122,
-        "cpu.availableProcessors": 4,
-        "thread.daemon.count": 9,
-        "gc.total;name=G1 Old Generation": 0,
-        "memory.maxHeap": 4294967296,
-        "cpu.processCpuLoad": 0.000417185512741686,
-        "gc.time;name=G1 Old Generation": 0,
-        "memory.usedHeap": 101828192,
-        "gc.time;name=G1 Young Generation": 59
-    },
-    "vendor": {
-        "memoryPool.usage.max;name=G1 Survivor Space": 6291456,
-        "memory.freePhysicalSize": 197578752,
-        "memoryPool.usage.max;name=CodeHeap 'non-profiled nmethods'": 3350400,
-        "memoryPool.usage;name=Metaspace": 39884320,
-        "memoryPool.usage;name=G1 Eden Space": 0,
-        "memoryPool.usage;name=CodeHeap 'non-profiled nmethods'": 3350400,
-        "memoryPool.usage;name=CodeHeap 'profiled nmethods'": 15034752,
-        "memoryPool.usage;name=G1 Old Gen": 0,
-        "memoryPool.usage.max;name=CodeHeap 'non-nmethods'": 1309952,
-        "memoryPool.usage.max;name=G1 Old Gen": 13747808,
-        "cpu.processCpuTime": 22003009000,
-        "memory.committedNonHeap": 67313664,
-        "memoryPool.usage.max;name=Compressed Class Space": 4250152,
-        "memoryPool.usage.max;name=G1 Eden Space": 84934656,
-        "memory.freeSwapSize": 1008730112,
-        "memoryPool.usage.max;name=Metaspace": 39878096,
-        "cpu.systemCpuLoad": 0.45880149812734083,
-        "memory.usedNonHeap": 63789336,
-        "memoryPool.usage;name=CodeHeap 'non-nmethods'": 1247232,
-        "memoryPool.usage;name=G1 Survivor Space": 3145728,
-        "memoryPool.usage;name=Compressed Class Space": 4250152,
-        "memory.maxNonHeap": -1,
-        "memoryPool.usage.max;name=CodeHeap 'profiled nmethods'": 15008512
-    },
-    "application": {
-        "com.example.quarkus.BackendResource.countBackend": 1925,
-        "com.example.quarkus.BackendResource.concurrentBackend": {
-            "current": 0,
-            "min": 0,
-            "max": 0
-        },
-        "com.example.quarkus.BackendResource.timeBackend": {
-            "p99": 851.840647,
-            "min": 254.953659,
-            "max": 1719.537727,
-            "mean": 300.24028149427653,
-            "p50": 271.035883,
-            "p999": 1135.913466,
-            "stddev": 102.52063708298743,
-            "p95": 448.512492,
-            "p98": 718.985401,
-            "p75": 278.653653,
-            "fiveMinRate": 2.2703813234668577,
-            "fifteenMinRate": 1.6216041617988017,
-            "meanRate": 4.065283396672213,
-            "count": 1925,
-            "oneMinRate": 0.16722634503546238
-        }
-    }
-}
-```
+  ```json
+  {
+      "base": {
+          "cpu.systemLoadAverage": 7.02587890625,
+          "thread.count": 30,
+          "classloader.loadedClasses.count": 6121,
+          "classloader.unloadedClasses.total": 0,
+          "gc.total;name=G1 Young Generation": 6,
+          "jvm.uptime": 474156,
+          "thread.max.count": 38,
+          "memory.committedHeap": 268435456,
+          "classloader.loadedClasses.total": 6122,
+          "cpu.availableProcessors": 4,
+          "thread.daemon.count": 9,
+          "gc.total;name=G1 Old Generation": 0,
+          "memory.maxHeap": 4294967296,
+          "cpu.processCpuLoad": 0.000417185512741686,
+          "gc.time;name=G1 Old Generation": 0,
+          "memory.usedHeap": 101828192,
+          "gc.time;name=G1 Young Generation": 59
+      },
+      "vendor": {
+          "memoryPool.usage.max;name=G1 Survivor Space": 6291456,
+          "memory.freePhysicalSize": 197578752,
+          "memoryPool.usage.max;name=CodeHeap 'non-profiled nmethods'": 3350400,
+          "memoryPool.usage;name=Metaspace": 39884320,
+          "memoryPool.usage;name=G1 Eden Space": 0,
+          "memoryPool.usage;name=CodeHeap 'non-profiled nmethods'": 3350400,
+          "memoryPool.usage;name=CodeHeap 'profiled nmethods'": 15034752,
+          "memoryPool.usage;name=G1 Old Gen": 0,
+          "memoryPool.usage.max;name=CodeHeap 'non-nmethods'": 1309952,
+          "memoryPool.usage.max;name=G1 Old Gen": 13747808,
+          "cpu.processCpuTime": 22003009000,
+          "memory.committedNonHeap": 67313664,
+          "memoryPool.usage.max;name=Compressed Class Space": 4250152,
+          "memoryPool.usage.max;name=G1 Eden Space": 84934656,
+          "memory.freeSwapSize": 1008730112,
+          "memoryPool.usage.max;name=Metaspace": 39878096,
+          "cpu.systemCpuLoad": 0.45880149812734083,
+          "memory.usedNonHeap": 63789336,
+          "memoryPool.usage;name=CodeHeap 'non-nmethods'": 1247232,
+          "memoryPool.usage;name=G1 Survivor Space": 3145728,
+          "memoryPool.usage;name=Compressed Class Space": 4250152,
+          "memory.maxNonHeap": -1,
+          "memoryPool.usage.max;name=CodeHeap 'profiled nmethods'": 15008512
+      },
+      "application": {
+          "com.example.quarkus.BackendResource.countBackend": 1925,
+          "com.example.quarkus.BackendResource.concurrentBackend": {
+              "current": 0,
+              "min": 0,
+              "max": 0
+          },
+          "com.example.quarkus.BackendResource.timeBackend": {
+              "p99": 851.840647,
+              "min": 254.953659,
+              "max": 1719.537727,
+              "mean": 300.24028149427653,
+              "p50": 271.035883,
+              "p999": 1135.913466,
+              "stddev": 102.52063708298743,
+              "p95": 448.512492,
+              "p98": 718.985401,
+              "p75": 278.653653,
+              "fiveMinRate": 2.2703813234668577,
+              "fifteenMinRate": 1.6216041617988017,
+              "meanRate": 4.065283396672213,
+              "count": 1925,
+              "oneMinRate": 0.16722634503546238
+          }
+      }
+  }
+  ```
 
 ### Legacy JAR
+Legacy JAR is default package for Quarkus prior to 1.20
+
+```bash
+#package Uber JAR
+cd code
+mvn clean package \
+-Dquarkus.package.type=legacy-jar
+
+#Check for Uber JAR in target directory
+
+#Remark that there is no directory lib
+ls target/*-runner.jar
+```
 
 ### Uber JAR
 
@@ -180,7 +211,7 @@ Uber jar can be build with  parameter **quarkus.package.uber-jar=true**
 #package Uber JAR
 cd code
 mvn clean package \
--Dquarkus.package.uber-jar=true
+-Dquarkus.package.type=uber-jar
 
 #Check for Uber JAR in target directory
 
@@ -511,6 +542,17 @@ You can use **oc new-app** to create container image and deploy to OpenShift fro
   --name=${APP_NAME}
   oc logs -f bc/${APP_NAME}
   ```
+* Build with mirror repository
+  
+  ```bash
+  oc new-app \
+  ${BASE_IMAGE}~${APP_REPOSITORY} \
+  --context-dir=${CONTEXT_DIR} \
+  --build-env=QUARKUS_PACKAGE_TYPE=legacy-jar \
+  --build-env=MAVEN_MIRROR_URL=http://nexus.ci-cd.svc.cluster.local:8081/repository/maven-all-public \
+  --name=${APP_NAME}
+  oc logs -f bc/${APP_NAME}
+  ```
 
  #### Native mode
 * Check [application.properties](../code/src/main/resources/application.properties) for max heap size of for build native image or pass environment variable **QUARKUS_NATIVE_NATIVE-IMAGE-XMX** with build
@@ -519,6 +561,7 @@ You can use **oc new-app** to create container image and deploy to OpenShift fro
   # Set maximum memory for build native
   quarkus.native.native-image-xmx=4096m
   ```
+  
 * Build Native container by following command or use shell [build_native_s2i.sh](../code/build_jvm_container_by_plugin.sh)
 
   ```bash
@@ -541,6 +584,7 @@ You can use **oc new-app** to create container image and deploy to OpenShift fro
   oc get build
   oc logs -f bc/${APP_NAME}
   ```
+  
 * Memory used by build pod
 
   ![](imagesdir/memory-used-by-build-native-image-pod.png)
