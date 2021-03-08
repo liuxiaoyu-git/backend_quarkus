@@ -21,17 +21,20 @@
     - [Install and Configure GraalVM](#install-and-configure-graalvm)
     - [Build Native binary](#build-native-binary)
     - [Build Native Container Binary](#build-native-container-binary)
+      - [Dockerfile](#dockerfile)
   - [Deploy on OpenShift](#deploy-on-openshift)
     - [Binary Build Strategy](#binary-build-strategy)
+    - [Build and push to external registry](#build-and-push-to-external-registry)
     - [Source-to-Image Strategy](#source-to-image-strategy)
       - [JVM mode](#jvm-mode-1)
       - [Native mode](#native-mode-1)
+      - [Push to external registry](#push-to-external-registry)
 
 <!-- /TOC -->
 
 ## JVM Mode
 ### Fast JAR
-* Build JAR is simple as simple maven project with **mvn package**. You need maven 3.6.3 or later for build quarkus
+* Build JAR is simple as simple maven project with **mvn package**. You need maven 3.6.2 or later for build quarkus
   - Build and package
   - 
     ```bash
@@ -292,13 +295,17 @@ Native binary for Container (Linux x64) can be build from your machine which may
 Build native container quite consume memory. You may need to configure maximum memory of your docker to 5GB
 <!-- *Remark: Build container binary is quite CPU and also memory intensive. It will take some minutes to build* -->
 
-```bash
-mvn clean package \
--Dquarkus.native.container-build=true \
--DskipTests=true \
--Pnative
-```
-Check for executable binary on linux format
+#### Dockerfile
+* Build container native binary
+  
+  ```bash
+  mvn clean package \
+  -Dquarkus.native.container-build=true \
+  -DskipTests=true \
+  -Pnative
+  ```
+  
+* Check for executable binary on linux format
 
 ```bash
 file target/backend-1.0.0-runner
@@ -317,14 +324,48 @@ mvn clean package \
 -DskipTests=true \
 -Dnative-image.xmx=5g
 ``` -->
-Build container image
+* Build container image
 
-```bash
-docker build -f src/main/docker/Dockerfile.native \
--t backend-native:v1 .
-#Run
-docker run -p 8080:8080  backend-native:v1
-```
+  ```bash
+  docker build -f src/main/docker/Dockerfile.native \
+  -t backend-native:v1 .
+  #Run
+  docker run -p 8080:8080  backend-native:v1
+
+  #Check
+  docker images | head -n 2
+  ```
+
+#### Quarkus Extensions
+* Add container-image-docker extension
+
+  ```bash
+  mvn quarkus:add-extension -Dextensions="container-image-docker"
+  ```
+
+* Use quarkus extention
+  
+  ```bash
+  PUSH_TO_REGISTRY=true
+  IMAGE_NAME=backend
+  IMAGE_GROUP=voravitl
+  IMAGE_TAG=v3
+  REGISTRY=quay.io
+  TEST=false
+  IMAGE_BUILD=true
+  mvn clean package \
+  -Dquarkus.native.container-build=true \
+  -DSkipTests=${TEST} \
+  -Dquarkus.container-image.build=${IMAGE_BUILD} \
+  -Dquarkus.container-image.push=${PUSH_TO_REGISTRY} \
+  -Dquarkus.container-image.registry=${REGISTRY} \
+  -Dquarkus.container-image.name=${IMAGE_NAME} \
+  -Dquarkus.container-image.group=${IMAGE_GROUP} \
+  -Dquarkus.container-image.tag=${IMAGE_TAG}  
+  ```
+  
+  Remark: try to set maximum memory of Docker to 5 GB if you encountered out of memory error.
+
 
 You can use shell script [build_native_container.sh](../code/build_native_container.sh) to build quarkus native container .
 
@@ -510,8 +551,60 @@ docker build -f src/main/docker/Dockerfile.native \
 
 * All in one shell script, [build_ocp_jvm.sh](../code/build_ocp_jvm.sh)
 <!-- * All in one shell script for Uber JAR, [build_ocp_jvm_uberjar.sh](../code/build_ocp_jvm_uberjar.sh) -->
+### Build and push to external registry
+* Create secret for access external registry
   
- ### Source-to-Image Strategy
+  ```bash
+  PULL_SECRET_NAME=nexus-registry
+  REGISTRY_SERVER=nexus-registry-ci-cd.apps.cluster-a987.a987.example.opentlc.com \
+  USER=admin
+  PASSWORD=<change this!>
+  oc create secret docker-registry $PULL_SECRET_NAME \
+      --docker-server=$REGISTRY_SERVER \
+      --docker-username=$USER \
+      --docker-password=$PASSWORD \
+      --docker-email=unused
+  ```
+  
+* Link secret to pod for pull image
+
+  ```bash
+  oc secrets link default nexus-registry --for=pull
+  ```
+
+* Build with parameter **--to-docker=true**
+
+  * Create build config and specify secret in build config with parameter **--push-secert**
+  
+  ```bash
+  NAME=backend
+  TAG=latest
+  oc new-build --binary --name=$NAME -l app=$NAME \
+  --to-docker=true \
+  --push-secret=nexus-registry \
+  --to=nexus-registry-ci-cd.apps.cluster-a987.a987.example.opentlc.com/$NAME:$TAG
+  oc patch bc/backend -p "{\"spec\":{\"strategy\":{\"dockerStrategy\":{\"dockerfilePath\":\"src/main/docker/Dockerfile.jvm\"}}}}"
+  ```
+
+  * Link secret to builder
+    - Link secret to service account builder
+     
+      ```bash
+      oc secrets link builder nexus-registry
+      ```
+    - Create build config
+      
+      ```bash
+      NAME=backend
+      TAG=latest
+      oc new-build --binary --name=$NAME -l app=$NAME \
+      --to-docker=true \
+      --to=nexus-registry-ci-cd.apps.cluster-a987.a987.example.opentlc.com/$NAME:$TAG
+      oc patch bc/backend -p "{\"spec\":{\"strategy\":{\"dockerStrategy\":{\"dockerfilePath\":\"src/main/docker/Dockerfile.jvm\"}}}}"
+      ```
+
+
+### Source-to-Image Strategy
 
 S2I support both JVM and native container. You need to specified which S2I to use for build Quarkus container
 
@@ -588,6 +681,30 @@ You can use **oc new-app** to create container image and deploy to OpenShift fro
 * Memory used by build pod
 
   ![](imagesdir/memory-used-by-build-native-image-pod.png)
+
+ #### Push to external registry
+ * Create [secret](#push-to-external-registry)
+ * Link service account [builder to secret](#push-to-external-registry)
+ * Patch build config after run **oc new-app**
+  
+  ```bash
+  APP_NAME=backend
+  BASE_IMAGE=openjdk-11
+  CONTEXT_DIR=code 
+  APP_REPOSITORY=https://gitlab.com/ocp-demo/backend_quarkus.git
+  oc new-app \
+  ${BASE_IMAGE}~${APP_REPOSITORY} \
+  --context-dir=${CONTEXT_DIR} \
+  --build-env=QUARKUS_PACKAGE_TYPE=legacy-jar \
+  --build-env=MAVEN_MIRROR_URL=http://nexus.ci-cd.svc.cluster.local:8081/repository/maven-all-public \
+  --name=${APP_NAME}
+
+  # Patch build config to push image to external registry
+  oc patch bc/$APP_NAME -p "{\"spec\":{\"output\":{\"to\":{\"kind\":\"DockerImage\"}}}}"
+  oc patch bc/$APP_NAME -p "{\"spec\":{\"output\":{\"to\":{\"name\":\"nexus-registry-ci-cd.apps.cluster-a987.a987.example.opentlc.com/backend:v1\"}}}}"
+  oc logs -f bc/$APP_NAME
+  ```
+
 <!-- ### Quarkus Extensions
 
 Quarkus support for automatic deployment to kubernetes, OpenShift (and KNative)
