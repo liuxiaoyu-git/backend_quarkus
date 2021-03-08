@@ -690,18 +690,30 @@ You can use **oc new-app** to create container image and deploy to OpenShift fro
   ```bash
   APP_NAME=backend
   BASE_IMAGE=openjdk-11
-  CONTEXT_DIR=code 
+  CONTEXT_DIR=code
+  TAG=latest
+  REGISTRY=nexus-registry-ci-cd.apps.cluster-a987.a987.example.opentlc.com 
   APP_REPOSITORY=https://gitlab.com/ocp-demo/backend_quarkus.git
+  
   oc new-app \
-  ${BASE_IMAGE}~${APP_REPOSITORY} \
-  --context-dir=${CONTEXT_DIR} \
+  $BASE_IMAGE~$APP_REPOSITORY \
+  --context-dir=$CONTEXT_DIR \
   --build-env=QUARKUS_PACKAGE_TYPE=legacy-jar \
   --build-env=MAVEN_MIRROR_URL=http://nexus.ci-cd.svc.cluster.local:8081/repository/maven-all-public \
-  --name=${APP_NAME}
-
+  --name=$APP_NAME
+  
+  # Stop build
+  oc delete build $APP_NAME-1
+  
   # Patch build config to push image to external registry
   oc patch bc/$APP_NAME -p "{\"spec\":{\"output\":{\"to\":{\"kind\":\"DockerImage\"}}}}"
   oc patch bc/$APP_NAME -p "{\"spec\":{\"output\":{\"to\":{\"name\":\"nexus-registry-ci-cd.apps.cluster-a987.a987.example.opentlc.com/backend:v1\"}}}}"
+  
+  # Patch deployment
+  oc patch deployment backend --type='json' -p='[{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"'$REGISTRY'/'$APP_NAME':'$TAG'"}]'
+
+  # Start build
+  oc start-build $APP_NAME
   oc logs -f bc/$APP_NAME
   ```
 
