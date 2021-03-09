@@ -9,8 +9,6 @@
                                               /_/            /____/   
 
 ```
-<!-- TOC -->
-
 - [Build Quarkus](#build-quarkus)
   - [JVM Mode](#jvm-mode)
     - [Fast JAR](#fast-jar)
@@ -27,13 +25,13 @@
     - [Native Mode](#native-mode-1)
       - [Dockerfile](#dockerfile-1)
     - [Build and push to external registry](#build-and-push-to-external-registry)
+  - [OpenShift](#openshift)
     - [Source-to-Image Strategy](#source-to-image-strategy)
       - [JVM mode](#jvm-mode-2)
       - [Native mode](#native-mode-2)
       - [Push to external registry](#push-to-external-registry)
     - [OpenShift Extension](#openshift-extension)
 
-<!-- /TOC -->
 
 ## JVM Mode
 ### Fast JAR
@@ -581,6 +579,7 @@ Quarkus supported to build and deploy on OpenShift
 * All in one shell script, [build_ocp_jvm.sh](../code/build_ocp_jvm.sh)
 <!-- * All in one shell script for Uber JAR, [build_ocp_jvm_uberjar.sh](../code/build_ocp_jvm_uberjar.sh) -->
 ### Build and push to external registry
+
 * Create secret for access external registry
   
   ```bash
@@ -632,6 +631,7 @@ Quarkus supported to build and deploy on OpenShift
       oc patch bc/backend -p "{\"spec\":{\"strategy\":{\"dockerStrategy\":{\"dockerfilePath\":\"src/main/docker/Dockerfile.jvm\"}}}}"
       ```
 
+## OpenShift
 
 ### Source-to-Image Strategy
 
