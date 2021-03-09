@@ -20,15 +20,18 @@
   - [Native Mode](#native-mode)
     - [Install and Configure GraalVM](#install-and-configure-graalvm)
     - [Build Native binary](#build-native-binary)
-    - [Build Native Container Binary](#build-native-container-binary)
+    - [Build Linux Native Binary](#build-linux-native-binary)
+  - [Build Container Image](#build-container-image)
+    - [JVM Mode](#jvm-mode-1)
       - [Dockerfile](#dockerfile)
-  - [Deploy on OpenShift](#deploy-on-openshift)
-    - [Binary Build Strategy](#binary-build-strategy)
+    - [Native Mode](#native-mode-1)
+      - [Dockerfile](#dockerfile-1)
     - [Build and push to external registry](#build-and-push-to-external-registry)
     - [Source-to-Image Strategy](#source-to-image-strategy)
-      - [JVM mode](#jvm-mode-1)
-      - [Native mode](#native-mode-1)
+      - [JVM mode](#jvm-mode-2)
+      - [Native mode](#native-mode-2)
       - [Push to external registry](#push-to-external-registry)
+    - [OpenShift Extension](#openshift-extension)
 
 <!-- /TOC -->
 
@@ -224,7 +227,7 @@ ls target/*-runner.jar
 
 ## Native Mode
 
-Quarkus 1.12 need need GraalVM vesion 21. For OSX user for build binary application.
+Quarkus 1.12 need need GraalVM vesion 21 to build native binary mode.
 
 ### Install and Configure GraalVM
 
@@ -281,6 +284,8 @@ curl http://localhost:8080
 
 You can use shell script *[build_native.sh](../code/build_native.sh)* to build native binary.
 
+*Remark: You may need to set maximum memory of Docker to 5 GB*
+
 Check Backend Application for elapsed time for start application. It took just **0.078s** sec
 
 ```log
@@ -289,14 +294,12 @@ Check Backend Application for elapsed time for start application. It took just *
 09:10:09 INFO  [io.quarkus] (main) Installed features: [cdi, kubernetes, resteasy, smallrye-health, smallrye-metrics, smallrye-openapi]
 ```
 
-### Build Native Container Binary
+### Build Linux Native Binary
 
 Native binary for Container (Linux x64) can be build from your machine which may be not Linux by using parameter **-Dquarkus.native.container-build=true**
 Build native container quite consume memory. You may need to configure maximum memory of your docker to 5GB
-<!-- *Remark: Build container binary is quite CPU and also memory intensive. It will take some minutes to build* -->
 
-#### Dockerfile
-* Build container native binary
+* Build container native binary with parameter **quarkus.native.container-build=true** 
   
   ```bash
   mvn clean package \
@@ -304,26 +307,14 @@ Build native container quite consume memory. You may need to configure maximum m
   -DskipTests=true \
   -Pnative
   ```
-  
 * Check for executable binary on linux format
 
-```bash
-file target/backend-1.0.0-runner
+  ```bash
+  file target/backend-1.0.0-runner
 
-#Sample output
-target/backend-1.0.0-runner: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0, BuildID[sha1]=9658827db4fe64a490f8fafa42093da597bb3302, with debug_info, not stripped
-```
-
-<!-- - Maven with option -Dnative-image.xmx=5g -->
-<!-- - For Docker, configure maximum of Docker to 5 GB. Docker => Preference => Resources => Advance -->
-
-<!-- ```bash
-mvn clean package \
--Dquarkus.native.container-build=true \
--Pnative \
--DskipTests=true \
--Dnative-image.xmx=5g
-``` -->
+  #Sample output
+  target/backend-1.0.0-runner: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0, BuildID[sha1]=9658827db4fe64a490f8fafa42093da597bb3302, with debug_info, not stripped
+  ```
 * Build container image
 
   ```bash
@@ -334,44 +325,13 @@ mvn clean package \
 
   #Check
   docker images | head -n 2
-  ```
+  ``` 
 
-#### Quarkus Extensions
-* Add container-image-docker extension
+## Build Container Image 
 
-  ```bash
-  mvn quarkus:add-extension -Dextensions="container-image-docker"
-  ```
+### JVM Mode
 
-* Use quarkus extention
-  
-  ```bash
-  PUSH_TO_REGISTRY=true
-  IMAGE_NAME=backend
-  IMAGE_GROUP=voravitl
-  IMAGE_TAG=v3
-  REGISTRY=quay.io
-  TEST=false
-  IMAGE_BUILD=true
-  mvn clean package \
-  -Dquarkus.native.container-build=true \
-  -DSkipTests=${TEST} \
-  -Dquarkus.container-image.build=${IMAGE_BUILD} \
-  -Dquarkus.container-image.push=${PUSH_TO_REGISTRY} \
-  -Dquarkus.container-image.registry=${REGISTRY} \
-  -Dquarkus.container-image.name=${IMAGE_NAME} \
-  -Dquarkus.container-image.group=${IMAGE_GROUP} \
-  -Dquarkus.container-image.tag=${IMAGE_TAG}  
-  ```
-  
-  Remark: try to set maximum memory of Docker to 5 GB if you encountered out of memory error.
-
-
-You can use shell script [build_native_container.sh](../code/build_native_container.sh) to build quarkus native container .
-
-## Build JVM Container Image 
-
-### Dockerfile
+#### Dockerfile
 
 * Build JAR
 <!-- * Create *[.dockerignore](../code/.dockerignore)* to included JAR and lib in target directory.
@@ -390,10 +350,10 @@ You can use shell script [build_native_container.sh](../code/build_native_contai
   -t ${CONTAINER_NAME}:${TAG} .
   ```
 
-* For uber jar, using [Dockerfile.jvm_uberjar](../code/src/main/docker/Dockerfile.jvm_uberjar)
+* For uber jar, using [Dockerfile.jvm](../code/src/main/docker/Dockerfile.jvm)
 
   ```bash
-  docker build -f src/main/docker/Dockerfile.jvm_uberjar \
+  docker build -f src/main/docker/Dockerfile.jvm \
   -t ${CONTAINER_NAME}:${TAG} .
   ```
 
@@ -411,10 +371,10 @@ You can use shell script [build_native_container.sh](../code/build_native_contai
   -e app.backend=https://httpbin.org/delay/1 \
   ${CONTAINERNAME}:${TAG}
   ```
+  
+#### JVM Mode with container-image-docker
 
-### Quarkus Extension
-
-* Quarkus provide Extension **container-image-docker** to build container image. ( jib plugin also available). You can use **quarkus:add-extension** to add extension to *pom.xml*
+* Quarkus provide Extension **container-image-docker** to build container image. (jib plugin also available). You can use **quarkus:add-extension** to add extension to *pom.xml*
 
   ```bash
   mvn quarkus:add-extension -Dextensions="container-image-docker"
@@ -443,10 +403,9 @@ You can use shell script [build_native_container.sh](../code/build_native_contai
 
 * Shell script **[build_jvm_container_by_plugin.sh](../code/build_jvm_container_by_plugin.sh)** to build Quarkus JVM container image and push image to remote registry.
 
-Following script build container with name *backend* and tag with *v3* and push to *quay.io/voravitl/backend*
+Following script build container with name *backend* and push to *quay.io/voravitl/backend:v3*
 
 ```bash
-#!/bin/sh
 PUSH_TO_REGISTRY=true
 IMAGE_NAME=backend
 IMAGE_GROUP=voravitl
@@ -455,7 +414,7 @@ REGISTRY=quay.io
 TEST=false
 IMAGE_BUILD=true
 
-#mvn quarkus:add-extension -Dextensions="container-image-docker"
+# For JVM Mode
 mvn clean package \
 -Dquarkus.native.container-build=true \
 -DSkipTests=${TEST} \
@@ -487,8 +446,78 @@ docker build -f src/main/docker/Dockerfile.native \
 * Shell script to build JVM container [build_native_container.sh](../code/build_native_container.sh)
   
 * Test container -->
+### Native Mode
 
-## Deploy on OpenShift
+#### Dockerfile
+
+Native binary for Container (Linux x64) can be build from your machine which may be not Linux by using parameter **-Dquarkus.native.container-build=true**
+Build native container quite consume memory. You may need to configure maximum memory of your docker to 5GB
+<!-- *Remark: Build container binary is quite CPU and also memory intensive. It will take some minutes to build* -->
+
+* Build container native binary
+  
+  ```bash
+  mvn clean package \
+  -Dquarkus.native.container-build=true \
+  -DskipTests=true \
+  -Pnative
+  ```
+  
+* Check for executable binary on linux format
+
+```bash
+file target/backend-1.0.0-runner
+
+#Sample output
+target/backend-1.0.0-runner: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0, BuildID[sha1]=9658827db4fe64a490f8fafa42093da597bb3302, with debug_info, not stripped
+```
+* Build container image by using **[Dockerfile.native](../code/src/main/docker/Dockerfile.native)**
+  
+```bash
+docker build -f src/main/docker/Dockerfile.native \
+-t ${CONTAINER_NAME}:${TAG} .
+```
+<!-- - Maven with option -Dnative-image.xmx=5g -->
+<!-- - For Docker, configure maximum of Docker to 5 GB. Docker => Preference => Resources => Advance -->
+
+<!-- ```bash
+mvn clean package \
+-Dquarkus.native.container-build=true \
+-Pnative \
+-DskipTests=true \
+-Dnative-image.xmx=5g
+``` -->
+#### Native Mode with container-image-docker
+
+* Just add **-Pnative** and use container-image-docker extension to build native container image.
+
+  ```bash
+  PUSH_TO_REGISTRY=true
+  IMAGE_NAME=backend
+  IMAGE_GROUP=voravitl
+  IMAGE_TAG=v3
+  REGISTRY=quay.io
+  TEST=false
+  IMAGE_BUILD=true
+
+  # For Native Mode
+  mvn clean package \
+  -Dquarkus.native.container-build=true \
+  -DSkipTests=${TEST} \
+  -Pnative \
+  -Dquarkus.container-image.build=${IMAGE_BUILD} \
+  -Dquarkus.container-image.push=${PUSH_TO_REGISTRY} \
+  -Dquarkus.container-image.registry=${REGISTRY} \
+  -Dquarkus.container-image.name=${IMAGE_NAME} \
+  -Dquarkus.container-image.group=${IMAGE_GROUP} \
+  -Dquarkus.container-image.tag=${IMAGE_TAG}
+  ```
+  
+  You can use shell script [build_native_container.sh](../code/build_native_container.sh) to build quarkus native container .
+  
+## OpenShift
+
+Quarkus supported to build and deploy on OpenShift 
 
 ### Binary Build Strategy
 * Build JAR 
@@ -566,13 +595,13 @@ docker build -f src/main/docker/Dockerfile.native \
       --docker-email=unused
   ```
   
-* Link secret to pod for pull image
+* Link secret to pod for pull image from external registry
 
   ```bash
   oc secrets link default nexus-registry --for=pull
   ```
 
-* Build with parameter **--to-docker=true**
+* Build and push to external registry with parameter **--to-docker=true**
 
   * Create build config and specify secret in build config with parameter **--push-secert**
   
@@ -586,13 +615,13 @@ docker build -f src/main/docker/Dockerfile.native \
   oc patch bc/backend -p "{\"spec\":{\"strategy\":{\"dockerStrategy\":{\"dockerfilePath\":\"src/main/docker/Dockerfile.jvm\"}}}}"
   ```
 
-  * Link secret to builder
-    - Link secret to service account builder
+  * Link secret to service account **builder**
+    - Link secret
      
       ```bash
       oc secrets link builder nexus-registry
       ```
-    - Create build config
+    - Create build config. There is no need to specify **--push-secert**
       
       ```bash
       NAME=backend
@@ -716,7 +745,68 @@ You can use **oc new-app** to create container image and deploy to OpenShift fro
   oc start-build $APP_NAME
   oc logs -f bc/$APP_NAME
   ```
+### OpenShift Extension
 
+* add openshift extension
+  
+  ```bash
+  mvn quarkus:add-extension -Dextensions="openshift"
+
+  #Sample output
+  ✅ Extension io.quarkus:quarkus-openshift has been installed
+  [INFO] ------------------------------------------------------------------------
+  [INFO] BUILD SUCCESS
+  [INFO] ------------------------------------------------------------------------
+  [INFO] Total time:  8.607 s
+  [INFO] Finished at: 2021-03-09T16:18:04+07:00
+  [INFO] ------------------------------------------------------------------------
+  ```
+  *Remark: Extension container-image-docker cannot be installed at the same time with extension openshift.*
+  
+  To remove extension. Run following command
+  
+  ```bash
+  mvn quarkus:remove-extension -Dextensions="quarkus-container-image-docker"
+  ```
+   
+* Build with S2I
+  - Build with openshift plugin. This will create build config and imagestream with tag by version specified in pom.xml
+  
+    ```bash
+    mvn clean package \
+    -Dquarkus.package.type=legacy-jar \
+    -Dquarkus.kubernetes-client.trust-certs=true \
+    -Dquarkus.container-image.build=true \
+    -DskipTests=true
+
+    # Check result
+    oc get is
+    oc get bc
+    oc get build
+    ``` 
+
+  - Deploy application from imagestream
+  
+   ```bash
+   oc new-app --name=backend backend:1.0.0
+   ``` 
+
+  <!-- - Create and deploy in single step with paramter **quarkus.kubernetes.deploy=true**
+    
+    **Remark**: Use quarkus.openshift.expose=true to automatically create route
+    
+    ```bash
+    mvn clean package \
+    -Dquarkus.package.type=legacy-jar \
+    -Dquarkus.kubernetes-client.trust-certs=true \
+    -Dquarkus.container-image.build=true \
+    -Dquarkus.kubernetes.deploy=true \
+    -Dquarkus.openshift.expose=true \
+    -Dquarkus.openshift.labels.app=backend \
+    -Dquarkus.openshift.labels.version=1.0.0 \
+    -Dquarkus.openshift.labels."app.openshift.io/runtime"=quarkus \
+    -DskipTests=true
+    ``` -->
 <!-- ### Quarkus Extensions
 
 Quarkus support for automatic deployment to kubernetes, OpenShift (and KNative)
