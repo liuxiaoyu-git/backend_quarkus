@@ -41,12 +41,12 @@ Overview strategy to CI/CD pipelines as follow:
 * Deploy to UAT project by provided drop-down menu to select container tag. This list will included only images those passed UAT only (contain date in tag)
 * Deploy to Production by provided drop-down menu with blue/green deployment strategy.
 
-<!-- Check for Jenkinsfile
+Check for Jenkinsfile
 
 * [Build](../Jenkinsfile/build/Jenkinsfile)
 * [Release Staging](../Jenkinsfile/relese/Jenkinsfile)
-* [Release UaT](../Jenkinsfile/release-uat/Jenkinsfile)
-* [Production](../Jenkinsfile/relese-prod/Jenkinsfile) -->
+* [Release UAT](../Jenkinsfile/release-uat/Jenkinsfile)
+* [Production](../Jenkinsfile/relese-prod/Jenkinsfile)
 
 ## Setup
 
@@ -54,7 +54,7 @@ Overview strategy to CI/CD pipelines as follow:
 
 This demo consists of 5 projects
 
-* CI/CD (ci-cd) - for tools including Jenkins (master/slave), Nexus and Sonarqube. All container images are stored in this namesapce
+* CI/CD (ci-cd) - for tools including Jenkins, Nexus and Sonarqube. All container images are stored in nexus and optional internal registry in this namespace 
 * Development (dev) - for developer
 * Staging (stage)
 * UAT (uat) - for UAT
@@ -113,6 +113,7 @@ cd bin
 
 #Create Jenkins slave with Maven 3.6 and Skopeo
 ./setup_maven36_slave.sh
+
 ```
 Sample of shell script output
 ```bash
@@ -122,16 +123,13 @@ NEXUS URL = nexus-ci-cd.apps.cluster-79e2.79e2.example.opentlc.com
 NEXUS Password = e9b68dd7-e9dc-4cfe-a554-848bf23a7776
 Nexus password is stored at bin/nexus_password.txt
 Record this password and change it via web console
-You need to enable anonymous access
 Start build pipeline and deploy to dev project by run start_build_pipeline.sh
 ###########################################################################################
 ```
 
 ### Setup Nexus
-Login to nexus with user admin. Initial password is stored in bin/nexus_password.txt
+Login to nexus with user admin. Initial password is stored in bin/nexus_password.txt. You can disable annonymous access. Pipeline use secret with [nexus_settings.xml](..code/../../code/nexus_settings.xml) when build and push image 
 
-  * Nexus password need to be matched with password in [nexus_settings.xml](../code/nexus_settings.xml)
-  * Select enable anonymous access
 
 ### Create Pipeline
 
@@ -152,7 +150,7 @@ Overall Pipelines details
 
 |Pipelines|Description|Jenkinsfile Location|
 |---------|---------|---------|
-|backend-build-pipeline|Use binary build to create container image, run Unit Test, SonarQube scan, archive JAR to nexus and deploy to Development project|[build/Jenkinsfile](../Jenkinsfile/build/Jenkinsfile)|
+|backend-build-pipeline|Use binary build to create container image, run Unit Test, SonarQube scan and deploy to Development project|[build/Jenkinsfile](../Jenkinsfile/build/Jenkinsfile)|
 |backend-release-pipeline|Select image from image tag to deploy to Staging project,tag image with YYYYMMDD-<build number> and archive container image to Nexus|[release/Jenkinsfile](../Jenkinsfile/release/Jenkinsfile)|
 |backend-release-uat-pipeline|Select image from image tag to deploy to UAT project. Only image with tag YYYYMMDD-<build number> can be selected|[release-uat/Jenkinsfile](../Jenkinsfile/release-uat/Jenkinsfile)|
 |backend-release-prod-pipeline|Select image from image to deploy to production with blue/green deployment. Only image with tag YYYYMMDD-<build number> can be selected|[release-prod/Jenkinsfile](../Jenkinsfile/release-prod/Jenkinsfile)|
@@ -165,7 +163,7 @@ Build Pipeline details:
 * Build Uber JAR by using *[nexus_setting.xml](../code/nexus_settings.xml)* for load libaries from Nexus.
 * Tag with X.Y.Z-build_number. Remark that version (X.Y.Z) is retrived from [pom.xml](../code/pom.xml)
 * Parallel run Unit Test and scan code by SonarQube.
-* Archive Uber JAR to Nexus.
+<!-- * Archive Uber JAR to Nexus. -->
 * Create Build Config, Service and Route objects if not exists.
 * Build container and store container image in OpenShift's internal registry inside ci-cd project
 * Create Deployment Config. This will automatically deploy to dev project.
@@ -383,3 +381,13 @@ Check developer console to verify that active version is switched to green-group
 
 ![Pod in Staging Project](imagesdir/dev-console-prod-project-switch-to-green.png)
 
+<!-- oc create secret docker-registry <pull_secret_name> \
+    --docker-server=<registry_server> \
+    --docker-username=<user_name> \
+    --docker-password=<password> \
+    --docker-email=<email>
+
+    Sample email = unused
+
+oc secrets link default <pull_secret_name> --for=pull
+oc secrets link builder <pull_secret_name> -->
