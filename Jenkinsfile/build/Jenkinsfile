@@ -228,12 +228,12 @@ pipeline {
                   "--from-dir=.",
                   "--wait"
                 )
-                if(env.USE_INTERNAL_REGISTRY.toBoolean()){
-                  openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
-                } else {
-                  sh "Use skopeo to tag"
-                  sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds ${nexusUser}:${nexusPassword} --dest-creds ${nexusUser}:${nexusPassword} ${env.NEXUS_REGISTRY_SVC}/${imageName}:latest ${env.NEXUS_REGISTRY_SVC}/${imageName}:${releaseTag}"  
-                }
+                // if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+                //   openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
+                // } else {
+                //   sh "Use skopeo to tag"
+                //   sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds ${nexusUser}:${nexusPassword} --dest-creds ${nexusUser}:${nexusPassword} ${env.NEXUS_REGISTRY_SVC}/${imageName}:latest ${env.NEXUS_REGISTRY_SVC}/${imageName}:${releaseTag}"  
+                // }
               }
             }
           }
