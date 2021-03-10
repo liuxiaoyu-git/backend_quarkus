@@ -146,7 +146,7 @@ pipeline {
               openshift.withProject(env.CICD_PROJECT) {
                 openshift.newBuild(
                   "--name=${imageName}",
-                  "--to=${env.NEXUS_REGISTRY}:${imageName}:latest",
+                  "--to=${env.NEXUS_REGISTRY}/${imageName}:latest",
                   "--to-docker=true",
                   "--strategy=docker",
                   "--binary=true"
