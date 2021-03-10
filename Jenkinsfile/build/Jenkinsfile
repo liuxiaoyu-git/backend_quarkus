@@ -221,7 +221,7 @@ pipeline {
         echo "Build Container Image ${imageName}"
         dir('code') {
           script {
-            openshift.withCluster() {
+            //openshift.withCluster() {
               // openshift.withProject(env.CICD_PROJECT) {
               //   openshift.startBuild(
               //     "${imageName}",
@@ -236,7 +236,7 @@ pipeline {
                   sh "podman tag ${env.NEXUS_REGISTRY}/${imageName}:latest ${env.NEXUS_REGISTRY}/${imageName}:${devTag}"
                 }
               }
-            }
+            //}
           }
         }
       }
