@@ -150,7 +150,7 @@ pipeline {
           }
         }
       }
-    }
+    
     // Create Service
     stage('Create Service') {
       when {
