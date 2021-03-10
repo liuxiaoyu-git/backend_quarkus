@@ -1,0 +1,330 @@
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <meta http-equiv="Cache-control" content="public">
+  <title>RESTful freelancers Application</title>
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+</head>
+
+<body>
+
+<div class="container">
+
+  <div>
+    <div class="sect1">
+        <h2 id="_health_check_booster">Quarkus RESTful API Application</h2>
+        <div class="sectionbody">
+            <div class="paragraph">
+                <p>This sample app demonstrates Quarkus with JPA</p>
+            </div>
+            <div class="paragraph">
+                <p></p>
+                <!-- <p>To demonstrate this behavior, the application configures a <code>/health</code> HTTP endpoint using WildFly Swarm's
+                    <code>@Health</code> annotation, which is used
+                    by Kubernetes to issue HTTP requests. If the container is still alive (meaning the Health HTTP endpoint
+                    is able to reply) the management platform will receive HTTP code 200 as a response, and no further action
+                    is taken. After you click the
+                    <code>stop service</code> button, the HTTP endpoint stops returning a response, and the platform then restarts
+                    the pod with the unresponsive container. While the pod is down, the booster UI polls the service periodically
+                    until the pod is restarted. In the meantime, do <strong>not</strong> refresh the page because it will
+                    not be served until the pod finishes restarting.</p> -->
+                
+            </div>
+             <div class="sect2">
+                <h3 id="_URI">Service URI</h3>
+                <code>/freelancers</code>List All<br>
+                <code>/freelancers/{id}</code>List by Id<br>
+            </div>
+            <div class="sect2">
+                <p>&nbsp;</p><h3 id="_using_the_freelancer_service">Search freelancers</h3>
+                <form class="form-inline">
+                    <div class="form-group">
+                      <label for="search">Id:</label>
+                      <input type="text" class="form-control" id="Id" placeholder="123456">
+                    </div>
+                    <button id="invoke" type="submit" class="btn btn-success">Query</button>
+                  </form>
+            </div>
+            <div class="sect2">
+                <p>&nbsp;</p><h3 id="_using_the_freelancer_service">Healthcheck Service</h3>
+                <form class="form-inline">
+                    <div class="form-group">
+                      <label for="search">&nbsp;</label>
+                      <!-- <input type="text" class="form-control" id="Id"> -->
+                    </div>
+                    <button id="health" type="submit" class="btn btn-success">Health</button>
+                    <button id="readiness" type="submit" class="btn btn-success">Readiness</button>
+                    <button id="liveness" type="submit" class="btn btn-success">Liveness</button>
+                  </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- <form class="form-inline">
+      <div class="form-group">
+        <label for="search">Id:</label>
+        <input type="text" class="form-control" id="Id" placeholder="123456">
+      </div>
+      <button id="invoke" type="submit" class="btn btn-success">Query</button>
+    </form> -->
+
+    <!-- <form class="form-inline">
+        <div class="form-group">
+          <label for="Health check"></label>
+         
+        </div>
+        <button id="health" type="submit" class="btn btn-success">Health</button>
+      </form> -->
+
+      <p>&nbsp;</p><h3>Result:</h3>
+    <pre><code id="freelancers-result">Invoke the service to see the result.</code></pre>
+  </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+        integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+        crossorigin="anonymous"></script>
+
+<script>
+    var stopTime;
+    var attempts;
+
+    function invokeService() {
+        var n = $("#Id").val();
+        $.getJSON("/" + n, function (res) {
+            $("#freelancers-result").html(JSON.stringify(res,null, 4).fontcolor('blue'));
+        }).fail(function(err) {
+            $("#freelancers-result").html(JSON.stringify(err));
+        });
+    }
+
+    function invokeHealth() {
+        $.getJSON("/health", function (res) {
+            $("#freelancers-result").html(JSON.stringify(res,null, 4).fontcolor('green'));
+        }).fail(function(err) {
+            $("#freelancers-result").html(JSON.stringify(err));
+        });
+    }
+    function invokeReadiness() {
+        $.getJSON("/health/ready", function (res) {
+            $("#freelancers-result").html(JSON.stringify(res,null, 4).fontcolor('green'));
+        }).fail(function(err) {
+            $("#freelancers-result").html(JSON.stringify(err));
+        });
+    }
+    function invokeLiveness() {
+        $.getJSON("/health/live", function (res) {
+            $("#freelancers-result").html(JSON.stringify(res,null, 4).fontcolor('green'));
+        }).fail(function(err) {
+            $("#freelancers-result").html(JSON.stringify(err));
+        });
+    }
+
+    function invokeServiceandRetryUponFailures() {
+        alert('Stop');  
+        var n = $("#Id").val() || "World";
+        $.getJSON("/not_ready" + n, function (res) {
+            var rebirth = new Date();
+            var diff = (stopTime.getTime() - rebirth.getTime()) / 1000;
+            var abs = Math.abs(diff);
+            $("#freelancers-result").html(JSON.stringify(res) + " (the recovery took " + abs + " seconds)");
+        })
+            .fail(function () {
+                $("#freelancers-result").html("[" + ++attempts + "] Service not available... Retrying in 2 seconds");
+                setTimeout(invokeServiceandRetryUponFailures, 2000);
+            });
+    }
+
+    $(document).ready(function() {
+        $("#invoke").click(function (e) {
+            invokeService();
+            e.preventDefault();
+        });
+
+        $("#health").click(function (e){
+            invokeHealth();
+            e.preventDefault();
+        });
+        $("#readiness").click(function (e){
+            invokeReadiness();
+            e.preventDefault();
+        });
+        $("#liveness").click(function (e){
+            invokeLiveness();
+            e.preventDefault();
+        });
+
+        $("#stop").click(function (e) {
+            $.get( "/not_ready", function( data ) {
+                $("#freelancers-result").html("The application has been stopped...");
+                stopTime = new Date();
+                attempts = 0;
+                setTimeout(invokeServiceandRetryUponFailures, 2000);
+            });
+            e.preventDefault();
+        });
+    });
+</script>
+
+</body>
+
+</html>
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>freelancer - 1.0.0-SNAPSHOT</title>
+    <style>
+        h1, h2, h3, h4, h5, h6 {
+            margin-bottom: 0.5rem;
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+        }
+
+        h2 {
+            font-size: 2rem
+        }
+
+        h3 {
+            font-size: 1.75rem
+        }
+
+        h4 {
+            font-size: 1.5rem
+        }
+
+        h5 {
+            font-size: 1.25rem
+        }
+
+        h6 {
+            font-size: 1rem
+        }
+
+        .lead {
+            font-weight: 300;
+            font-size: 2rem;
+        }
+
+        .banner {
+            font-size: 2.7rem;
+            margin: 0;
+            padding: 2rem 1rem;
+            background-color: #00A1E2;
+            color: white;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        }
+
+        code {
+            font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 87.5%;
+            color: #e83e8c;
+            word-break: break-word;
+        }
+
+        .left-column {
+            padding: .75rem;
+            max-width: 75%;
+            min-width: 55%;
+        }
+
+        .right-column {
+            padding: .75rem;
+            max-width: 25%;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+        }
+
+        li {
+            margin: 0.75rem;
+        }
+
+        .right-section {
+            margin-left: 1rem;
+            padding-left: 0.5rem;
+        }
+
+        .right-section h3 {
+            padding-top: 0;
+            font-weight: 200;
+        }
+
+        .right-section ul {
+            border-left: 0.3rem solid #00A1E2;
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="banner lead">
+    Your new Cloud-Native application is ready!
+</div>
+
+<div class="container">
+    <div class="left-column">
+        <p class="lead"> Congratulations, you have created a new Quarkus application.</p>
+
+        <h2>Why do you see this?</h2>
+
+        <p>This page is served by Quarkus. The source is in
+            <code>src/main/resources/META-INF/resources/index.html</code>.</p>
+
+        <h2>What can I do from here?</h2>
+
+        <p>If not already done, run the application in <em>dev mode</em> using: <code>mvn compile quarkus:dev</code>.
+        </p>
+        <ul>
+            <li>Add REST resources, Servlets, functions and other services in <code>src/main/java</code>.</li>
+            <li>Your static assets are located in <code>src/main/resources/META-INF/resources</code>.</li>
+            <li>Configure your application in <code>src/main/resources/application.properties</code>.
+            </li>
+        </ul>
+
+        <h2>How do I get rid of this page?</h2>
+        <p>Just delete the <code>src/main/resources/META-INF/resources/index.html</code> file.</p>
+    </div>
+    <div class="right-column">
+        <div class="right-section">
+            <h3>Application</h3>
+            <ul>
+                <li>GroupId: com.example</li>
+                <li>ArtifactId: freelancer</li>
+                <li>Version: 1.0.0-SNAPSHOT</li>
+                <li>Quarkus Version: 1.2.1.Final</li>
+            </ul>
+        </div>
+        <div class="right-section">
+            <h3>Next steps</h3>
+            <ul>
+                <li><a href="https://quarkus.io/guides/maven-tooling.html" target="_blank">Setup your IDE</a></li>
+                <li><a href="https://quarkus.io/guides/getting-started.html" target="_blank">Getting started</a></li>
+                <li><a href="https://quarkus.io" target="_blank">Quarkus Web Site</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+</body>
+</html> -->

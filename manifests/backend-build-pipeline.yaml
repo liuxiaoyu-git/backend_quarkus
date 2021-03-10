@@ -31,8 +31,8 @@ spec:
           value: https://httpbin.org/status/200
         - name: NEXUS_SVC
           value: http://nexus:8081
-        - name: NEXUS_REGISTRY_SVC
-          value: nexus-registry:5000
+        - name: NEXUS_REGISTRY
+          value: nexus-registry-ci-cd.apps.cluster-a987.a987.example.opentlc.com
         - name: SONARQUBE_SVC
           value: http://sonarqube:9000
         - name: NEXUS_SECRET

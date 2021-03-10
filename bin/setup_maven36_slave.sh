@@ -15,10 +15,12 @@ oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-
    chmod -R 755 /opt/apache-maven-3.6.3 && \ \n
    chown -R 1001:0 /opt/apache-maven-3.6.3 && \ \n
    DISABLES="--disablerepo=rhel-server-extras --disablerepo=rhel-server --disablerepo=rhel-fast-datapath --disablerepo=rhel-server-optional --disablerepo=rhel-server-ose --disablerepo=rhel-server-rhscl" && \ \n
+   yum $DISABLES -y --setopt=tsflags=nodocs install podman &&  \ \n
    yum $DISABLES -y --setopt=tsflags=nodocs install skopeo && yum clean all   \n
    ENV PATH=/opt/apache-maven-3.6.3/bin:$PATH \n
    USER 1001' --name=${JENKINS_SLAVE} -n ${PROJECT}
-
+# uid=1000680000(default) gid=0(root) groups=0(root),1000680000
+# 
 #    yum $DISABLES -y --setopt=tsflags=nodocs install podman && \ \n
 #    yum $DISABLES -y --setopt=tsflags=nodocs install java-11-openjdk-devel && \ \n
 # Quay => FROM openshift/jenkins-slave-base-centos7:v3.11 

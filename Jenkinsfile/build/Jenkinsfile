@@ -148,7 +148,7 @@ pipeline {
                   "--name=${imageName}",
                   "--to=${env.NEXUS_REGISTRY}/${imageName}:latest",
                   "--to-docker=true",
-                  "--insecure-registry=true",
+                  // "--insecure-registry=true",
                   "--push-secret=nexus-registry",
                   "--strategy=docker",
                   "--binary=true"
