@@ -128,14 +128,19 @@ pipeline {
       steps {
         echo "Create build config ${imageName}:latest"
         script {
+          echo "Use internal image registry"
           openshift.withCluster() {
-            openshift.withProject(env.CICD_PROJECT) {
-              openshift.newBuild(
-                "--name=${imageName}",
-                "--to=${imageName}:latest",
-                "--strategy=docker",
-                "--binary=true"
-              )
+            if(env.USE_INTERNAL_REGISTRY){
+              openshift.withProject(env.CICD_PROJECT) {
+                openshift.newBuild(
+                  "--name=${imageName}",
+                  "--to=${imageName}:latest",
+                  "--strategy=docker",
+                  "--binary=true"
+                )
+            }else{
+              echo "Use external image registry"
+            }
               def bc = openshift.selector("bc/${imageName}").object()
               bc.spec.strategy.dockerStrategy.dockerfilePath = "src/main/docker/Dockerfile.jvm"
               openshift.apply(bc)

@@ -35,6 +35,8 @@ spec:
           value: http://sonarqube:9000
         - name: NEXUS_SECRET
           value: nexus-credential
+        - name: USE_INTERNAL_REGISTRY
+          value: "true"
     type: JenkinsPipeline
   successfulBuildsHistoryLimit: 5
   triggers: []
