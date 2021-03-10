@@ -72,8 +72,6 @@ pipeline {
 
           echo "Building binary for ${imageName}"
           script {
-            // sh "podman login -u ${nexusUser} -p ${nexusPassword}  ${env.NEXUS_REGISTRY}"
-            // sh "podman tag ${env.NEXUS_REGISTRY}/${imageName}:latest ${env.NEXUS_REGISTRY}/${imageName}:${devTag}"
             sh "${mvnCmd} -Dquarkus.package.type=fast-jar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
           }
         }
@@ -233,7 +231,7 @@ pipeline {
                 if(env.USE_INTERNAL_REGISTRY.toBoolean()){
                   openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
                 } else {
-                  sh "copy docker://${env.NEXUS_REGISTRY}/${imageName}:latest ${env.NEXUS_REGISTRY}/${imageName}:${devTag}"
+                  sh "skopeo copy docker://${env.NEXUS_REGISTRY}/${imageName}:latest ${env.NEXUS_REGISTRY}/${imageName}:${devTag}"
                   
                 }
               }
