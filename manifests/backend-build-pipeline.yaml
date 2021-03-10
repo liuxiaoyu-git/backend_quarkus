@@ -31,12 +31,14 @@ spec:
           value: https://httpbin.org/status/200
         - name: NEXUS_SVC
           value: http://nexus:8081
+        - name: NEXUS_REGISTRY_SVC
+          value: nexus-registry:5000
         - name: SONARQUBE_SVC
           value: http://sonarqube:9000
         - name: NEXUS_SECRET
           value: nexus-credential
         - name: USE_INTERNAL_REGISTRY
-          value: "true"
+          value: "false"
     type: JenkinsPipeline
   successfulBuildsHistoryLimit: 5
   triggers: []

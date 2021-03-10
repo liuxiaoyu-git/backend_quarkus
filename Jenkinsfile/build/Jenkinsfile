@@ -142,6 +142,17 @@ pipeline {
             }
           }else{
             echo "Use external image registry"
+            openshift.withCluster() {
+              openshift.withProject(env.CICD_PROJECT) {
+                openshift.newBuild(
+                  "--name=${imageName}",
+                  "--to=${env.NEXUS_REGISTRY}:${imageName}:latest",
+                  "--to-docker=true"
+                  "--strategy=docker",
+                  "--binary=true"
+                )
+              }
+            }
           }
           openshift.withCluster() {
             openshift.withProject(env.CICD_PROJECT) {
