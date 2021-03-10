@@ -143,13 +143,17 @@ pipeline {
           }else{
             echo "Use external image registry"
           }
+          openshift.withCluster() {
+            openshift.withProject(env.CICD_PROJECT) {
               def bc = openshift.selector("bc/${imageName}").object()
               bc.spec.strategy.dockerStrategy.dockerfilePath = "src/main/docker/Dockerfile.jvm"
               openshift.apply(bc)
-            
+            }
           }
+            
         }
       }
+    }
     
     // Create Service
     stage('Create Service') {
