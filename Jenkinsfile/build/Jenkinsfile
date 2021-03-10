@@ -138,9 +138,10 @@ pipeline {
                   "--strategy=docker",
                   "--binary=true"
                 )
-            }else{
-              echo "Use external image registry"
-            }
+              }
+          }else{
+            echo "Use external image registry"
+          }
               def bc = openshift.selector("bc/${imageName}").object()
               bc.spec.strategy.dockerStrategy.dockerfilePath = "src/main/docker/Dockerfile.jvm"
               openshift.apply(bc)
