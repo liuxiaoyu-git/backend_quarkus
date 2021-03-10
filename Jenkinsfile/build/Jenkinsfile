@@ -148,6 +148,7 @@ pipeline {
                   "--name=${imageName}",
                   "--to=${env.NEXUS_REGISTRY}/${imageName}:latest",
                   "--to-docker=true",
+                  "--push-secret=nexus-credential",
                   "--strategy=docker",
                   "--binary=true"
                 )
