@@ -228,7 +228,11 @@ pipeline {
                   "--from-dir=.",
                   "--wait"
                 )
-                // openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
+                if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+                  openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
+                } else {
+                  openshift.tag("env.NEXUS_REGISTRY}/${imageName}:latest", "env.NEXUS_REGISTRY}/${imageName}:${devTag}")
+                }
               }
             }
           }
