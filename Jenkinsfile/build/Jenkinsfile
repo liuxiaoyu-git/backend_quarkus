@@ -232,7 +232,7 @@ pipeline {
                   openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
                 } else {
                   //openshift.tag("env.NEXUS_REGISTRY}/${imageName}:latest", "env.NEXUS_REGISTRY}/${imageName}:${devTag}")
-                  sh "podman image ls ${env.NEXUS_REGISTRY}/${imageName} | grep ${imageName} | awk '{print $2}'"
+                  sh "podman login -u ${nexusUser} -p ${nexusPassword}  ${env.NEXUS_REGISTRY}"
                 }
               }
             }
