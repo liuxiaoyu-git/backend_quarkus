@@ -231,7 +231,8 @@ pipeline {
                 if(env.USE_INTERNAL_REGISTRY.toBoolean()){
                   openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
                 } else {
-                  openshift.tag("env.NEXUS_REGISTRY}/${imageName}:latest", "env.NEXUS_REGISTRY}/${imageName}:${devTag}")
+                  //openshift.tag("env.NEXUS_REGISTRY}/${imageName}:latest", "env.NEXUS_REGISTRY}/${imageName}:${devTag}")
+                  sh "podman image ls ${env.NEXUS_REGISTRY}/${imageName} | grep ${imageName} | awk '{print $2}'"
                 }
               }
             }
