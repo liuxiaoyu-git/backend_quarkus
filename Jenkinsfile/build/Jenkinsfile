@@ -129,8 +129,8 @@ pipeline {
         echo "Create build config ${imageName}:latest"
         script {
           echo "Use internal image registry"
-          openshift.withCluster() {
-            if(env.USE_INTERNAL_REGISTRY){
+          if(env.USE_INTERNAL_REGISTRY){
+            openshift.withCluster() {
               openshift.withProject(env.CICD_PROJECT) {
                 openshift.newBuild(
                   "--name=${imageName}",
