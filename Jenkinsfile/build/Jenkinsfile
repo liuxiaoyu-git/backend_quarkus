@@ -65,18 +65,20 @@ pipeline {
       }
     }
     // Build the JAR
-    // stage('Build Binary') {
-    //   steps {
+    stage('Build Binary') {
+      steps {
 
-    //     dir('code') {
+        dir('code') {
 
-    //       echo "Building binary for ${imageName}"
-    //       script {
-    //         sh "${mvnCmd} -Dquarkus.package.type=fast-jar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
-    //       }
-    //     }
-    //   }
-    // }
+          echo "Building binary for ${imageName}"
+          script {
+            sh "podman login -u ${nexusUser} -p ${nexusPassword}  ${env.NEXUS_REGISTRY}"
+            sh "podman tag ${env.NEXUS_REGISTRY}/${imageName}:latest ${env.NEXUS_REGISTRY}/${imageName}:${devTag}"
+            sh "${mvnCmd} -Dquarkus.package.type=fast-jar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
+          }
+        }
+      }
+    }
     // Test
     // stage('Test') {
     //   parallel {
@@ -221,13 +223,13 @@ pipeline {
         echo "Build Container Image ${imageName}"
         dir('code') {
           script {
-            //openshift.withCluster() {
-              // openshift.withProject(env.CICD_PROJECT) {
-              //   openshift.startBuild(
-              //     "${imageName}",
-              //     "--from-dir=.",
-              //     "--wait"
-              //   )
+            openshift.withCluster() {
+              openshift.withProject(env.CICD_PROJECT) {
+                openshift.startBuild(
+                  "${imageName}",
+                  "--from-dir=.",
+                  "--wait"
+                )
                 if(env.USE_INTERNAL_REGISTRY.toBoolean()){
                   openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
                 } else {
@@ -236,7 +238,7 @@ pipeline {
                   sh "podman tag ${env.NEXUS_REGISTRY}/${imageName}:latest ${env.NEXUS_REGISTRY}/${imageName}:${devTag}"
                 }
               }
-            //}
+            }
           }
         }
       }
