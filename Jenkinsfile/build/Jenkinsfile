@@ -75,6 +75,7 @@ pipeline {
             sh "id"
             sh "whoami"
             sh "cat /etc/subuid"
+            sh "podman version"
             // sh "podman login -u ${nexusUser} -p ${nexusPassword}  ${env.NEXUS_REGISTRY}"
             // sh "podman tag ${env.NEXUS_REGISTRY}/${imageName}:latest ${env.NEXUS_REGISTRY}/${imageName}:${devTag}"
             sh "${mvnCmd} -Dquarkus.package.type=fast-jar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
