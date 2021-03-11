@@ -14,10 +14,15 @@ oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-
    rm -f /tmp/apache-maven-3.6.3-bin.tar && \ \n
    chmod -R 755 /opt/apache-maven-3.6.3 && \ \n
    chown -R 1001:0 /opt/apache-maven-3.6.3 && \ \n
+   curl -L -o /tmp/nexus-cli https://s3.eu-west-2.amazonaws.com/nexus-cli/1.0.0-beta/linux/nexus-cli  && \ \n
+   mkdir -p /opt/nexus-cli && \ \n
+   mv /tmp/nexus-cli /opt/nexus-cli && \ \n
+   chmod -R 755 /opt/nexus-cli/nexus-cli && \ \n
+   chown -R 1001:0 /opt/nexus-cli && \ \n
    DISABLES="--disablerepo=rhel-server-extras --disablerepo=rhel-server --disablerepo=rhel-fast-datapath --disablerepo=rhel-server-optional --disablerepo=rhel-server-ose --disablerepo=rhel-server-rhscl" && \ \n
    yum $DISABLES -y --setopt=tsflags=nodocs install podman &&  \ \n
    yum $DISABLES -y --setopt=tsflags=nodocs install skopeo && yum clean all   \n
-   ENV PATH=/opt/apache-maven-3.6.3/bin:$PATH \n
+   ENV PATH=/opt/apache-maven-3.6.3/bin:/opt/nexus-cli:$PATH \n
    USER 1001' --name=${JENKINS_SLAVE} -n ${PROJECT}
 # uid=1000680000(default) gid=0(root) groups=0(root),1000680000
 # 

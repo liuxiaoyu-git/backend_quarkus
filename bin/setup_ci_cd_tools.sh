@@ -7,9 +7,9 @@ DEV_PROJECT=dev
 PROD_PROJECT=prod
 STAGE_PROJECT=stage
 UAT_PROJECT=uat
-NEXUS_PVC_SIZE="8Gi"
-JENKINS_PVC_SIZE="4Gi"
-SONAR_PVC_SIZE="4Gi"
+NEXUS_PVC_SIZE="300Gi"
+JENKINS_PVC_SIZE="10Gi"
+SONAR_PVC_SIZE="10Gi"
 CICD_NEXUS_USER=jenkins
 CICD_NEXUS_USER_SECRET=$(echo ${CICD_NEXUS_USER}|base64 -)
 function check_pod(){
@@ -126,14 +126,31 @@ do
      --docker-password=$CICD_NEXUS_PASSWORD \
      --docker-email=unused \
      -n $project
+     oc create secret docker-registry nexus-svc-registry --docker-server=nexus-registry.svc.cluster.local:5000 \
+     --docker-username=$CICD_NEXUS_USER \
+     --docker-password=$CICD_NEXUS_PASSWORD \
+     --docker-email=unused \
+     -n $project
     #oc get secret nexus-credential -o yaml -n $CICD_PROJECT | grep -v '^\s*namespace:\s' | oc create -n $project -f -
 done
 PROJECTS=($DEV_PROJECT $STAGE_PROJECT $UAT_PROJECT $PROD_PROJECT)
 for project in $PROJECTS
 do
     oc secrets link default nexus-registry -n $project --for=pull
+    oc secrets link default nexus-svc-registry -n $project --for=pull
 done
 oc secrets link builder nexus-registry -n $CICD_PROJECT
+oc secrets link builder nexus-svc-registry -n $CICD_PROJECT
+
+# oc patch image.config.openshift.io/cluster \
+# --type='json' \
+# -p='[{"op": "add", "path": "/spec/registrySources/insecureRegistries/-", "value": "nexus-registry.ci-cd.svc.cluster.local" }]'
+
+# spec:
+#   registrySources:
+#     insecureRegistries:
+#     - nexus-registry.ci-cd.svc.cluster.local
+
 
 END_BUILD=$(date +%s)
 BUILD_TIME=$(expr ${END_BUILD} - ${START_BUILD})
