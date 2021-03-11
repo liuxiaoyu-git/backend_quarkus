@@ -65,13 +65,13 @@ pipeline {
     stage('Choose Staging Version') {
       steps {
         script {
-          def tags
+
           // select tag with nexus or internal registry
           if(env.USE_INTERNAL_REGISTRY.toBoolean()){
             println "OpenShift internal registry"
             openshift.withCluster() {
             namespace = openshift.project()
-            tags = openshift.selector("istag")
+            def tags = openshift.selector("istag")
               .objects()
               .collect {
                 it.metadata.name
@@ -85,27 +85,41 @@ pipeline {
               }
               .sort()
             }
+            timeout(5) {
+              selectTag = input(
+                ok: "Deploy Staging",
+                message: "Enter release version to promote to Staging",
+                parameters: [
+                  choice(
+                    choices: tags.join('\n'),
+                    description: '',
+                    name: 'Release Version'
+                  )
+                ]
+              )
+            }
           } else {
-            println "Nexus REgistry"
-            tags = sh (
+            println "Nexus Registry"
+            def tags = sh (
               script: 'nexus-cli image tags --name backend | grep -E "^([0-9]+).([0-9]+).([0-9]+)-([0-9]+)$"',
               returnStdout: true
             )
+            timeout(5) {
+              selectTag = input(
+                ok: "Deploy Staging",
+                message: "Enter release version to promote to Staging",
+                parameters: [
+                  choice(
+                    choices: tags,
+                    description: '',
+                    name: 'Release Version'
+                  )
+                ]
+              )
+            }
           }
           // Display men
-          timeout(5) {
-            selectTag = input(
-              ok: "Deploy Staging",
-              message: "Enter release version to promote to Staging",
-              parameters: [
-                choice(
-                  choices: tags.join('\n'),
-                  description: '',
-                  name: 'Release Version'
-                )
-              ]
-            )
-          }
+          
           // openshift.withCluster() {
           //   namespace = openshift.project()
           //   tags = openshift.selector("istag")
