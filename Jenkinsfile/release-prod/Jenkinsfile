@@ -4,6 +4,7 @@ def tag
 def version
 def activeApp
 def destApp
+def repository
 pipeline {
     agent {
         kubernetes {
@@ -31,31 +32,54 @@ pipeline {
         stage('Choose Production Version') {
             steps {
                 script {
-                    openshift.withCluster() {
-                        namespace = openshift.project()
-                        def tags = openshift.selector("istag")
+                        if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+                        println "OpenShift internal registry"
+                        openshift.withCluster() {
+                            namespace = openshift.project()
+                            def tags = openshift.selector("istag")
                             .objects()
                             .collect {
-                                it.metadata.name
+                            it.metadata.name
                             }
                             .findAll {
-                                it ==~ /^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)\-(.*)$/
+                            it ==~ /^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)\-(.*)$/
+                            //it.startsWith 'backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)'
                             }
                             .collect {
-                                it.replaceAll(/backend:(.*)/, "\$1")
+                            it.replaceAll(/backend:(.*)/, "\$1")
                             }
                             .sort()
                         timeout(5) {
                             selectTag = input(
-                                ok: "Deploy Production",
-                                message: "Enter release version to promote to Production",
-                                parameters: [
-                                    choice(
-                                        choices: tags.join('\n'),
-                                        description: '',
-                                        name: 'Select Version'
-                                    )
-                                ]
+                            ok: "Deploy Production",
+                            message: "Enter release version to promote to Production",
+                            parameters: [
+                                choice(
+                                choices: tags.join('\n'),
+                                description: '',
+                                name: 'Select Version'
+                                )
+                            ]
+                            )
+                        }
+                        }
+                    } else {
+                        println "Nexus Registry"
+                        def tags = sh (
+                            script: 'nexus-cli image tags --name backend | grep -E "^([0-9]+).([0-9]+).([0-9]+)-([0-9]+)-(.*)$"',
+                            returnStdout: true
+                        )
+                        timeout(5) {
+                            selectTag = input(
+                            ok: "Deploy Production",
+                            message: "Enter release version to promote to Production",
+                            parameters: [
+                                choice(
+                                choices: tags,
+                                description: '',
+                                name: 'Select Version'
+                                )
+                            ]
                             )
                         }
                     }
@@ -64,6 +88,12 @@ pipeline {
                     echo "version = ${version}"
                     tag = selectTag.split('-')[1] + "-" + selectTag.split('-')[2]
                     echo "tag = ${tag}"
+                    if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+                        repository = "image-registry.openshift-image-registry.svc:5000/ci-cd"
+                    } else {
+                        repository = env.NEXUS_REGISTRY
+                    }
+                    println "Repository: $repository"
                 }
             }
         }
@@ -85,10 +115,17 @@ pipeline {
                             def template = './manifests/backend-dc-blue.yaml'
                             openshift.apply(
                                 openshift.process("-f", template,
+                                    "-p", "REPOSITORY=${repository}",
+                                    "-p", "IMAGE_NAME=${imageName}",
                                     "-p", "IMAGE_TAG=0.0.0",
                                     "-p", "BACKEND_URL=${env.BACKEND_URL}",
                                     "-p", "MESSAGE=I am blue version",
                                     "-p", "APP_VERSION=${version}")
+                                    // "-p", "REPOSITORY=image-registry.openshift-image-registry.svc:5000/ci-cd",
+                                    // "-p", "IMAGE_NAME=${imageName}",
+                                    // "-p", "IMAGE_TAG=${releaseTag}",
+                                    //  "-p", "BACKEND_URL=${env.BACKEND_URL}",
+                                    //  "-p", "APP_VERSION=${version}"
                             )
 
 
@@ -115,6 +152,8 @@ pipeline {
                             def template = './manifests/backend-dc-green.yaml'
                             openshift.apply(
                                 openshift.process("-f", template,
+                                    "-p", "REPOSITORY=${repository}",
+                                    "-p", "IMAGE_NAME=${imageName}",
                                     "-p", "IMAGE_TAG=0.0.0",
                                     "-p", "BACKEND_URL=${env.BACKEND_URL}",
                                     "-p", "MESSAGE=I am green version",

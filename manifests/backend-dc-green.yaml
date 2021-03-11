@@ -20,7 +20,7 @@ objects:
       app.kubernetes.io/name: java
       app.kubernetes.io/part-of: group-green
       app.openshift.io/runtime: java
-      app.openshift.io/runtime-version: '8'
+      app.openshift.io/runtime-version: '11'
   spec:
     replicas: 1
     revisionHistoryLimit: 5
@@ -46,16 +46,11 @@ objects:
           deploymentconfig: backend-green
       spec:
         containers:
-        - image: image-registry.openshift-image-registry.svc:5000/ci-cd/backend:${IMAGE_TAG}
+        - image:  ${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}
           imagePullPolicy: Always
           name: backend
           ports:
-          # - containerPort: 9779
-          #   protocol: TCP
           - containerPort: 8080
-            # protocol: TCP
-          # - containerPort: 8778
-          #   protocol: TCP
           resources:
             requests:
               cpu: "0.05"
@@ -98,15 +93,14 @@ parameters:
   description: Meesage return from app
   name: MESSAGE
   required: false
-  value: "Hello, World"
-  # triggers:
-  # - type: ConfigChange
-  # - imageChangeParams:
-  #     automatic: true
-  #     containerNames:
-  #     - backend
-  #     from:
-  #       kind: ImageStreamTag
-  #       name: backend:latest
-  #       namespace: ci-cd
-  #   type: ImageChange
+  value: "This is green version"
+- displayName: Repository
+  description: Container Image Repository
+  name: REPOSITORY
+  required: true
+  value: ${REPOSITORY}
+- displayName: Image Name
+  description: Image
+  name: IMAGE_NAME
+  required: true
+  value: ${IMAGE_NAME}
