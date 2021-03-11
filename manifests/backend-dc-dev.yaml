@@ -46,7 +46,7 @@
             deploymentconfig: backend
         spec:
           containers:
-          - image: image-registry.openshift-image-registry.svc:5000/ci-cd/backend:${IMAGE_TAG}
+          - image: ${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}
             imagePullPolicy: Always
             name: backend
             ports:
@@ -98,6 +98,16 @@
     name: MESSAGE
     required: false
     value: "Hello, World"
+  - displayName: Repository
+    description: Container Image Repository
+    name: REPOSITORY
+    required: true
+    value: ${REPOSITORY}
+  - displayName: Image Name
+    description: Image
+    name: IMAGE_NAME
+    required: true
+    value: ${IMAGE_NAME}
     # triggers:
     # - type: ConfigChange
     # - imageChangeParams:
