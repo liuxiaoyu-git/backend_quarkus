@@ -1,7 +1,7 @@
 #!/bin/sh
 START_BUILD=$(date +%s)
 export NEXUS_VERSION=3.18.1
-#export NEXUS_VERSION=latest
+#export NEXUS_VERSION=3.25.1
 export CICD_PROJECT=ci-cd
 DEV_PROJECT=dev
 PROD_PROJECT=prod
@@ -117,8 +117,8 @@ data:
 EOF
 
 NEXUS_REGISTRY=$(oc get route nexus-registry -n ${CICD_PROJECT} -o jsonpath='{.spec.host}')
-PROJECTS=($CICD_PROJECT $DEV_PROJECT $STAGE_PROJECT $UAT_PROJECT $PROD_PROJECT)
-for project in $PROJECTS
+PROJECTS=($DEV_PROJECT $STAGE_PROJECT $UAT_PROJECT $PROD_PROJECT)
+for project in  "${PROJECTS[@]}"
 do
     echo "Create registry secret for $project"
      oc create secret docker-registry nexus-registry --docker-server=$NEXUS_REGISTRY \
@@ -133,9 +133,10 @@ do
      -n $project
     #oc get secret nexus-credential -o yaml -n $CICD_PROJECT | grep -v '^\s*namespace:\s' | oc create -n $project -f -
 done
-PROJECTS=($DEV_PROJECT $STAGE_PROJECT $UAT_PROJECT $PROD_PROJECT)
-for project in $PROJECTS
+
+for project in "${PROJECTS[@]}"
 do
+    echo "Link secrets for $project"
     oc secrets link default nexus-registry -n $project --for=pull
     oc secrets link default nexus-svc-registry -n $project --for=pull
 done
