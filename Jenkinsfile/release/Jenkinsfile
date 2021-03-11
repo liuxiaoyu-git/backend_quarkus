@@ -33,7 +33,6 @@ pipeline {
     timeout(time: 20, unit: 'MINUTES')
   }
   environment {
-    mvnCmd = "mvn -s ./nexus_settings.xml "
     imageName="backend"
     nexusUser = ""
     nexusPassword =""

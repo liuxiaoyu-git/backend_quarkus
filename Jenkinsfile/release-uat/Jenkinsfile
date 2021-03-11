@@ -1,6 +1,10 @@
 import java.text.SimpleDateFormat
 def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
 def selectTag
+def releaseTag
+def tag
+def nexusUser
+def nexusPassword
 pipeline {
   agent {
     kubernetes {
@@ -23,40 +27,82 @@ pipeline {
   }
   environment {
     imageName="backend"
+    nexusUser = ""
+    nexusPassword =""
+    nexusContainerRepo = "docker"
   }
   stages {
+    stage('Initial Configuration') {
+      steps {
+        script {
+          nexusUser = sh (
+              script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.username}"| base64 -d -',
+              returnStdout: true
+            ).trim()
+          nexusPassword = sh (
+              script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
+              returnStdout: true
+            ).trim()
+          def nexusCreds = 'nexus_host = "'+env.NEXUS_SVC+'"\nnexus_repository = "'+nexusContainerRepo+'"\n'+'nexus_username = "'+nexusUser+'"\n'+'nexus_password = "'+nexusPassword+'"\n'
+          writeFile file: ".credentials", text: nexusCreds
+        }
+      }
+    }
     stage('Choose UAT Version') {
       steps {
         script {
-          openshift.withCluster() {
-            namespace = openshift.project()
-            def tags = openshift.selector("istag")
-              .objects()
-              .collect {
-                it.metadata.name
+           if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+              println "OpenShift internal registry"
+              openshift.withCluster() {
+                namespace = openshift.project()
+                def tags = openshift.selector("istag")
+                  .objects()
+                  .collect {
+                  it.metadata.name
+                }
+                .findAll {
+                  it ==~ /^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)\-(.*)$/
+                  //it.startsWith 'backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)'
+                }
+                .collect {
+                  it.replaceAll(/backend:(.*)/, "\$1")
+                }
+                .sort()
+              timeout(5) {
+                selectTag = input(
+                  ok: "Deploy UAT",
+                  message: "Enter release version to promote to UAT",
+                  parameters: [
+                    choice(
+                      choices: tags.join('\n'),
+                      description: '',
+                      name: 'Select Version'
+                    )
+                  ]
+                )
               }
-              .findAll {
-                it ==~ /^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)\-(.*)$/
-                //it.startsWith 'backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)'
-              }
-              .collect {
-                it.replaceAll(/backend:(.*)/, "\$1")
-              }
-              .sort()
-            timeout(5) {
-              selectTag = input(
-                ok: "Deploy UAT",
-                message: "Enter release version to promote to UAT",
-                parameters: [
-                  choice(
-                    choices: tags.join('\n'),
-                    description: '',
-                    name: 'Select Version'
-                  )
-                ]
-              )
             }
-          }
+           } else {
+              println "Nexus Registry"
+              def tags = sh (
+                script: 'nexus-cli image tags --name backend | grep -E "^([0-9]+).([0-9]+).([0-9]+)-([0-9]+)-(.*)$"',
+                returnStdout: true
+              )
+              timeout(5) {
+                selectTag = input(
+                  ok: "Deploy UAT",
+                  message: "Enter release version to promote to UAT",
+                  parameters: [
+                    choice(
+                      choices: tags,
+                      description: '',
+                      name: 'Select Version'
+                    )
+                  ]
+                )
+              }
+           }
+
           println "selectTag = ${selectTag}"
           version = selectTag.split('-')[0]
           println "version = ${version}"
@@ -114,19 +160,55 @@ pipeline {
           openshift.withCluster() {
             openshift.withProject(env.UAT_PROJECT) {
               def template = './manifests/backend-dc-uat.yaml'
-              openshift.apply(
-                openshift.process(
-                  "-f", template,
-                  "-p", "IMAGE_TAG=${selectTag}",
-                  "-p", "BACKEND_URL=${env.BACKEND_URL}",
-                  "-p", "APP_VERSION=${version}"
-                )
-              )
+              if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+                openshift.apply(
+                    openshift.process(
+                      "-f", template,
+                      "-p", "REPOSITORY=image-registry.openshift-image-registry.svc:5000/ci-cd",
+                      "-p", "IMAGE_NAME=${imageName}",
+                      "-p", "IMAGE_TAG=${selectTag}",
+                      "-p", "BACKEND_URL=${env.BACKEND_URL}",
+                      "-p", "APP_VERSION=${version}"
+                    )
+                  )  
+              } else {
+                 openshift.apply(
+                    openshift.process(
+                      "-f", template,
+                      "-p", "REPOSITORY=${env.NEXUS_REGISTRY}",
+                      "-p", "IMAGE_NAME=${imageName}",
+                      "-p", "IMAGE_TAG=${selectTag}",
+                      "-p", "BACKEND_URL=${env.BACKEND_URL}",
+                      "-p", "APP_VERSION=${version}"
+                    )
+                  )  
+              }              
             }
           }
         }
-
       }
     }
+    // stage('Create Deployment Config') {
+    //   steps {
+    //     println "Deploy to: env.UAT_PROJECT"
+    //     println "IMAGE_TAG = ${selectTag}"
+    //     script {
+    //       openshift.withCluster() {
+    //         openshift.withProject(env.UAT_PROJECT) {
+    //           def template = './manifests/backend-dc-uat.yaml'
+    //           openshift.apply(
+    //             openshift.process(
+    //               "-f", template,
+    //               "-p", "IMAGE_TAG=${selectTag}",
+    //               "-p", "BACKEND_URL=${env.BACKEND_URL}",
+    //               "-p", "APP_VERSION=${version}"
+    //             )
+    //           )
+    //         }
+    //       }
+    //     }
+
+    //   }
+    // }
    }
 }
