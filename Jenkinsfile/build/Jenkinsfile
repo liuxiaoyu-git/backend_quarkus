@@ -51,8 +51,8 @@ pipeline {
             //   script: 'echo "nexus_username = #${nexusUser}#" > .credentials',
             //   returnStdout: true
             // ).trim()
-            writeFile file: 'credentials', text: 'nexus_username = '+nexusUser+'\n'
-            sh "mv credentails .credentials;cat .credentials"
+            writeFile file: "credentials", text: "nexus_username = "+nexusUser+"\n"
+            sh "cat credentials"
             // list = sh (
             //   script: "../bin/get-container-list.sh ${env.NEXUS_SVC} ${nexusUser} ${nexusPassword} ${imageName}",
             //   returnStdout: true
