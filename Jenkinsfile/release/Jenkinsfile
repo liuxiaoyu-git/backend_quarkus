@@ -57,6 +57,7 @@ pipeline {
               script: 'nexus-cli image tags --name backend',
               returnStdout: true
             ).trim()
+          sh "echo ${backendTags}"
             //grep -E ""^([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)$""
         }
       }
