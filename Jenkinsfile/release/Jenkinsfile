@@ -65,7 +65,7 @@ pipeline {
     stage('Choose Staging Version') {
       steps {
         script {
-          def tags = ""
+          def tags
           // select tag with nexus or internal registry
           if(env.USE_INTERNAL_REGISTRY.toBoolean()){
             println "OpenShift internal registry"
