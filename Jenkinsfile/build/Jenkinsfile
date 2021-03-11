@@ -48,9 +48,10 @@ pipeline {
               script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
               returnStdout: true
             ).trim()
-            def nexusCreds = 'nexus_repository = "'+nexusRepository+'"\n'+'nexus_username = "'+nexusUser+'"\n'+'nexus_password = "'+nexusPassword+'"\n'
+            def nexusCreds = 'nexus_host = http://"'+env.NEXUS_SVC+'"\nnexus_repository = "'+nexusRepository+'"\n'+'nexus_username = "'+nexusUser+'"\n'+'nexus_password = "'+nexusPassword+'"\n'
             writeFile file: ".credentials", text: nexusCreds
             sh "cat .credentials"
+            sh "/opt/nexus-cli/nexus-cli image tags --name backend"
             // list = sh (
             //   script: "../bin/get-container-list.sh ${env.NEXUS_SVC} ${nexusUser} ${nexusPassword} ${imageName}",
             //   returnStdout: true
