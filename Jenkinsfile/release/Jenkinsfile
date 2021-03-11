@@ -214,10 +214,11 @@ pipeline {
                   "-p", "BACKEND_URL=${env.BACKEND_URL}",
                   "-p", "APP_VERSION=${version}"
                 )
+              )  
             }
           }
         }
       }
     }
-  //  }
+  }
 }
