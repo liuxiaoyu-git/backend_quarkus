@@ -46,7 +46,7 @@ objects:
           deploymentconfig: backend
       spec:
         containers:
-        - image: image-registry.openshift-image-registry.svc:5000/ci-cd/backend:${IMAGE_TAG}
+        - image: ${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}
           imagePullPolicy: Always
           name: backend
           ports:
@@ -77,27 +77,37 @@ objects:
         schedulerName: default-scheduler
         securityContext: {}
         terminationGracePeriodSeconds: 30
-parameters:
-- displayName: Application version
-  description: Version of application
-  name: APP_VERSION
-  required: true
-  value: ${APP_VERSION}
-- displayName: Image Tag
-  description: Image Tag
-  name: IMAGE_TAG
-  required: true
-  value: ${IMAGE_TAG}
-- displayName: BACKEND_URL
-  description: Backend target URL
-  name: BACKEND_URL
-  required: true
-  value: ${BACKEND_URL}
-- displayName: MESSAGE
-  description: Meesage return from app
-  name: MESSAGE
-  required: false
-  value: "Hello, World"
+  parameters:
+  - displayName: Application version
+    description: Version of application
+    name: APP_VERSION
+    required: true
+    value: ${APP_VERSION}
+  - displayName: Image Tag
+    description: Image Tag
+    name: IMAGE_TAG
+    required: true
+    value: ${IMAGE_TAG}
+  - displayName: BACKEND_URL
+    description: Backend target URL
+    name: BACKEND_URL
+    required: true
+    value: ${BACKEND_URL}
+  - displayName: MESSAGE
+    description: Meesage return from app
+    name: MESSAGE
+    required: false
+    value: "Hello, World"
+  - displayName: Repository
+    description: Container Image Repository
+    name: REPOSITORY
+    required: true
+    value: ${REPOSITORY}
+  - displayName: Image Name
+    description: Image
+    name: IMAGE_NAME
+    required: true
+    value: ${IMAGE_NAME}
   # triggers:
   # - type: ConfigChange
   # - imageChangeParams:

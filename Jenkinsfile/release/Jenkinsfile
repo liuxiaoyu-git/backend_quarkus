@@ -118,37 +118,6 @@ pipeline {
               )
             }
           }
-          // Display men
-          
-          // openshift.withCluster() {
-          //   namespace = openshift.project()
-          //   tags = openshift.selector("istag")
-          //     .objects()
-          //     .collect {
-          //       it.metadata.name
-          //     }
-          //     .findAll {
-          //       it ==~ /^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)$/
-          //       //it.startsWith 'backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)'
-          //     }
-          //     .collect {
-          //       it.replaceAll(/backend:(.*)/, "\$1")
-          //     }
-          //     .sort()
-          //   timeout(5) {
-          //     selectTag = input(
-          //       ok: "Deploy Staging",
-          //       message: "Enter release version to promote to Staging",
-          //       parameters: [
-          //         choice(
-          //           choices: tags.join('\n'),
-          //           description: '',
-          //           name: 'Release Version'
-          //         )
-          //       ]
-          //     )
-          //   }
-          // }
           println "selectTag = ${selectTag}"
           version = selectTag.split('-')[0]
           println "version = ${version}"
@@ -162,21 +131,19 @@ pipeline {
     stage('Release Image to Nexus') {
       steps {
         script {
-          nexusUser = sh (
-              script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.username}"| base64 -d -',
-              returnStdout: true
-            ).trim()
-            nexusPassword = sh (
-              script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
-              returnStdout: true
-            ).trim()
-          openshift.withCluster() {
-            openshift.withProject(env.CICD_PROJECT) {
-              println "Releasing image  ${imageName}:${selectTag} to ${env.NEXUS_REGISTRY_SVC}"
-              sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds ${nexusUser}:${nexusPassword} docker://image-registry.openshift-image-registry.svc.cluster.local:5000/${env.CICD_PROJECT}/${imageName}:${selectTag} ${env.NEXUS_REGISTRY_SVC}/${imageName}:${releaseTag}"
-              openshift.tag("${imageName}:${selectTag}", "${imageName}:${releaseTag}")
+          if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+            openshift.withCluster() {
+              openshift.withProject(env.CICD_PROJECT) {
+                println "Releasing image  ${imageName}:${selectTag} to ${env.NEXUS_REGISTRY_SVC}"
+                sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds ${nexusUser}:${nexusPassword} docker://image-registry.openshift-image-registry.svc.cluster.local:5000/${env.CICD_PROJECT}/${imageName}:${selectTag} ${env.NEXUS_REGISTRY_SVC}/${imageName}:${releaseTag}"
+                openshift.tag("${imageName}:${selectTag}", "${imageName}:${releaseTag}")
+              }
             }
+          } else {
+            println "Releasing image  ${imageName}:${selectTag} to ${env.NEXUS_REGISTRY_SVC}"
+            sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds ${nexusUser}:${nexusPassword}  --dest-creds ${nexusUser}:${nexusPassword} docker://${env.NEXUS_REGISTRY_SVC}/:${selectTag} docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:${releaseTag}"  
           }
+          
         }
       }
     }
