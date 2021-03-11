@@ -68,7 +68,7 @@ pipeline {
           def tags = ""
           // select tag with nexus or internal registry
           if(env.USE_INTERNAL_REGISTRY.toBoolean()){
-            println "Query backend's tag from OpenShift internal registry"
+            println "OpenShift internal registry"
             openshift.withCluster() {
             namespace = openshift.project()
             tags = openshift.selector("istag")
@@ -86,7 +86,7 @@ pipeline {
               .sort()
             }
           } else {
-            println "Query backend's tag from Nexus"
+            println "Nexus REgistry"
             tags = sh (
               script: 'nexus-cli image tags --name backend | grep -E "^([0-9]+).([0-9]+).([0-9]+)-([0-9]+)$"',
               returnStdout: true
