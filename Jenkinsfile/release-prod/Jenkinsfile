@@ -110,7 +110,6 @@ pipeline {
                     } else {
                         repository = env.NEXUS_REGISTRY
                     }
-                    println "Repository: $repository"
                 }
             }
         }
@@ -127,6 +126,7 @@ pipeline {
             }
             steps {
                 script {
+                    println "Repository: $repository"
                     openshift.withCluster() {
                         openshift.withProject(env.PROD_PROJECT) {
                             def template = './manifests/backend-dc-blue.yaml'
@@ -164,6 +164,7 @@ pipeline {
             }
             steps {
                 script {
+                    println "Repository: $repository"
                     openshift.withCluster() {
                         openshift.withProject(env.PROD_PROJECT) {
                             def template = './manifests/backend-dc-green.yaml'
