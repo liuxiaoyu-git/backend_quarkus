@@ -33,7 +33,6 @@ pipeline {
     // Checkout Source Code.
     stage('Checkout Source') {
       steps {
-
         checkout scm
         dir('code') {
           script {
@@ -48,10 +47,10 @@ pipeline {
               script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
               returnStdout: true
             ).trim()
-            sh (
+            nexusCLI = sh (
               script: 'echo "nexus_username = \"${nexus_user}\"" > .credentials',
-              returnStdout: false
-            )
+              returnStdout: true
+            ).trim()
             // sh 'echo "nexus_username = "'${nexusUser}'" > .credentials'
             sh "cat .credentials"
             // list = sh (
@@ -78,9 +77,6 @@ pipeline {
 
           echo "Building binary for ${imageName}"
           script {
-            // sh "echo \"nexus_username = ${nexusUser}\" > .credentials"
-            
-            //sh "/opt/nexus-cli/nexus-cli --version"
             sh "${mvnCmd} -Dquarkus.package.type=fast-jar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
           }
         }
