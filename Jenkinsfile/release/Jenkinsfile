@@ -198,14 +198,22 @@ pipeline {
           openshift.withCluster() {
             openshift.withProject(env.STAGE_PROJECT) {
               def template = './manifests/backend-dc-stage.yaml'
+              def imageRegistry = ""
+              if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+                imageRegistry = "image-registry.openshift-image-registry.svc:5000/ci-cd"
+              } else {
+                 imageRegistry = env.NEXUS_REGISTRY
+              }
+              println "imageRegistry = ${imageRegistry}"
               openshift.apply(
                 openshift.process(
                   "-f", template,
-                  "-p", "IMAGE_TAG=${releaseTag}",
+                  "-p", "REPOSITORY=${imageRegistry}",
+                  "-p", "IMAGE_NAME=${imageName}",
+                  "-p", "IMAGE_TAG=${devTag}",
                   "-p", "BACKEND_URL=${env.BACKEND_URL}",
                   "-p", "APP_VERSION=${version}"
                 )
-              )
             }
           }
         }
