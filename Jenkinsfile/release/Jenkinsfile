@@ -90,9 +90,9 @@ pipeline {
             tags = sh (
               script: 'nexus-cli image tags --name backend | grep -E "^([0-9]+).([0-9]+).([0-9]+)-([0-9]+)$"',
               returnStdout: true
-            ).trim()
-            println "Tags:\n${tags}"
+            ).sort()
           }
+          // Display men
           timeout(5) {
             selectTag = input(
               ok: "Deploy Staging",
