@@ -65,9 +65,11 @@ pipeline {
     stage('Choose Staging Version') {
       steps {
         script {
-          openshift.withCluster() {
+          def tags = ""
+          if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+            openshift.withCluster() {
             namespace = openshift.project()
-            def tags = openshift.selector("istag")
+            tags = openshift.selector("istag")
               .objects()
               .collect {
                 it.metadata.name
@@ -80,20 +82,55 @@ pipeline {
                 it.replaceAll(/backend:(.*)/, "\$1")
               }
               .sort()
-            timeout(5) {
-              selectTag = input(
-                ok: "Deploy Staging",
-                message: "Enter release version to promote to Staging",
-                parameters: [
-                  choice(
-                    choices: tags.join('\n'),
-                    description: '',
-                    name: 'Release Version'
-                  )
-                ]
-              )
             }
+          } else {
+            tags = sh (
+              script: 'nexus-cli image tags --name backend | grep -E "^([0-9]+).([0-9]+).([0-9]+)-([0-9]+)$"',
+              returnStdout: true
+            ).trim()
           }
+          timeout(5) {
+            selectTag = input(
+              ok: "Deploy Staging",
+              message: "Enter release version to promote to Staging",
+              parameters: [
+                choice(
+                  choices: tags.join('\n'),
+                  description: '',
+                  name: 'Release Version'
+                )
+              ]
+            )
+          }
+          // openshift.withCluster() {
+          //   namespace = openshift.project()
+          //   tags = openshift.selector("istag")
+          //     .objects()
+          //     .collect {
+          //       it.metadata.name
+          //     }
+          //     .findAll {
+          //       it ==~ /^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)$/
+          //       //it.startsWith 'backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)'
+          //     }
+          //     .collect {
+          //       it.replaceAll(/backend:(.*)/, "\$1")
+          //     }
+          //     .sort()
+          //   timeout(5) {
+          //     selectTag = input(
+          //       ok: "Deploy Staging",
+          //       message: "Enter release version to promote to Staging",
+          //       parameters: [
+          //         choice(
+          //           choices: tags.join('\n'),
+          //           description: '',
+          //           name: 'Release Version'
+          //         )
+          //       ]
+          //     )
+          //   }
+          // }
           println "selectTag = ${selectTag}"
           version = selectTag.split('-')[0]
           println "version = ${version}"
