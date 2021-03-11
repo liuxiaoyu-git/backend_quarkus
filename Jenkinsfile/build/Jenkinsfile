@@ -52,8 +52,8 @@ pipeline {
             //   returnStdout: true
             // ).trim()
             def nexusCreds = 'nexus_username = "'+nexusUser+'"\n'
-            writeFile file: "credentials", text: nexusCreds
-            sh "cat credentials"
+            writeFile file: ".credentials", text: nexusCreds
+            sh "cat .credentials"
             // list = sh (
             //   script: "../bin/get-container-list.sh ${env.NEXUS_SVC} ${nexusUser} ${nexusPassword} ${imageName}",
             //   returnStdout: true
