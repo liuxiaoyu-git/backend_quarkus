@@ -54,7 +54,7 @@ pipeline {
           def nexusCreds = 'nexus_host = "'+env.NEXUS_SVC+'"\nnexus_repository = "'+nexusContainerRepo+'"\n'+'nexus_username = "'+nexusUser+'"\n'+'nexus_password = "'+nexusPassword+'"\n'
           writeFile file: ".credentials", text: nexusCreds
           def backendTags = sh (
-              script: 'nexus-cli image tags --name backend | grep -E "^\([0-9]+\)"',
+              script: 'nexus-cli image tags --name backend | grep -E "^([0-9]+)"',
               returnStdout: true
             ).trim()
           println "Tags: ${backendTags}"
