@@ -48,6 +48,12 @@ pipeline {
               script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
               returnStdout: true
             ).trim()
+            sh (
+              script: 'echo "nexus_username = \"${nexus_user}\"" > .credentials',
+              returnStdout: false
+            )
+            // sh 'echo "nexus_username = "'${nexusUser}'" > .credentials'
+            sh "cat .credentials"
             // list = sh (
             //   script: "../bin/get-container-list.sh ${env.NEXUS_SVC} ${nexusUser} ${nexusPassword} ${imageName}",
             //   returnStdout: true
@@ -73,9 +79,8 @@ pipeline {
           echo "Building binary for ${imageName}"
           script {
             // sh "echo \"nexus_username = ${nexusUser}\" > .credentials"
-            sh 'echo "nexus_username = ""${nexusUser}""" > .credentials'
-            sh "cat .credentials"
-            sh "/opt/nexus-cli/nexus-cli --version"
+            
+            //sh "/opt/nexus-cli/nexus-cli --version"
             sh "${mvnCmd} -Dquarkus.package.type=fast-jar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
           }
         }
