@@ -246,7 +246,7 @@ pipeline {
               openshift.apply(
                 openshift.process(
                   "-f", template,
-                  "-p", "REPOSITORY=${env.NEXUS_REGISTRY_SVC}"
+                  "-p", "REPOSITORY=${env.NEXUS_REGISTRY_SVC}",
                   "-p", "IMAGE_NAME=${imageName}",
                   "-p", "IMAGE_TAG=${devTag}",
                   "-p", "BACKEND_URL=${env.BACKEND_URL}",
