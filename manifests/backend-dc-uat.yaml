@@ -97,7 +97,7 @@ parameters:
   description: Meesage return from app
   name: MESSAGE
   required: false
-  value: "This is staging environment"
+  value: "This is UAT environment"
 - displayName: Repository
   description: Container Image Repository
   name: REPOSITORY
