@@ -20,7 +20,7 @@
         app.kubernetes.io/name: java
         app.kubernetes.io/part-of: group-1
         app.openshift.io/runtime: java
-        app.openshift.io/runtime-version: '8'
+        app.openshift.io/runtime-version: '11'
     spec:
       replicas: 1
       revisionHistoryLimit: 5
