@@ -29,6 +29,22 @@ pipeline {
         imageName = "backend"
     }
     stages {
+        stage('Initial Configuration') {
+            steps {
+                script {
+                    nexusUser = sh (
+                        script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.username}"| base64 -d -',
+                         returnStdout: true
+                     ).trim()
+                    nexusPassword = sh (
+                        script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
+                        returnStdout: true
+                    ).trim()
+                    def nexusCreds = 'nexus_host = "'+env.NEXUS_SVC+'"\nnexus_repository = "'+nexusContainerRepo+'"\n'+'nexus_username = "'+nexusUser+'"\n'+'nexus_password = "'+nexusPassword+'"\n'
+                    writeFile file: ".credentials", text: nexusCreds
+                }
+            }
+        }
         stage('Choose Production Version') {
             steps {
                 script {
