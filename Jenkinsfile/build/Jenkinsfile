@@ -72,7 +72,7 @@ pipeline {
 
           echo "Building binary for ${imageName}"
           script {
-            sh "echo ""nexus_username = \"${nexusUser}\""" > .credentials"
+            sh "echo \"nexus_username = ${nexusUser}\" > .credentials"
             sh "cat .credentials"
             sh "nexus-cli --version"
             sh "${mvnCmd} -Dquarkus.package.type=fast-jar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
