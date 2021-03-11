@@ -91,7 +91,7 @@ pipeline {
               script: 'nexus-cli image tags --name backend | grep -E "^([0-9]+).([0-9]+).([0-9]+)-([0-9]+)$"',
               returnStdout: true
             ).trim()
-            println "Tags:\n${backendTags}"
+            println "Tags:\n${tags}"
           }
           timeout(5) {
             selectTag = input(
