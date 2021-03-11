@@ -27,6 +27,7 @@ pipeline {
     }
     environment {
         imageName = "backend"
+        nexusContainerRepo = "docker"
     }
     stages {
         stage('Initial Configuration') {
