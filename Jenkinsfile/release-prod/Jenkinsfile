@@ -132,7 +132,7 @@ pipeline {
                             def template = './manifests/backend-dc-blue.yaml'
                             openshift.apply(
                                 openshift.process("-f", template,
-                                    "-p", "REPOSITORY=${repository}",
+                                    "-p", "REPOSITORY=${env.NEXUS_REGISTRY}",
                                     "-p", "IMAGE_NAME=${imageName}",
                                     "-p", "IMAGE_TAG=0.0.0",
                                     "-p", "BACKEND_URL=${env.BACKEND_URL}",
