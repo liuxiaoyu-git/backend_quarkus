@@ -90,7 +90,7 @@ pipeline {
             tags = sh (
               script: 'nexus-cli image tags --name backend | grep -E "^([0-9]+).([0-9]+).([0-9]+)-([0-9]+)$"',
               returnStdout: true
-            ).objects().sort()
+            )
           }
           // Display men
           timeout(5) {
