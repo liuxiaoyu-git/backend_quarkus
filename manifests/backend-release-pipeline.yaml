@@ -29,5 +29,7 @@ spec:
         value: https://httpbin.org/status/201
       - name: NEXUS_SECRET
         value: nexus-credential
+      - name: USE_INTERNAL_REGISTRY
+        value: "false"
       jenkinsfilePath: Jenkinsfile
     type: JenkinsPipeline
