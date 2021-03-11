@@ -23,8 +23,10 @@ spec:
         value: stage
       - name: CICD_PROJECT
         value: ci-cd
+      - name: NEXUS_SVC
+        value: http://nexus.ci-cd.svc.cluster.local:8081
       - name: NEXUS_REGISTRY_SVC
-        value: docker://nexus-registry.ci-cd.svc.cluster.local:5000
+        value: nexus-registry.ci-cd.svc.cluster.local:5000
       - name: BACKEND_URL
         value: https://httpbin.org/status/201
       - name: NEXUS_SECRET
