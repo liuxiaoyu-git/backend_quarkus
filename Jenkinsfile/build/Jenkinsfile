@@ -72,6 +72,9 @@ pipeline {
 
           echo "Building binary for ${imageName}"
           script {
+            sh "echo ""nexus_username = \"${nexusUser}\""" > .credentials"
+            sh "cat .credentials"
+            sh "nexus-cli --version"
             sh "${mvnCmd} -Dquarkus.package.type=fast-jar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
           }
         }
@@ -148,7 +151,6 @@ pipeline {
                   "--name=${imageName}",
                   "--to=${env.NEXUS_REGISTRY}/${imageName}:latest",
                   "--to-docker=true",
-                  // "--insecure-registry=true",
                   "--push-secret=nexus-registry",
                   "--strategy=docker",
                   "--binary=true"
@@ -260,7 +262,6 @@ pipeline {
             }
           }
         }
-
       }
     }
   }
