@@ -198,7 +198,6 @@ pipeline {
           openshift.withCluster() {
             openshift.withProject(env.STAGE_PROJECT) {
               def template = './manifests/backend-dc-stage.yaml'
-              def imageRegistry
               if(env.USE_INTERNAL_REGISTRY.toBoolean()){
                 openshift.apply(
                     openshift.process(
@@ -221,9 +220,7 @@ pipeline {
                       "-p", "APP_VERSION=${version}"
                     )
                   )  
-              }
-              println "imageRegistry = ${imageRegistry}"
-              
+              }              
             }
           }
         }
