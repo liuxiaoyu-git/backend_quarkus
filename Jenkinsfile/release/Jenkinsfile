@@ -141,7 +141,7 @@ pipeline {
             }
           } else {
             println "Releasing image  ${imageName}:${selectTag} to ${env.NEXUS_REGISTRY_SVC}"
-            sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds ${nexusUser}:${nexusPassword}  --dest-creds ${nexusUser}:${nexusPassword} docker://${env.NEXUS_REGISTRY_SVC}/:${selectTag} docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:${releaseTag}"  
+            sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds ${nexusUser}:${nexusPassword}  --dest-creds ${nexusUser}:${nexusPassword} docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:${selectTag} docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:${releaseTag}"  
           }
           
         }
