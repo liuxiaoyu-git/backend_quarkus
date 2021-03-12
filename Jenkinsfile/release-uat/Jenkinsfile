@@ -182,27 +182,5 @@ pipeline {
         }
       }
     }
-    // stage('Create Deployment Config') {
-    //   steps {
-    //     println "Deploy to: env.UAT_PROJECT"
-    //     println "IMAGE_TAG = ${selectTag}"
-    //     script {
-    //       openshift.withCluster() {
-    //         openshift.withProject(env.UAT_PROJECT) {
-    //           def template = './manifests/backend-dc-uat.yaml'
-    //           openshift.apply(
-    //             openshift.process(
-    //               "-f", template,
-    //               "-p", "IMAGE_TAG=${selectTag}",
-    //               "-p", "BACKEND_URL=${env.BACKEND_URL}",
-    //               "-p", "APP_VERSION=${version}"
-    //             )
-    //           )
-    //         }
-    //       }
-    //     }
-
-    //   }
-    // }
    }
 }
