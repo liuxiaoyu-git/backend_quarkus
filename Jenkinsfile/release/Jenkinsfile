@@ -2,16 +2,15 @@ import java.text.SimpleDateFormat
 def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
 def selectTag
 def releaseTag
-def tag
 def nexusUser
 def nexusPassword
 def repository
+def tag
 node {
   def dateFormat = new SimpleDateFormat("yyyyMMdd")
   def date = new Date()
   def releaseDate = (dateFormat.format(date))
   tag = releaseDate + "-" + env.BUILD_NUMBER
-  //docker://homework-nexus-registry.gpte-hw-cicd.svc.cluster.local:5000
 }
 pipeline {
   agent {
@@ -53,37 +52,30 @@ pipeline {
             ).trim()
           def nexusCreds = 'nexus_host = "'+env.NEXUS_SVC+'"\nnexus_repository = "'+nexusContainerRepo+'"\n'+'nexus_username = "'+nexusUser+'"\n'+'nexus_password = "'+nexusPassword+'"\n'
           writeFile file: ".credentials", text: nexusCreds
-          // def backendTags = sh (
-          //     script: 'nexus-cli image tags --name backend | grep -E "^([0-9]+).([0-9]+).([0-9]+)-([0-9]+)$"',
-          //     returnStdout: true
-          //   ).trim()
-          
-            //grep -E ""^([0-9]+)\\.([0-9]+)\\.([0-9]+)\\-([0-9]+)$""
         }
       }
     }
     stage('Choose Staging Version') {
       steps {
         script {
-
           // select tag with nexus or internal registry
           if(env.USE_INTERNAL_REGISTRY.toBoolean()){
             println "OpenShift internal registry"
             openshift.withCluster() {
-            namespace = openshift.project()
-            def tags = openshift.selector("istag")
-              .objects()
-              .collect {
-                it.metadata.name
-              }
-              .findAll {
-                it ==~ /^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)$/
-                //it.startsWith 'backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)'
-              }
-              .collect {
-                it.replaceAll(/backend:(.*)/, "\$1")
-              }
-              .sort()
+                namespace = openshift.project()
+                def tags1 = openshift.selector("istag")
+                      .objects()
+                      .collect {
+                        it.metadata.name
+                      }
+                .findAll {
+                  it ==~ /^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)$/
+                  //it.startsWith 'backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)'
+                }
+                .collect {
+                  it.replaceAll(/backend:(.*)/, "\$1")
+                }
+                .sort()
             }
             timeout(5) {
               selectTag = input(
@@ -91,7 +83,7 @@ pipeline {
                 message: "Enter release version to promote to Staging",
                 parameters: [
                   choice(
-                    choices: tags.join('\n'),
+                    choices: tags1.join('\n'),
                     description: '',
                     name: 'Release Version'
                   )
@@ -100,7 +92,7 @@ pipeline {
             }
           } else {
             println "Nexus Registry"
-            def tags = sh (
+            def tags2 = sh (
               script: 'nexus-cli image tags --name backend | grep -E "^([0-9]+).([0-9]+).([0-9]+)-([0-9]+)$"',
               returnStdout: true
             )
@@ -110,7 +102,7 @@ pipeline {
                 message: "Enter release version to promote to Staging",
                 parameters: [
                   choice(
-                    choices: tags,
+                    choices: tags2,
                     description: '',
                     name: 'Release Version'
                   )
