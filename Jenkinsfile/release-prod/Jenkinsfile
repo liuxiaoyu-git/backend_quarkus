@@ -1,6 +1,7 @@
 def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
 def selectTag
 def tag
+def tags
 def version
 def activeApp
 def destApp
@@ -53,7 +54,7 @@ pipeline {
                         println "OpenShift internal registry"
                         openshift.withCluster() {
                             namespace = openshift.project()
-                            def tags = openshift.selector("istag")
+                            tags = openshift.selector("istag")
                             .objects()
                             .collect {
                             it.metadata.name
@@ -82,7 +83,7 @@ pipeline {
                         }
                     } else {
                         println "Nexus Registry"
-                        def tags = sh (
+                        tags = sh (
                             script: 'nexus-cli image tags --name backend | grep -E "^([0-9]+).([0-9]+).([0-9]+)-([0-9]+)-(.*)$"',
                             returnStdout: true
                         )
