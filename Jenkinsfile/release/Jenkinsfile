@@ -63,7 +63,7 @@ pipeline {
             println "OpenShift internal registry"
             openshift.withCluster() {
                 namespace = openshift.project()
-                def tags1 = openshift.selector("istag")
+                tags = openshift.selector("istag")
                       .objects()
                       .collect {
                         it.metadata.name
@@ -77,13 +77,14 @@ pipeline {
                 }
                 .sort()
             }
+            def tags
             timeout(5) {
               selectTag = input(
                 ok: "Deploy Staging",
                 message: "Enter release version to promote to Staging",
                 parameters: [
                   choice(
-                    choices: tags1.join('\n'),
+                    choices: tags.join('\n'),
                     description: '',
                     name: 'Release Version'
                   )
@@ -92,7 +93,7 @@ pipeline {
             }
           } else {
             println "Nexus Registry"
-            def tags2 = sh (
+            tags = sh (
               script: 'nexus-cli image tags --name backend | grep -E "^([0-9]+).([0-9]+).([0-9]+)-([0-9]+)$"',
               returnStdout: true
             )
@@ -102,7 +103,7 @@ pipeline {
                 message: "Enter release version to promote to Staging",
                 parameters: [
                   choice(
-                    choices: tags2,
+                    choices: tags,
                     description: '',
                     name: 'Release Version'
                   )
