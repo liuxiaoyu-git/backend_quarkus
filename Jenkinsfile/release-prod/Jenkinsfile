@@ -129,7 +129,7 @@ pipeline {
                     println "Repository: $repository"
                     openshift.withCluster() {
                         openshift.withProject(env.PROD_PROJECT) {
-                            def template = './manifests/backend-dc-green.yaml'
+                            def template = './manifests/backend-dc-blue.yaml'
                             openshift.apply(
                                 openshift.process("-f", template,
                                     "-p", "REPOSITORY=${repository}",
@@ -262,7 +262,7 @@ pipeline {
                             numOfpods = openshift.selector("dc", "${activeApp}").object().spec.replicas
                             echo "${activeApp} run with ${numOfpods} pods"
                             def dc = openshift.selector("dc/${destApp}").object()
-                            dc.spec.template.spec.containers[0].image = "image-registry.openshift-image-registry.svc:5000/${env.CICD_PROJECT}/${imageName}:${selectTag}"
+                            dc.spec.template.spec.containers[0].image = "${repository}/${imageName}:${selectTag}"
                             dc.spec.replicas = numOfpods
                             dc.metadata.labels["tag"] = tag
                             dc.metadata.labels["version"] = version
