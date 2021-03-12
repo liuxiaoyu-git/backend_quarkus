@@ -5,6 +5,7 @@ def releaseTag
 def tag
 def nexusUser
 def nexusPassword
+def repository
 node {
   def dateFormat = new SimpleDateFormat("yyyyMMdd")
   def date = new Date()
@@ -134,7 +135,7 @@ pipeline {
             openshift.withCluster() {
               openshift.withProject(env.CICD_PROJECT) {
                 println "Releasing image  ${imageName}:${selectTag} to ${env.NEXUS_REGISTRY_SVC}"
-                sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds ${nexusUser}:${nexusPassword} docker://image-registry.openshift-image-registry.svc.cluster.local:5000/${env.CICD_PROJECT}/${imageName}:${selectTag} ${env.NEXUS_REGISTRY_SVC}/${imageName}:${releaseTag}"
+                //sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds ${nexusUser}:${nexusPassword} docker://image-registry.openshift-image-registry.svc.cluster.local:5000/${env.CICD_PROJECT}/${imageName}:${selectTag} ${env.NEXUS_REGISTRY_SVC}/${imageName}:${releaseTag}"
                 openshift.tag("${imageName}:${selectTag}", "${imageName}:${releaseTag}")
               }
             }
@@ -191,35 +192,28 @@ pipeline {
     // Create Deployment Config
     stage('Create Deployment Config') {
       steps {
-        println "Deploy to: env.STAGE_PROJECT"
-        println "IMAGE_TAG = ${releaseTag}"
         script {
+          println "Deploy to: env.STAGE_PROJECT"
+          println "IMAGE_TAG = ${releaseTag}"
+          if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+            repository = "image-registry.openshift-image-registry.svc:5000/ci-cd"
+          } else {
+            repository = env.NEXUS_REGISTRY
+          }
           openshift.withCluster() {
             openshift.withProject(env.STAGE_PROJECT) {
               def template = './manifests/backend-dc-stage.yaml'
-              if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+              
                 openshift.apply(
                     openshift.process(
                       "-f", template,
-                      "-p", "REPOSITORY=image-registry.openshift-image-registry.svc:5000/ci-cd",
+                      "-p", "REPOSITORY=${repository}",
                       "-p", "IMAGE_NAME=${imageName}",
                       "-p", "IMAGE_TAG=${releaseTag}",
                       "-p", "BACKEND_URL=${env.BACKEND_URL}",
                       "-p", "APP_VERSION=${version}"
                     )
-                  )  
-              } else {
-                 openshift.apply(
-                    openshift.process(
-                      "-f", template,
-                      "-p", "REPOSITORY=${env.NEXUS_REGISTRY}",
-                      "-p", "IMAGE_NAME=${imageName}",
-                      "-p", "IMAGE_TAG=${releaseTag}",
-                      "-p", "BACKEND_URL=${env.BACKEND_URL}",
-                      "-p", "APP_VERSION=${version}"
-                    )
-                  )  
-              }              
+                  )            
             }
           }
         }
