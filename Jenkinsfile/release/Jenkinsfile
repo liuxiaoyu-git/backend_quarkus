@@ -200,6 +200,7 @@ pipeline {
           } else {
             repository = env.NEXUS_REGISTRY
           }
+          println "Set image repository to ${repository}"
           openshift.withCluster() {
             openshift.withProject(env.STAGE_PROJECT) {
               def template = './manifests/backend-dc-stage.yaml'
