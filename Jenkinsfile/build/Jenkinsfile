@@ -1,4 +1,5 @@
 def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
+def repository
 pipeline {
   agent {
     kubernetes {
@@ -240,32 +241,26 @@ pipeline {
       steps {
         echo "Create deployment config: env.DEV_PROJECT"
         script {
+          if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+            repository = "image-registry.openshift-image-registry.svc:5000/ci-cd"
+          } else {
+            repository = env.NEXUS_REGISTRY
+          }
+          println "Set image repository to ${repository}"
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
               def template = './manifests/backend-dc-dev.yaml'
-              if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+             
                 openshift.apply(
                     openshift.process(
                       "-f", template,
-                      "-p", "REPOSITORY=image-registry.openshift-image-registry.svc:5000/ci-cd",
+                      "-p", "REPOSITORY=${repository}",
                       "-p", "IMAGE_NAME=${imageName}",
                       "-p", "IMAGE_TAG=${devTag}",
                       "-p", "BACKEND_URL=${env.BACKEND_URL}",
                       "-p", "APP_VERSION=${version}"
                     )
                   )  
-              } else {
-                 openshift.apply(
-                    openshift.process(
-                      "-f", template,
-                      "-p", "REPOSITORY=${env.NEXUS_REGISTRY}",
-                      "-p", "IMAGE_NAME=${imageName}",
-                      "-p", "IMAGE_TAG=${devTag}",
-                      "-p", "BACKEND_URL=${env.BACKEND_URL}",
-                      "-p", "APP_VERSION=${version}"
-                    )
-                  )  
-              }
               //openshift.selector("dc", "${imageName}").rollout().pause();
             }
           }
