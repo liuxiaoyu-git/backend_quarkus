@@ -6,6 +6,7 @@ def nexusUser
 def nexusPassword
 def repository
 def tag
+def tags
 node {
   def dateFormat = new SimpleDateFormat("yyyyMMdd")
   def date = new Date()
@@ -68,16 +69,15 @@ pipeline {
                       .collect {
                         it.metadata.name
                       }
-                .findAll {
-                  it ==~ /^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)$/
+                      .findAll {
+                          it ==~ /^backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)$/
                   //it.startsWith 'backend:([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+)'
-                }
-                .collect {
-                  it.replaceAll(/backend:(.*)/, "\$1")
-                }
-                .sort()
+                      }
+                      .collect {
+                          it.replaceAll(/backend:(.*)/, "\$1")
+                      }
+                      .sort()
             }
-            def tags
             timeout(5) {
               selectTag = input(
                 ok: "Deploy Staging",
