@@ -191,13 +191,16 @@ pipeline {
           if(env.USE_INTERNAL_REGISTRY.toBoolean()){
             repository = "image-registry.openshift-image-registry.svc:5000/ci-cd"
           } else {
-            repository = env.NEXUS_REGISTRY
+            repository =  sh (
+              script: 'oc get route nexus-registry -n ci-cd -o jsonpath="{.spec.host}"',
+              returnStdout: true
+            ).trim()
           }
           println "Set image repository to ${repository}"
           openshift.withCluster() {
+            println "nexus_url: ${nexus_url}"
             openshift.withProject(env.STAGE_PROJECT) {
               def template = './manifests/backend-dc-stage.yaml'
-              
                 openshift.apply(
                     openshift.process(
                       "-f", template,
