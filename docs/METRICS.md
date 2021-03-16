@@ -67,13 +67,14 @@ You can test this with Backend app running on your local machine.
 
 ```bash
 #Get all metrics
-curl http://$(oc get route backend -n demo -o jsonpath='{.spec.host}')/metrics
+curl -L http://$(oc get route backend -n demo -o jsonpath='{.spec.host}')/metrics
 
 #Get only app metrics
-curl http://$(oc get route backend -n demo -o jsonpath='{.spec.host}')/metrics/application
+curl -L http://$(oc get route backend -n demo -o jsonpath='{.spec.host}')/metrics/application
+
 
 #Get only app metrics in JSON format
-curl -H "Accept: application/json" http://$(oc get route backend -n demo -o jsonpath='{.spec.host}')/metrics/application
+curl -L -H "Accept: application/json" http://$(oc get route backend -n demo -o jsonpath='{.spec.host}')/metrics/application
 ```
 
 ## Setup Prometheus
@@ -92,7 +93,7 @@ NAME                                   READY   STATUS    RESTARTS   AGE
 prometheus-operator-849894cb8d-gdcd9   1/1     Running   0          111s
 ```
 
-* Create Service Account, Service Monitor and Prometheus 
+* Create Service Account and Prometheus 
 
 ```bash
 #Create Service Account, Service , Cluster Role and Cluster Role Binding
@@ -103,26 +104,14 @@ serviceaccount/prometheus created
 service/prometheus created
 clusterrole.rbac.authorization.k8s.io/prometheus created
 clusterrolebinding.rbac.authorization.k8s.io/prometheus created
-
+```
+* Create Service Monitor
+```bash
 #Create Service Monitor
-oc apply -f metrics/service_monitor.yaml -n app-monitor
+oc apply -f metrics/service_monitor.yaml -n demo
 #output
 servicemonitor.monitoring.coreos.com/app-monitor created
-
-#Create Prometheus by apply CRDs
-oc apply -f metrics/prometheus.yaml -n app-monitor
-#output
-prometheus.monitoring.coreos.com/prometheus created
-
-#Check that prometheus is up and running
-oc get pods -n app-monitor
-#Output
-NAME                                   READY   STATUS    RESTARTS   AGE
-prometheus-operator-849894cb8d-gdcd9   1/1     Running   0          4m17s
-prometheus-prometheus-0                3/3     Running   1          97s
-prometheus-prometheus-1                3/3     Running   1          97s
 ```
-
 * Take a look at [service_monitor.yaml](../metrics/service_monitor.yaml)
 
 ```yaml
@@ -152,6 +141,21 @@ spec:
       port: http
 ```
 
+* Create Prometheus CRD
+```bash
+#Create Prometheus by apply CRDs
+oc apply -f metrics/prometheus.yaml -n app-monitor
+#output
+prometheus.monitoring.coreos.com/prometheus created
+
+#Check that prometheus is up and running
+oc get pods -n app-monitor
+#Output
+NAME                                   READY   STATUS    RESTARTS   AGE
+prometheus-operator-849894cb8d-gdcd9   1/1     Running   0          4m17s
+prometheus-prometheus-0                3/3     Running   1          97s
+prometheus-prometheus-1                3/3     Running   1          97s
+```
 * Create route for Prometheus
 
 ```bash
@@ -235,7 +239,7 @@ echo "https://$(oc get route grafana-route -n app-monitor -o jsonpath='{.spec.ho
 
 * Login to Grafana with default user and password (Check user and password in [grafana.yaml](../metrics/grafana.yaml)
 
-* Check for Grafana Dashboard. After login, click Home#>Backend App
+* Check for Grafana Dashboard. After login
 
 ![Grafana Dashboard](imagesdir/grafana-dashboard.png)
 
