@@ -198,7 +198,6 @@ pipeline {
           }
           println "Set image repository to ${repository}"
           openshift.withCluster() {
-            println "nexus_url: ${nexus_url}"
             openshift.withProject(env.STAGE_PROJECT) {
               def template = './manifests/backend-dc-stage.yaml'
                 openshift.apply(
