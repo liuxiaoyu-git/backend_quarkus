@@ -4,7 +4,7 @@ metadata:
   name: app-monitor
   labels:
     k8s-app: app-monitor
-  namespace: app-monitor
+  # namespace: app-monitor
 spec:
   namespaceSelector:
     matchNames:

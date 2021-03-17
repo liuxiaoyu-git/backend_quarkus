@@ -1,6 +1,9 @@
 #!/bin/sh
 START_BUILD=$(date +%s)
+SONARQUBE_VERSION=7.9.2
+#export NEXUS_VERSION=3.19.1
 export NEXUS_VERSION=3.18.1
+#export NEXUS_VERSION=3.30.0
 #export NEXUS_VERSION=3.25.1
 export CICD_PROJECT=ci-cd
 DEV_PROJECT=dev
@@ -72,7 +75,7 @@ oc new-app  --template=postgresql-persistent \
 --param VOLUME_CAPACITY=${SONAR_PVC_SIZE} \
 --labels=app=sonarqube_db,app.openshift.io/runtime=postgresql
 check_pod "postgresql"
-oc new-app  --docker-image=quay.io/gpte-devops-automation/sonarqube:7.9.1 --env=SONARQUBE_JDBC_USERNAME=sonar --env=SONARQUBE_JDBC_PASSWORD=sonar --env=SONARQUBE_JDBC_URL=jdbc:postgresql://postgresql/sonar --labels=app=sonarqube
+oc new-app  --docker-image=quay.io/gpte-devops-automation/sonarqube:$SONARQUBE_VERSION --env=SONARQUBE_JDBC_USERNAME=sonar --env=SONARQUBE_JDBC_PASSWORD=sonar --env=SONARQUBE_JDBC_URL=jdbc:postgresql://postgresql/sonar --labels=app=sonarqube
 oc rollout pause deployment sonarqube
 oc label deployment sonarqube app.kubernetes.io/part-of=Code-Quality -n ${CICD_PROJECT}
 #oc expose svc sonarqube
@@ -117,7 +120,7 @@ data:
 EOF
 
 NEXUS_REGISTRY=$(oc get route nexus-registry -n ${CICD_PROJECT} -o jsonpath='{.spec.host}')
-PROJECTS=($DEV_PROJECT $STAGE_PROJECT $UAT_PROJECT $PROD_PROJECT)
+PROJECTS=($CICD_PROJECT $DEV_PROJECT $STAGE_PROJECT $UAT_PROJECT $PROD_PROJECT)
 for project in  "${PROJECTS[@]}"
 do
     echo "Create registry secret for $project"
@@ -166,3 +169,8 @@ echo ${CICD_NEXUS_PASSWORD} >> nexus_password.txt
 echo "Record this password and change it via web console"
 echo "Start build pipeline and deploy to dev project by run start_build_pipeline.sh"
 echo "Elasped time to build is $(expr ${BUILD_TIME} / 60 ) minutes"
+echo "Edit image.config.openshift.io/cluster with following spec"
+echo "spec:"
+echo "  registrySources:"
+echo "    insecureRegistries:"
+echo "    - nexus-registry.ci-cd.svc.cluster.local"

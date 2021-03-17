@@ -121,8 +121,6 @@ metadata:
   name: app-monitor
   labels:
     k8s-app: app-monitor
-  #Deploy in namespace app-monitor
-  namespace: app-monitor
 spec:
   namespaceSelector:
     #Read data from namespace demo
