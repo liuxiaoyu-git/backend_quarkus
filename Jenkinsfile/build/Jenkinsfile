@@ -1,5 +1,6 @@
 def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
 def repository
+def nexus_url
 pipeline {
   agent {
     kubernetes {
@@ -139,7 +140,7 @@ pipeline {
             }
           }else{
             echo "Use external image registry"
-            def nexus_url = sh (
+            nexus_url = sh (
               script: 'oc get route nexus-registry -n ci-cd -o jsonpath="{.spec.host}"',
               returnStdout: true
             ).trim()
@@ -248,11 +249,14 @@ pipeline {
         echo "Create deployment config: env.DEV_PROJECT"
         script {
           if(env.USE_INTERNAL_REGISTRY.toBoolean()){
-            repository = "image-registry.openshift-image-registry.svc:5000/ci-cd"
+            nexus_url = "image-registry.openshift-image-registry.svc:5000/ci-cd"
           } else {
-            repository = env.NEXUS_REGISTRY
+            nexus_url = nexus_url = sh (
+              script: 'oc get route nexus-registry -n ci-cd -o jsonpath="{.spec.host}"',
+              returnStdout: true
+            ).trim()
           }
-          println "Set image repository to ${repository}"
+          println "Set image repository to ${nexus_url}"
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
               def template = './manifests/backend-dc-dev.yaml'
@@ -260,7 +264,7 @@ pipeline {
                 openshift.apply(
                     openshift.process(
                       "-f", template,
-                      "-p", "REPOSITORY=${repository}",
+                      "-p", "REPOSITORY=${nexus_url}",
                       "-p", "IMAGE_NAME=${imageName}",
                       "-p", "IMAGE_TAG=${devTag}",
                       "-p", "BACKEND_URL=${env.BACKEND_URL}",
