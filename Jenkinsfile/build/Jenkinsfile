@@ -112,6 +112,30 @@ pipeline {
     //     }
     //   }
     // }
+    // Build Container Image
+    stage('Build Container Image') {
+      steps {
+        echo "Build Container Image ${imageName}"
+        dir('code') {
+          script {
+            openshift.withCluster() {
+              openshift.withProject(env.CICD_PROJECT) {
+                openshift.startBuild(
+                  "${imageName}",
+                  "--from-dir=.",
+                  "--wait"
+                )
+                if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+                  openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
+                } else {
+                  sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds ${nexusUser}:${nexusPassword} --dest-creds ${nexusUser}:${nexusPassword} docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:latest docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:${devTag}"  
+                }
+              }
+            }
+          }
+        }
+      }
+    }
     // Create Build Config
     stage('Create Build Config') {
       when {
@@ -214,30 +238,6 @@ pipeline {
               openshift.apply(
                 openshift.process("-f", template)
               )
-            }
-          }
-        }
-      }
-    }
-    // Build Container Image
-    stage('Build Container Image') {
-      steps {
-        echo "Build Container Image ${imageName}"
-        dir('code') {
-          script {
-            openshift.withCluster() {
-              openshift.withProject(env.CICD_PROJECT) {
-                openshift.startBuild(
-                  "${imageName}",
-                  "--from-dir=.",
-                  "--wait"
-                )
-                if(env.USE_INTERNAL_REGISTRY.toBoolean()){
-                  openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
-                } else {
-                  sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds ${nexusUser}:${nexusPassword} --dest-creds ${nexusUser}:${nexusPassword} docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:latest docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:${devTag}"  
-                }
-              }
             }
           }
         }
