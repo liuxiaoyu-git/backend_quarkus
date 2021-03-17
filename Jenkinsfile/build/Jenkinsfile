@@ -251,7 +251,7 @@ pipeline {
           if(env.USE_INTERNAL_REGISTRY.toBoolean()){
             nexus_url = "image-registry.openshift-image-registry.svc:5000/ci-cd"
           } else {
-            nexus_url = nexus_url = sh (
+            nexus_url = sh (
               script: 'oc get route nexus-registry -n ci-cd -o jsonpath="{.spec.host}"',
               returnStdout: true
             ).trim()
