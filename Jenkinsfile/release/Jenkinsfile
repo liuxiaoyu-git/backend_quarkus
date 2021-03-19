@@ -229,10 +229,14 @@ pipeline {
                   sleep 5
                   rc = openshift.selector("rc", "${imageName}-${dc_version}").object()
                }
-               def jmeter =  sh (
-                                  script: 'jmeter.sh -n -t load-test/load-test.jmx -JHOST=http://$(oc get route backend -n stage -o jsonpath="{.spec.host}") -JTHREAD=50 -JLOOP=5 -JURI=/version',
-                                  returnStdout: true
-                             ).trim()
+              //  def jmeter =  sh (
+              //                     script: 'jmeter.sh -n -t load-test/load-test.jmx -JHOST=http://$(oc get route backend -n stage -o jsonpath="{.spec.host}") -JTHREAD=50 -JLOOP=5 -JURI=/version',
+              //                     returnStdout: true
+              //                ).trim()
+              //  println "Result: ${jmeter}"
+               sh "jmeter.sh -n -t load-test/load-test.jmx -JHOST=http://$(oc get route backend -n stage -o jsonpath='{.spec.host}') -JTHREAD=50 -JLOOP=5 -JURI=/version"
+               sh "cat summary.log"
+               
             }
           }
         }
