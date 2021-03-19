@@ -230,7 +230,7 @@ pipeline {
                   rc = openshift.selector("rc", "${imageName}-${dc_version}").object()
                }
                def jmeter =  sh (
-                                  script: 'jmeter.sh -t load-test/load-test.jmx -JHOST=http://$(oc get route backend -n stage -o jsonpath="{.spec.host}") -JTHREAD=50 -JLOOP=5 -JURI=/version',
+                                  script: 'jmeter.sh -n -t load-test/load-test.jmx -JHOST=http://$(oc get route backend -n stage -o jsonpath="{.spec.host}") -JTHREAD=50 -JLOOP=5 -JURI=/version',
                                   returnStdout: true
                              ).trim()
             }
