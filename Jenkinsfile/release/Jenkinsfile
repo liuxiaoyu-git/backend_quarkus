@@ -225,9 +225,9 @@ pipeline {
                def dc_version = dc.status.latestVersion
                def rc = openshift.selector("rc", "${imageName}-${dc_version}").object()
                println "Waiting for ${imageName} to be ready"
-               while (rc_prod.spec.replicas != rc_prod.status.readyReplicas) {
+               while (rc.spec.replicas != rc.status.readyReplicas) {
                   sleep 5
-                  rc = openshift.selector("rc", "${destApp}-${dc_version}").object()
+                  rc = openshift.selector("rc", "${imageName}-${dc_version}").object()
                }
                def target_url =  sh (
                                   script: 'oc get route backend -n ${env.STAGE_PROJECT} -o jsonpath="{.spec.host}"',
