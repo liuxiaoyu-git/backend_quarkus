@@ -230,7 +230,7 @@ pipeline {
                   rc = openshift.selector("rc", "${imageName}-${dc_version}").object()
                }
                def target_url =  sh (
-                                  script: 'oc get route backend -n ${env.STAGE_PROJECT} -o jsonpath="{.spec.host}"',
+                                  script: 'oc get route backend -n stage -o jsonpath="{.spec.host}"',
                                   returnStdout: true
                                  ).trim()
                def jmeter =  sh (
