@@ -232,7 +232,7 @@ pipeline {
                def target_url =  sh (
                                   script: 'oc get route backend -n stage -o jsonpath="{.spec.host}"',
                                   returnStdout: true
-                                 ).trim()
+                                 )
                def jmeter =  sh (
                                   script: 'jmeter.sh -t load-test/load-test.jmx -JHOST=http://${target_url} -JTHREAD=50 -JLOOP=5 -JURI=/version',
                                   returnStdout: true
