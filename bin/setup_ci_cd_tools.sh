@@ -2,10 +2,10 @@
 START_BUILD=$(date +%s)
 SONARQUBE_VERSION=7.9.2
 #export NEXUS_VERSION=3.19.1
-export NEXUS_VERSION=3.18.1
-#export NEXUS_VERSION=3.30.0
-#export NEXUS_VERSION=3.25.1
-export CICD_PROJECT=ci-cd
+#export NEXUS_VERSION=3.18.1
+#NEXUS_VERSION=3.30.0
+NEXUS_VERSION=3.25.1
+CICD_PROJECT=ci-cd
 DEV_PROJECT=dev
 PROD_PROJECT=prod
 STAGE_PROJECT=stage
@@ -45,6 +45,8 @@ function check_pod(){
         fi
     done
 }
+oc patch image.config.openshift.io/cluster -p \
+'{"spec":{"registrySources":{"insecureRegistries":["nexus-registry.ci-cd.svc.cluster.local"]}}}' --type='merge'
 oc project ${CICD_PROJECT}
 #--as-deployment-config=true 
 oc new-app jenkins-persistent --param ENABLE_OAUTH=true --param MEMORY_LIMIT=2Gi \
@@ -169,8 +171,8 @@ echo ${CICD_NEXUS_PASSWORD} >> nexus_password.txt
 echo "Record this password and change it via web console"
 echo "Start build pipeline and deploy to dev project by run start_build_pipeline.sh"
 echo "Elasped time to build is $(expr ${BUILD_TIME} / 60 ) minutes"
-echo "Edit image.config.openshift.io/cluster with following spec"
-echo "spec:"
-echo "  registrySources:"
-echo "    insecureRegistries:"
-echo "    - nexus-registry.ci-cd.svc.cluster.local"
+# echo "Edit image.config.openshift.io/cluster with following spec"
+# echo "spec:"
+# echo "  registrySources:"
+# echo "    insecureRegistries:"
+# echo "    - nexus-registry.ci-cd.svc.cluster.local"
