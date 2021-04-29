@@ -21,7 +21,7 @@ public class ExampleResourceTest {
     @Test
     public void testReadiness() {
         given()
-          .when().get("/health/ready")
+          .when().get("/q/health/ready")
           .then()
              .statusCode(200);
     }
@@ -29,7 +29,7 @@ public class ExampleResourceTest {
     @Test
     public void testLiveness() {
         given()
-          .when().get("/health/live")
+          .when().get("/q/health/live")
           .then()
              .statusCode(200);
     }
