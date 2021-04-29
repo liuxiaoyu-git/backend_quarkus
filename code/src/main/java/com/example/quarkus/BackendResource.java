@@ -62,8 +62,8 @@ public class BackendResource {
         )
     @Timed(
         name = "timeBackend", 
-        description = "Times how long it takes to invoke the backend method", 
-        unit = MetricUnits.MILLISECONDS
+        description = "Times how long it takes to invoke the backend method in second", 
+        unit = MetricUnits.SECONDS
         )
     @ConcurrentGauge(
         name = "concurrentBackend",
