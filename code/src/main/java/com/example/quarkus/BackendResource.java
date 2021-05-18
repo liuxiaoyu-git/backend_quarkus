@@ -75,8 +75,8 @@ public class BackendResource {
             URL url;
             try {
                 logger.info("Request to: " + backend);
-                logger.info("showResponse: "+showResponse);
-                logger.info("User-Agent: "+getHeader(headers,"user-agent"));
+                // logger.info("showResponse: "+showResponse);
+                // logger.info("User-Agent: "+getHeader(headers,"user-agent"));
                 url = new URL(backend);
                 final HttpURLConnection con = (HttpURLConnection) url.openConnection();
                 String b3[] = {"x-b3-traceid","x-b3-spanid","x-b3-parentspanid","x-b3-sampled","x-b3-flags","x-request-id"};
