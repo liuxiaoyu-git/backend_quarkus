@@ -1,10 +1,7 @@
 #!/bin/sh
 START_BUILD=$(date +%s)
 SONARQUBE_VERSION=7.9.2
-#export NEXUS_VERSION=3.19.1
-#export NEXUS_VERSION=3.18.1
-NEXUS_VERSION=3.30.0
-#NEXUS_VERSION=3.25.1
+NEXUS_VERSION=3.30.1
 CICD_PROJECT=ci-cd
 DEV_PROJECT=dev
 PROD_PROJECT=prod
@@ -89,6 +86,7 @@ oc delete pod $NEXUS_POD
 check_pod "nexus"
 NEXUS_POD=$(oc get pods | grep nexus | grep -v deploy | awk '{print $1}')
 NEXUS_PASSWORD=$(oc exec $NEXUS_POD -- cat /nexus-data/admin.password)
+CICD_NEXUS_PASSWORD=${NEXUS_PASSWORD}-$(date +%s)
 # https://raw.githubusercontent.com/redhat-gpte-devopsautomation/ocp_advanced_development_resources/master/nexus/setup_nexus3.sh
 ./setup_nexus3.sh admin $NEXUS_PASSWORD \
 https://$(oc get route nexus --template='{{ .spec.host }}') \
@@ -98,7 +96,6 @@ echo "expose port 5000 for container registry"
 oc expose deployment nexus --port=5000 --name=nexus-registry
 oc create route edge nexus-registry --service=nexus-registry --port=5000
 NEXUS_PASSWORD=$(oc exec $NEXUS_POD -- cat /nexus-data/admin.password)
-CICD_NEXUS_PASSWORD=${NEXUS_PASSWORD}-$(date +%s)
 CICD_NEXUS_PASSWORD_SECRET=$(echo ${CICD_NEXUS_PASSWORD}|base64 -)
 oc new-app  --template=postgresql-persistent \
 --param POSTGRESQL_USER=sonar \
@@ -183,8 +180,4 @@ echo ${CICD_NEXUS_PASSWORD} >> nexus_password.txt
 echo "Record this password and change it via web console"
 echo "Start build pipeline and deploy to dev project by run start_build_pipeline.sh"
 echo "Elasped time to build is $(expr ${BUILD_TIME} / 60 ) minutes"
-# echo "Edit image.config.openshift.io/cluster with following spec"
-# echo "spec:"
-# echo "  registrySources:"
-# echo "    insecureRegistries:"
-# echo "    - nexus-registry.ci-cd.svc.cluster.local"
+echo "Setup jenkins slave with setup_maven36_slave.sh"
