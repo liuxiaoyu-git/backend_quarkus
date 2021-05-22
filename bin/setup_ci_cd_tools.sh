@@ -3,8 +3,8 @@ START_BUILD=$(date +%s)
 SONARQUBE_VERSION=7.9.2
 #export NEXUS_VERSION=3.19.1
 #export NEXUS_VERSION=3.18.1
-#NEXUS_VERSION=3.30.0
-NEXUS_VERSION=3.25.1
+NEXUS_VERSION=3.30.0
+#NEXUS_VERSION=3.25.1
 CICD_PROJECT=ci-cd
 DEV_PROJECT=dev
 PROD_PROJECT=prod
@@ -14,47 +14,57 @@ NEXUS_PVC_SIZE="300Gi"
 JENKINS_PVC_SIZE="10Gi"
 SONAR_PVC_SIZE="10Gi"
 CICD_NEXUS_USER=jenkins
-CICD_NEXUS_USER_SECRET=$(echo ${CICD_NEXUS_USER}|base64 -)
+CICD_NEXUS_USER_SECRET=$(echo $CICD_NEXUS_USER|base64 -)
 function check_pod(){
     sleep 15
     READY="NO"
-    while [ $READY = "NO" ];
-    do
-        clear
-        #echo "Wait for $1 pod to sucessfully start"
-        MESSAGE=$(oc get pods  -n ${CICD_PROJECT}| grep $1 | grep -v deploy)
-        STATUS=$(echo ${MESSAGE}| awk '{print $2}')
-        if [ $(echo -n ${MESSAGE} | wc -c) -gt 0 ];
-            then
-            if [ ${STATUS} = "1/1" ];
-            then
-                READY="YES"
-            else 
-                echo "Current Status: ${MESSAGE}"
-                cat $1.txt
-                sleep 3
-                clear
-                echo "Current Status: ${MESSAGE}"
-                cat wait.txt
-                sleep 2
-
-            fi
-        else
-            oc get pods -n ${CICD_PROJECT} | grep $1
-            sleep 5
-        fi
-    done
+    POD=$(oc get pods  -n $CICD_PROJECT --no-headers| grep $1 | grep -v deploy | head -n 1 | awk '{print $1}')
+    while [ $READY != "true" ];
+    do 
+        echo "Current Status: ${MESSAGE}"
+        clear;cat $1.txt;sleep 3;clear;cat wait.txt;sleep 2                 
+        READY=$(oc get pod $POD -n $CICD_PROJECT -o jsonpath='{.status.containerStatuses[0].ready}')
+    done 
 }
+# function check_pod(){
+#     sleep 15
+#     READY="NO"
+#     while [ $READY = "NO" ];
+#     do
+#         clear
+#         #echo "Wait for $1 pod to sucessfully start"
+#         MESSAGE=$(oc get pods  -n $CICD_PROJECT| grep $1 | grep -v deploy)
+#         STATUS=$(echo ${MESSAGE}| awk '{print $2}')
+#         if [ $(echo -n ${MESSAGE} | wc -c) -gt 0 ];
+#             then
+#             if [ ${STATUS} = "1/1" ];
+#             then
+#                 READY="YES"
+#             else 
+#                 echo "Current Status: ${MESSAGE}"
+#                 cat $1.txt
+#                 sleep 3
+#                 clear
+#                 echo "Current Status: ${MESSAGE}"
+#                 cat wait.txt
+#                 sleep 2
+
+#             fi
+#         else
+#             oc get pods -n ${CICD_PROJECT} | grep $1
+#             sleep 5
+#         fi
+#     done
+# }
 oc patch image.config.openshift.io/cluster -p \
 '{"spec":{"registrySources":{"insecureRegistries":["nexus-registry.ci-cd.svc.cluster.local"]}}}' --type='merge'
 oc project ${CICD_PROJECT}
-#--as-deployment-config=true 
 oc new-app jenkins-persistent --param ENABLE_OAUTH=true --param MEMORY_LIMIT=2Gi \
 --param VOLUME_CAPACITY=${JENKINS_PVC_SIZE} --param DISABLE_ADMINISTRATIVE_MONITORS=true
 oc set resources dc jenkins --limits=memory=2Gi,cpu=2 --requests=memory=1Gi,cpu=500m
 oc label dc jenkins app.kubernetes.io/name=Jenkins -n ${CICD_PROJECT}
 oc label dc jenkins app.openshift.io/runtime=jenkins -n ${CICD_PROJECT}
-# No need to wait for jenkins to start
+echo "Wait for jenkins to start..."
 check_pod "jenkins"
 oc new-app sonatype/nexus3:${NEXUS_VERSION} --name=nexus -n ${CICD_PROJECT}
 oc create route edge nexus --service=nexus --port=8081
@@ -70,6 +80,26 @@ oc set probe deployment/nexus --readiness --failure-threshold 3 --initial-delay-
 oc label deployment nexus app.kubernetes.io/part-of=Registry -n ${CICD_PROJECT}
 oc rollout resume deployment nexus -n ${CICD_PROJECT}
 check_pod "nexus"
+export NEXUS_POD=$(oc get pods | grep nexus | grep -v deploy | awk '{print $1}')
+oc cp $NEXUS_POD:/nexus-data/etc/nexus.properties nexus.properties
+echo nexus.scripts.allowCreation=true >>  nexus.properties
+oc cp nexus.properties $NEXUS_POD:/nexus-data/etc/nexus.properties
+rm -f nexus.properties
+oc delete pod $NEXUS_POD
+check_pod "nexus"
+NEXUS_POD=$(oc get pods | grep nexus | grep -v deploy | awk '{print $1}')
+NEXUS_PASSWORD=$(oc exec $NEXUS_POD -- cat /nexus-data/admin.password)
+# https://raw.githubusercontent.com/redhat-gpte-devopsautomation/ocp_advanced_development_resources/master/nexus/setup_nexus3.sh
+./setup_nexus3.sh admin $NEXUS_PASSWORD \
+https://$(oc get route nexus --template='{{ .spec.host }}') \
+${CICD_NEXUS_USER} \
+${CICD_NEXUS_PASSWORD}
+echo "expose port 5000 for container registry"
+oc expose deployment nexus --port=5000 --name=nexus-registry
+oc create route edge nexus-registry --service=nexus-registry --port=5000
+NEXUS_PASSWORD=$(oc exec $NEXUS_POD -- cat /nexus-data/admin.password)
+CICD_NEXUS_PASSWORD=${NEXUS_PASSWORD}-$(date +%s)
+CICD_NEXUS_PASSWORD_SECRET=$(echo ${CICD_NEXUS_PASSWORD}|base64 -)
 oc new-app  --template=postgresql-persistent \
 --param POSTGRESQL_USER=sonar \
 --param POSTGRESQL_PASSWORD=sonar \
@@ -92,24 +122,6 @@ oc label dc postgresql app.kubernetes.io/part-of=Code-Quality -n ${CICD_PROJECT}
 oc label dc postgresql app.kubernetes.io/name=posgresql -n ${CICD_PROJECT}
 oc rollout resume deployment sonarqube
 check_pod "sonarqube"
-export NEXUS_POD=$(oc get pods | grep nexus | grep -v deploy | awk '{print $1}')
-oc cp $NEXUS_POD:/nexus-data/etc/nexus.properties nexus.properties
-echo nexus.scripts.allowCreation=true >>  nexus.properties
-oc cp nexus.properties $NEXUS_POD:/nexus-data/etc/nexus.properties
-rm -f nexus.properties
-oc delete pod $NEXUS_POD
-echo "Wait 10 sec..."
-sleep 10
-check_pod "nexus"
-export NEXUS_POD=$(oc get pods | grep nexus | grep -v deploy | awk '{print $1}')
-export NEXUS_PASSWORD=$(oc exec $NEXUS_POD -- cat /nexus-data/admin.password)
-CICD_NEXUS_PASSWORD=${NEXUS_PASSWORD}-$(date +%s)
-# https://raw.githubusercontent.com/redhat-gpte-devopsautomation/ocp_advanced_development_resources/master/nexus/setup_nexus3.sh
-./setup_nexus3.sh admin $NEXUS_PASSWORD https://$(oc get route nexus --template='{{ .spec.host }}') ${CICD_NEXUS_USER} ${CICD_NEXUS_PASSWORD}
-echo "expose port 5000 for container registry"
-oc expose deployment nexus --port=5000 --name=nexus-registry
-oc create route edge nexus-registry --service=nexus-registry --port=5000
-CICD_NEXUS_PASSWORD_SECRET=$(echo ${CICD_NEXUS_PASSWORD}|base64 -)
 oc create -f - << EOF
 apiVersion: v1
 kind: Secret
