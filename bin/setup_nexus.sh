@@ -11,7 +11,8 @@ function check_pod(){
     while [ $READY != "true" ];
     do 
         echo "Current Status: ${MESSAGE}"
-        clear;cat $1.txt;sleep 3;clear;cat wait.txt;sleep 2                 
+        clear;cat wait.txt;sleep 2                 
+        clear;cat $1.txt;sleep 3               
         READY=$(oc get pod $POD -n $CICD_PROJECT -o jsonpath='{.status.containerStatuses[0].ready}')
     done 
 }
