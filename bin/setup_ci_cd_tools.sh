@@ -240,6 +240,7 @@ oc new-app  --template=postgresql-persistent \
 --param POSTGRESQL_DATABASE=sonar \
 --param VOLUME_CAPACITY=${SONAR_PVC_SIZE} \
 --labels=app=sonarqube_db,app.openshift.io/runtime=postgresql
+oc annotate deployment sonarqube 'app.openshift.io/connects-to=[{"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"postgresql"}]'
 check_pod "postgresql"
 clear;echo "Setup SonarQube..."
 oc new-app  --docker-image=quay.io/gpte-devops-automation/sonarqube:$SONARQUBE_VERSION --env=SONARQUBE_JDBC_USERNAME=sonar --env=SONARQUBE_JDBC_PASSWORD=sonar --env=SONARQUBE_JDBC_URL=jdbc:postgresql://postgresql/sonar --labels=app=sonarqube
