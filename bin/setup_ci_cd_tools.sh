@@ -206,7 +206,8 @@ oc label deployment nexus app.kubernetes.io/part-of=Registry -n ${CICD_PROJECT}
 oc rollout resume deployment nexus -n ${CICD_PROJECT}
 check_pod "nexus"
 clear;echo "Create Nexus repositories..."
-NEXUS_POD=$(oc get pods | grep nexus | grep -v deploy | awk '{print $1}')
+sleep 5
+NEXUS_POD=$(oc get pods | grep nexus | grep Running |grep -v deploy | awk '{print $1}')
 oc cp $NEXUS_POD:/nexus-data/etc/nexus.properties nexus.properties
 echo nexus.scripts.allowCreation=true >>  nexus.properties
 oc cp nexus.properties $NEXUS_POD:/nexus-data/etc/nexus.properties
