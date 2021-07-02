@@ -5,8 +5,6 @@ TAG=$1
 START_BUILD_APP=$(date +%s)
 mvn clean package -Dquarkus.native.container-build=true \
 -DskipTests=true  -Pnative 
-#Previously need this parameter
-#-Dnative-image.xmx=5g
 END_BUILD_APP=$(date +%s)
 START_BUILD_CONTAINER=$(date +%s)
 docker build -f src/main/docker/Dockerfile.native \
