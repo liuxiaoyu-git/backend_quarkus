@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 START_BUILD=$(date +%s)
 SONARQUBE_VERSION=7.9.2
 NEXUS_VERSION=3.30.1
@@ -13,7 +13,7 @@ SONAR_PVC_SIZE="10Gi"
 CICD_NEXUS_USER=jenkins
 CICD_NEXUS_USER_SECRET=$(echo $CICD_NEXUS_USER|base64 -)
 function check_pod(){
-    sleep 15
+    sleep 60
     READY="NO"
     POD=$(oc get pods  -n $CICD_PROJECT --no-headers| grep $1 | grep -v deploy | head -n 1 | awk '{print $1}')
     while [ $READY != "true" ];
@@ -206,15 +206,15 @@ oc label deployment nexus app.kubernetes.io/part-of=Registry -n ${CICD_PROJECT}
 oc rollout resume deployment nexus -n ${CICD_PROJECT}
 check_pod "nexus"
 clear;echo "Create Nexus repositories..."
-sleep 5
-NEXUS_POD=$(oc get pods | grep nexus | grep Running |grep -v deploy | awk '{print $1}')
+sleep 30
+NEXUS_POD=$(oc get pods | grep nexus |grep -v deploy |grep -v Termination| grep Running | awk '{print $1}')
 oc cp $NEXUS_POD:/nexus-data/etc/nexus.properties nexus.properties
 echo nexus.scripts.allowCreation=true >>  nexus.properties
 oc cp nexus.properties $NEXUS_POD:/nexus-data/etc/nexus.properties
 rm -f nexus.properties
 oc delete pod $NEXUS_POD
 check_pod "nexus"
-NEXUS_POD=$(oc get pods | grep nexus | grep -v deploy | awk '{print $1}')
+NEXUS_POD=$(oc get pods | grep nexus | grep -v deploy |grep Running| awk '{print $1}')
 NEXUS_PASSWORD=$(oc exec $NEXUS_POD -- cat /nexus-data/admin.password)
 CICD_NEXUS_PASSWORD=${NEXUS_PASSWORD}-$(date +%s)
 NEXUS_URL=https://$(oc get route nexus --template='{{ .spec.host }}')
