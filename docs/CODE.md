@@ -50,8 +50,8 @@ Simple RESTful Application that call another service via HTTP GET method with fo
 | URI        | Description  | 
 | ------------- |:-------------|
 |/|Return Hello Message|
-|/health/live|Livenness probe URL|
-|/health/ready|Readiness probe URL|
+|/q/health/live|Livenness probe URL|
+|/q/health/ready|Readiness probe URL|
 |/stop|Set liveness to false|
 |/start|Set liveness to true|
 |/not_ready|Set readiness to false|
@@ -59,7 +59,9 @@ Simple RESTful Application that call another service via HTTP GET method with fo
 |/version|Return App version|
 |/openapi|Return OpenAPI (Swagger) document in yaml |
 |/openapi?format=json|Return OpenAPI (Swagger) document in JSON |
-|metrics/application|get metrics data|
+|/swagger-ui|Swagger UI |
+|/q/metrics|get metrics data|
+|/q/metrics/application|get applicaition metrics data|
 
 
 ## Start Coding with Quarkus
