@@ -75,6 +75,9 @@ Reload brower (or call you applicaton with cRUL or other tools) java files are r
 ```bash
 mvn quarkus:dev
 ```
+* [Quarkus Dev UI](http://localhost:8080/q/dev) http://localhost:8080/q/dev
+  
+  ![](imagesdir/dev-ui.png)
 
 ### Unit Test
 
@@ -121,9 +124,9 @@ public class BackendResource {
 mvn quarkus:add-extension -Dextensions="health"
 ```
 * Health check URIs 
-  - /health 
-  - /health/live
-  - /health/ready 
+  - /q/health 
+  - /q/health/live
+  - /q/health/ready 
 
 * Custom Liveness health check ([AppLiveness.java](../code/src/main/java/com/example/quarkus/health/AppLiveness.java))
 ```java
@@ -163,10 +166,6 @@ mvn quarkus:dev
 curl http://localhost:8080/q/health
 curl http://localhost:8080/q/health/live
 curl http://localhost:8080/q/health/ready
-# or use option -L to follow redirect
-curl -L http://localhost:8080/health
-curl -L http://localhost:8080/health/live
-curl -L http://localhost:8080/health/ready
 ```
 * Sample out from /health/ready
 ```json
@@ -264,8 +263,8 @@ mvn quarkus:add-extension -Dextensions="metrics"
     }
 ```
 * URI for get metrics data
-  - /metrics - all metrics data
-  - /metrics/application - only application data (from annotated to code)
+  - /q/metrics - all metrics data
+  - /q/metrics/application - only application data (from annotated to code)
   - Add header "Accept: application/json" if you want response in JSON format.
 * (Optional) Setup Prometheus and Grafana for monitor application metrics. Click **[here](METRICS.md)**
 * You can test by start quarkus in development mode with **quarkus:dev** then use another termial to call to URI */* then check metrics with */metrics/application*
@@ -276,8 +275,6 @@ mvn quarkus:add-extension -Dextensions="metrics"
   curl http://localhost:8080/
   #Check for metrics
   curl -H "Accept: application/json" http://localhost:8080/q/metrics/application
-  # or
-  curl -L -H "Accept: application/json" http://localhost:8080/metrics/application
   ```
 * Metrics will show that *com.example.quarkus.BackendResource.countBackend* is 1
 ```json
