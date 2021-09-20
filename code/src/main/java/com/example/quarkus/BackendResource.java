@@ -37,7 +37,7 @@ public class BackendResource {
     @ConfigProperty(name = "app.backend", defaultValue = "http://localhost:8080/version")
     String backend;
 
-    @ConfigProperty(name = "app.message", defaultValue = "Hello, World")
+    @ConfigProperty(name = "app.message", defaultValue = "Hello, World ^_^ ")
     String message;
 
     @ConfigProperty(name = "app.errorCodeNotLive", defaultValue = "503")
@@ -117,7 +117,7 @@ public class BackendResource {
                 if (!ApplicationConfig.IS_ALIVE.get()) {
                     logger.info("Applicartion liveness is set to false, return " + errorCodeNotLive);
                     return Response.status(Integer.parseInt(errorCodeNotLive)).encoding("text/plain")
-                        .entity(generateMessage("Application liveness is set to fasle", errorCodeNotLive))
+                        .entity(generateMessage("Application liveness is set to false", errorCodeNotLive))
                         .expires(Date.from(Instant.now().plus(Duration.ofMillis(0))))
                         .build();
                 } else {
