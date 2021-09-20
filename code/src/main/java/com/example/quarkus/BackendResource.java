@@ -84,7 +84,7 @@ public class BackendResource {
                     String trace=getHeader(headers, b3[i]);
                     if(trace.length()>0){
                         con.setRequestProperty(b3[i],trace);
-                        logger.info(b3[i]+": "+trace);
+                        logger.debug(b3[i]+": "+trace);
                     }
                 }
                 con.setRequestMethod("GET");
