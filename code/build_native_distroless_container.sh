@@ -2,11 +2,17 @@
 CONTAINER_NAME=backend-distroless
 TAG=$1
 # Use native container build
+CONTAINER_RUNTIME=podman
+podman --version 1>/dev/null 2>&1
+if [ $? -ne 0 ];
+then
+  CONTAINER_RUNTIME=docker
+  MAVEN_CLI="mvn clean package -Dquarkus.native.container-build=true -DskipTests=true  -Pnative"
+else
+  MAVEN_CLI="mvn clean package -Pnative -Dquarkus.native.remote-container-build=true -Dquarkus.native.container-runtime=podman -Dquarkus.native.native-image-xmx=5g "
+fi
 START_BUILD_APP=$(date +%s)
-mvn clean package -Dquarkus.native.container-build=true \
--DskipTests=true  -Pnative 
-#Previously need this parameter
-#-Dnative-image.xmx=5g
+$MAVEN_CLI
 END_BUILD_APP=$(date +%s)
 START_BUILD_CONTAINER=$(date +%s)
 docker build -f src/main/docker/Dockerfile.native-distroless \
