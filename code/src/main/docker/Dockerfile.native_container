@@ -1,15 +1,11 @@
-FROM quay.io/quarkus/centos-quarkus-maven:20.0.0-java8 AS build
-COPY src /usr/src/app/src
-COPY pom.xml /usr/src/app
-USER root
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.5
+WORKDIR /work/
+RUN chown 1001 /work \
+    && chmod "g+rwX" /work \
+    && chown 1001:root /work
+COPY --chown=1001:root target/*-runner /work/application
 
-RUN mkdir -p /work/ssl-libs/lib && \
-    mvn -f /usr/src/app/pom.xml -Pnative clean package && \
-    cp /usr/src/app/target/*-runner /work/application && \
-    cp -R /opt/graalvm/jre/lib/security/cacerts /work/ssl-libs && \
-    cp /opt/graalvm/jre/lib/amd64/libsunec.so /work/ssl-libs/lib && \
-    chmod 775 /work && chown -R quarkus /work 
-USER quarkus
 EXPOSE 8080
-CMD ["./application", "-Dquarkus.http.host=0.0.0.0", "-Djava.library.path=/work/ssl-libs/lib", "-Djavax.net.ssl.trustStore=/work/ssl-libs/cacerts"]
+USER 1001
 
+CMD ["./application", "-Dquarkus.http.host=0.0.0.0"]
