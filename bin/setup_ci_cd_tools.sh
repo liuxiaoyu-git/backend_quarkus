@@ -1,7 +1,8 @@
 #!/bin/bash
 START_BUILD=$(date +%s)
 SONARQUBE_VERSION=7.9.2
-NEXUS_VERSION=3.30.1
+NEXUS_VERSION=3.37.3
+#NEXUS_VERSION=3.30.1
 CICD_PROJECT=ci-cd
 DEV_PROJECT=dev
 PROD_PROJECT=prod
@@ -241,11 +242,12 @@ oc new-app  --template=postgresql-persistent \
 --param POSTGRESQL_DATABASE=sonar \
 --param VOLUME_CAPACITY=${SONAR_PVC_SIZE} \
 --labels=app=sonarqube_db,app.openshift.io/runtime=postgresql
-oc annotate deployment sonarqube 'app.openshift.io/connects-to=[{"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"postgresql"}]'
+
 check_pod "postgresql"
 clear;echo "Setup SonarQube..."
 oc new-app  --docker-image=quay.io/gpte-devops-automation/sonarqube:$SONARQUBE_VERSION --env=SONARQUBE_JDBC_USERNAME=sonar --env=SONARQUBE_JDBC_PASSWORD=sonar --env=SONARQUBE_JDBC_URL=jdbc:postgresql://postgresql/sonar --labels=app=sonarqube
 oc rollout pause deployment sonarqube
+oc annotate deployment sonarqube 'app.openshift.io/connects-to=[{"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"postgresql"}]'
 oc label deployment sonarqube app.kubernetes.io/part-of=Code-Quality -n ${CICD_PROJECT}
 #oc expose svc sonarqube
 oc create route edge sonarqube --service=sonarqube --port=9000
