@@ -44,7 +44,6 @@ pipeline {
               script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
               returnStdout: true
             ).trim()
-            mvn help:evaluate -Dexpression=project.version -q -DforceStdout
             devTag = "${version}-" + currentBuild.number
             nexusUser = sh (
               script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.username}"| base64 -d -',
