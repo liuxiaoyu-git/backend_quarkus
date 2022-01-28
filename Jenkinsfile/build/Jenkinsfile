@@ -197,18 +197,18 @@ pipeline {
       }
     }
     // Scan with ACS/Stackrox
-     stage('Scan Image') {
-      steps {
-        echo "Scan image ${imageName}"
-          script {
-                if(env.STACKROX.toBoolean()){
-                  sh "export ROX_API_TOKEN=eyJhbGciOiJSUzI1NiIsImtpZCI6Imp3dGswIiwidHlwIjoiSldUIn0.eyJhdWQiOlsiaHR0cHM6Ly9zdGFja3JveC5pby9qd3Qtc291cmNlcyNhcGktdG9rZW5zIl0sImV4cCI6MTY3NDgzMDQ5NCwiaWF0IjoxNjQzMjk0NDk0LCJpc3MiOiJodHRwczovL3N0YWNrcm94LmlvL2p3dCIsImp0aSI6ImQ0ZDcwZDhhLWRmNzItNGU2ZC1hYWRiLTI4ZjBiMjNhNjQwNSIsIm5hbWUiOiJqZW5raW5zIiwicm9sZXMiOlsiQ29udGludW91cyBJbnRlZ3JhdGlvbiJdfQ.CHi0_QqNUlWWAJN0qXNsvH68fTtQgd8UnTibLljVECw5Pdcnks_orpZLl_JS_fV9uSGqzB15ynD2uLf3ooUtNrv1CPW9FZyPTHgaptQn-rYsSubdS4tTTNodMzM--Ts9vrhFacpRPfT3qHZjxspSQsqnzhT-EqyfyqRfe_Fzyi4K5yM-D6lK6TqGIp-kYkAZct6PXbxdxk-2Pkshm411HnM2iq2o8ywvOBXWU6d-pmbhzr1b0_d74abH2Rlc0RDTdaYhQR_OiBxobagojmEf1pW8ByWOlOKQ3wzppzX09jidpiCBkzDDRpwHY5nAd6OdyPNySMNCWUAXj9SSMZB5aTP0dhvNMXSt9LfidUgOGGLs7Xiwd8IK8Yn38LFxtMdOZKGPrnJpAOTGKc_neqyrVwqPIYyZkDZKZJoMPL3GODwmFvRTSG_HT-2fQb1VO5VwCA7NzNNlqOWW7UYikfCy1SXW3jyRAIRHWoAPXy5nPV__NUk7n-F9uwLurg6G7y_-mToFiOarqabmrONGVjKgWnXApkA91IFeU_xzcf1WvRBAMa_m6y3HxjqJkm5dCUM_26p78-MlqUoLdav3m0V3CfwY09FpSzRntR5_quzWruBE5qjIBUOybIeamuBYuUwiUt5CE_qMdZmHeUtY1eeb4XxrBlxXWNjUvvtYnT0KbGI;roxctl --insecure-skip-tls-verify -e central.stackrox:443 image scan --image=${env.NEXUS_REGISTRY}/${imageName}:${devTag} --output=json"
-                } else {
-                  sh "ACS is not available"  
-                }
-          }
-        }
-    }
+    //  stage('Scan Image') {
+    //   steps {
+    //     echo "Scan image ${imageName}"
+    //       script {
+    //             if(env.STACKROX.toBoolean()){
+    //               sh "export ROX_API_TOKEN=;roxctl --insecure-skip-tls-verify -e central.stackrox:443 image scan --image=${env.NEXUS_REGISTRY}/${imageName}:${devTag} --output=json"
+    //             } else {
+    //               sh "ACS is not available"  
+    //             }
+    //       }
+    //     }
+    // }
     // Create Service
     stage('Create Service') {
       when {
