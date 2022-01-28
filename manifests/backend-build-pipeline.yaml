@@ -41,6 +41,8 @@ spec:
           value: nexus-credential
         - name: USE_INTERNAL_REGISTRY
           value: "false"
+        - name: STACKROX
+          value: "false"
     type: JenkinsPipeline
   successfulBuildsHistoryLimit: 5
   triggers: []
