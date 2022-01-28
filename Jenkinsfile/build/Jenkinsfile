@@ -196,7 +196,7 @@ pipeline {
         }
       }
     }
-    Scan with ACS/Stackrox
+    // Scan with ACS/Stackrox
      stage('Scan Image') {
       steps {
         echo "Scan image ${imageName}"
