@@ -229,7 +229,7 @@ pipeline {
                       echo "CRITICAL CVEs: ${numCriticalCVEs}"
                       if(numCriticalCVEs>env.MAX_CRITICAL_CVES.toInteger()){
                           currentBuild.result = 'ABORTED'
-                          error('Nuber of CRITICAL CVEs exceed limits at ${MAX_CRITICAL_CVES}')
+                          echo "Number of CRITICAL CVEs exceed limits at env.MAX_CRITICAL_CVES"
                           sh "exit 1"
                       }
                   } else {
