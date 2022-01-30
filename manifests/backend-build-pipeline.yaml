@@ -39,6 +39,10 @@ spec:
           value: http://sonarqube:9000
         - name: NEXUS_SECRET
           value: nexus-credential
+        - name: STACKROX_SECRET
+          value: stackrox-token
+        - name: ROX_CENTRAL_ADDRESS
+          value: central.stackrox:443
         - name: USE_INTERNAL_REGISTRY
           value: "false"
         - name: STACKROX

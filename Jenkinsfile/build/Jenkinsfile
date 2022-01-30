@@ -28,7 +28,9 @@ pipeline {
     imageName = "backend"
     devTag = "0.0-0"
     nexusUser = ""
-    nexusPassword =""
+    nexusPassword = ""
+    stackroxToken = ""
+    numCriticalCVEs = ""
     nexusContainerRepo = "docker"
   }
   stages {
@@ -197,18 +199,31 @@ pipeline {
       }
     }
     // Scan with ACS/Stackrox
-    //  stage('Scan Image') {
-    //   steps {
-    //     echo "Scan image ${imageName}"
-    //       script {
-    //             if(env.STACKROX.toBoolean()){
-    //               sh "export ROX_API_TOKEN=;roxctl --insecure-skip-tls-verify -e central.stackrox:443 image scan --image=${env.NEXUS_REGISTRY}/${imageName}:${devTag} --output=json"
-    //             } else {
-    //               sh "ACS is not available"  
-    //             }
-    //       }
-    //     }
-    // }
+     stage('Scan Image') {
+      steps {
+        echo "Scan image ${imageName}"
+          script {
+                if(env.STACKROX){
+                  if(env.STACKROX.toBoolean()){
+                      stackroxToken = sh (
+                          script: 'oc get secret ${STACKROX_SECRET} -o jsonpath="{.data.token}"| base64 -d -',
+                          returnStdout: true
+                      ).trim()
+                       numCriticalCVEs = sh (
+                          script: 'export ROX_API_TOKEN=${stackroxToken};roxctl --insecure-skip-tls-verify -e ${env.ROX_CENTRAL_ADDRESS} image scan --image=${env.NEXUS_REGISTRY}/${imageName}:${devTag} --output=json|tee /dev/stdout | jq ".result.summary.CRITICAL"'
+                          returnStdout: true
+                       ).trim()
+                       echo "CRITICAL CVEs: ${numCriticalCVEs}"
+                      //sh "export ROX_API_TOKEN=${stackroxToken};roxctl --insecure-skip-tls-verify -e ${env.ROX_CENTRAL_ADDRESS}:443 image scan --image=${env.NEXUS_REGISTRY}/${imageName}:${devTag} --output=json"
+                  } else {
+                      echo "Skip scan image"  
+                  }
+                } else{
+                  echo "Skip scan image"
+                }  
+          }
+        }
+    }
     // Create Service
     stage('Create Service') {
       when {

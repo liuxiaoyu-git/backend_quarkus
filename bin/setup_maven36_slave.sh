@@ -4,7 +4,7 @@ JENKINS_SLAVE=maven36-with-tools
 MAVEN_VERSION=3.6.3
 JMETER_VERSION=5.4.1
 echo "################  ${JENKINS_SLAVE} ##################"
-oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-maven:4.10.0 \n
+oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-maven:4.4 \n
    USER root\n
    RUN curl https://copr.fedorainfracloud.org/coprs/alsadi/dumb-init/repo/epel-7/alsadi-dumb-init-epel-7.repo -o /etc/yum.repos.d/alsadi-dumb-init-epel-7.repo && \ \n
    curl https://raw.githubusercontent.com/cloudrouter/centos-repo/master/CentOS-Base.repo -o /etc/yum.repos.d/CentOS-Base.repo && \ \n
@@ -30,7 +30,7 @@ oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-
    chmod -R 755 /opt/apache-jmeter-5.4.1 && \ \n
    chown -R 1001:0 /opt/apache-jmeter-5.4.1 && \ \n
    DISABLES="--disablerepo=rhel-server-extras --disablerepo=rhel-server --disablerepo=rhel-fast-datapath --disablerepo=rhel-server-optional --disablerepo=rhel-server-ose --disablerepo=rhel-server-rhscl" && \ \n
-   yum $DISABLES -y --setopt=tsflags=nodocs install skopeo jq && yum clean all   \n
+   yum $DISABLES -y --setopt=tsflags=nodocs install skopeo podman buildah && yum clean all   \n
    ENV PATH=/opt/apache-maven-3.6.3/bin:/opt/nexus-cli:/opt/apache-jmeter-5.4.1/bin:/opt/rox:$PATH \n
    USER 1001' --name=${JENKINS_SLAVE} -n ${PROJECT}
 # uid=1000680000(default) gid=0(root) groups=0(root),1000680000
@@ -55,7 +55,3 @@ oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-
 #    mkdir -p $HOME/.m2 \n
 #    RUN chown -R 1001:0 $HOME && chmod -R g+rw $HOME \n
 #    USER 1001' --name=${JENKINS_SLAVE} -n ${PROJECT}
-echo "Wait 15 sec for build to start"
-sleep 15
-oc logs build/${JENKINS_SLAVE}-1 -f -n ${PROJECT}
-oc get build/${JENKINS_SLAVE}-1 -n ${PROJECT}
