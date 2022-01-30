@@ -198,24 +198,25 @@ pipeline {
         }
       }
     }
-    // Scan with ACS/Stackrox
-     stage('Scan Image') {
+        // Scan with ACS/Stackrox
+    stage('Scan Image') {
       when {
-            expression {
-              script {
-                if(env.STACKROX){
-                  if(env.STACKROX.toBoolean()){
-                  return true;
-                  }else{
-                    return false;
-                  }
-                }
-            }
-          }
-      steps {
-          echo "Scan image ${imageName}:${devTag}"
+        expression {
           script {
-            openshift.withCluster() {
+             if(env.STACKROX){
+               if(env.STACKROX.toBoolean())
+                  return true;
+                else
+                    return false;
+                  
+              }
+          }
+        }
+      }
+      steps {
+        echo "Scan image ${imageName}:${devTag}"
+        script {
+          openshift.withCluster() {
               openshift.withProject(env.CICD_PROJECT) {
                       ROX_API_TOKEN = sh (
                           script: 'oc get secret ${STACKROX_SECRET} -o jsonpath="{.data.token}"| base64 -d -',
@@ -234,12 +235,12 @@ pipeline {
                           echo "Number of CRITICAL CVEs exceed limits"
                           sh "exit 1"
                       }
-                  } 
-                } 
-            }
+              }
           }
+        }
       }
-    }
+    }  
+  
      stage('Create Network') {
       parallel {
           stage('Create Service') {
