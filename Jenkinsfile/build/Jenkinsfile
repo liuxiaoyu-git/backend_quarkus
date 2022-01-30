@@ -211,9 +211,8 @@ pipeline {
                           script: 'oc get secret ${STACKROX_SECRET} -o jsonpath="{.data.token}"| base64 -d -',
                           returnStdout: true
                       ).trim()
-                      echo "ROX_API_TOKEN=${ROX_API_TOKEN}"
                       numCriticalCVEs = sh (
-                          script: 'roxctl --insecure-skip-tls-verify -e ${env.ROX_CENTRAL_ADDRESS} image scan --image=${env.NEXUS_REGISTRY}/${imageName}:${devTag} --output=json|tee /dev/stdout | jq ".result.summary.CRITICAL"',
+                          script: 'roxctl --insecure-skip-tls-verify -e ${ROX_CENTRAL_ADDRESS} image scan --image=${NEXUS_REGISTRY}/${imageName}:${devTag} --output=json|tee /dev/stdout | jq ".result.summary.CRITICAL"',
                           returnStdout: true
                       ).trim()
                        echo "CRITICAL CVEs: ${numCriticalCVEs}"
