@@ -204,7 +204,11 @@ pipeline {
             expression {
               script {
                 if(env.STACKROX){
+                  if(env.STACKROX.toBoolean()){
                   return true;
+                  }else{
+                    return false;
+                  }
                 }
               }
             }
@@ -214,8 +218,6 @@ pipeline {
           script {
             openshift.withCluster() {
               openshift.withProject(env.CICD_PROJECT) {
-                if(env.STACKROX){
-                  if(env.STACKROX.toBoolean()){
                       ROX_API_TOKEN = sh (
                           script: 'oc get secret ${STACKROX_SECRET} -o jsonpath="{.data.token}"| base64 -d -',
                           returnStdout: true
@@ -236,10 +238,7 @@ pipeline {
                   } else {
                       echo "Skip scan image"  
                   }
-                } else{
-                  echo "Skip scan image"
-                }  
-              }
+                } 
             }
           }
         }
