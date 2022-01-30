@@ -228,7 +228,7 @@ pipeline {
                       echo "cat /tmp/cve.txt"
                       echo "CRITICAL CVEs: ${numCriticalCVEs}"
                       echo "Max CRITICAL CVEs: ${env.MAX_CRITICAL_CVES}"
-                      if(numCriticalCVEs>env.MAX_CRITICAL_CVES.toInteger()){
+                      if(numCriticalCVEs>env.MAX_CRITICAL_CVES){
                           currentBuild.result = 'ABORTED'
                           echo "Number of CRITICAL CVEs exceed limits at ${env.MAX_CRITICAL_CVES}"
                           sh "exit 1"
