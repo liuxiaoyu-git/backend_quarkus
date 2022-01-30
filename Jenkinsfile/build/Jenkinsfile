@@ -210,7 +210,7 @@ pipeline {
                           returnStdout: true
                       ).trim()
                        numCriticalCVEs = sh (
-                          script: 'export ROX_API_TOKEN=${stackroxToken};roxctl --insecure-skip-tls-verify -e ${env.ROX_CENTRAL_ADDRESS} image scan --image=${env.NEXUS_REGISTRY}/${imageName}:${devTag} --output=json|tee /dev/stdout | jq ".result.summary.CRITICAL"'
+                          script: 'export ROX_API_TOKEN=${stackroxToken};roxctl --insecure-skip-tls-verify -e ${env.ROX_CENTRAL_ADDRESS} image scan --image=${env.NEXUS_REGISTRY}/${imageName}:${devTag} --output=json|tee /dev/stdout | jq ".result.summary.CRITICAL"',
                           returnStdout: true
                        ).trim()
                        echo "CRITICAL CVEs: ${numCriticalCVEs}"
