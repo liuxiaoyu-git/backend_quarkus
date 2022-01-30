@@ -220,9 +220,9 @@ pipeline {
                           script: 'oc get secret ${STACKROX_SECRET} -o jsonpath="{.data.token}"| base64 -d -',
                           returnStdout: true
                       ).trim()
-                      sh "export ROX_API_TOKEN=${ROX_API_TOKEN};roxctl --insecure-skip-tls-verify -e ${ROX_CENTRAL_ADDRESS} image scan --image=${NEXUS_REGISTRY}/${imageName}:${devTag} --output=json|tee /dev/stdout > /tmp/cve.txt"
+                      sh "export ROX_API_TOKEN=${ROX_API_TOKEN};roxctl --insecure-skip-tls-verify -e ${ROX_CENTRAL_ADDRESS} image scan --image=${NEXUS_REGISTRY}/${imageName}:${devTag} --output=json > /tmp/cve.txt"
                       numCriticalCVEs = sh (
-                          script: 'cat /tmp/cve.txt | jq ".result.summary.CRITICAL"',
+                          script: 'cat /tmp/cve.txt |tee /dev/stdout| jq ".result.summary.CRITICAL"',
                           returnStdout: true
                       ).trim()
                       echo "CRITICAL CVEs: ${numCriticalCVEs}"
