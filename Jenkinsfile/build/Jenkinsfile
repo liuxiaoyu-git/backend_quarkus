@@ -228,8 +228,8 @@ pipeline {
                       echo "cat /tmp/cve.txt"
                       echo "CRITICAL CVEs: ${numCriticalCVEs}"
                       if(numCriticalCVEs>env.MAX_CRITICAL_CVES.toInteger()){
-                        echo "Nuber of CRITICAL CVEs exceed limits at ${MAX_CRITICAL_CVES}"
-                        return 1;
+                          currentBuild.result = 'ABORTED'
+                          error('Nuber of CRITICAL CVEs exceed limits at ${MAX_CRITICAL_CVES}')
                       }
                   } else {
                       echo "Skip scan image"  
