@@ -200,9 +200,7 @@ pipeline {
     }
     // Scan with ACS/Stackrox
      stage('Scan Image') {
-      steps {
-          echo "Scan image ${imageName}"
-          when {
+      when {
             expression {
               script {
                 if(env.STACKROX){
@@ -211,6 +209,8 @@ pipeline {
               }
             }
           }
+      steps {
+          echo "Scan image ${imageName}"
           script {
             openshift.withCluster() {
               openshift.withProject(env.CICD_PROJECT) {
