@@ -229,7 +229,7 @@ pipeline {
                       echo "CRITICAL CVEs: ${numCriticalCVEs}"
                       if(numCriticalCVEs>env.MAX_CRITICAL_CVES.toInteger()){
                         echo "Nuber of CRITICAL CVEs exceed limits at ${MAX_CRITICAL_CVES}"
-                        exit 1;
+                        return 1;
                       }
                   } else {
                       echo "Skip scan image"  
