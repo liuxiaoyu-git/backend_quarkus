@@ -230,6 +230,7 @@ pipeline {
                       if(numCriticalCVEs>env.MAX_CRITICAL_CVES.toInteger()){
                           currentBuild.result = 'ABORTED'
                           error('Nuber of CRITICAL CVEs exceed limits at ${MAX_CRITICAL_CVES}')
+                          sh "exit 1"
                       }
                   } else {
                       echo "Skip scan image"  
@@ -242,8 +243,9 @@ pipeline {
           }
         }
     }
-    // Create Service
-    stage('Create Service') {
+     stage('Create Network') {
+      parallel {
+          stage('Create Service') {
       when {
         expression {
           openshift.withCluster() {
@@ -266,7 +268,6 @@ pipeline {
         }
       }
     }
-    // Create Route
     stage('Create Route') {
       when {
         expression {
@@ -290,6 +291,56 @@ pipeline {
         }
       }
     }
+      }
+    }
+    // Create Service
+    // stage('Create Service') {
+    //   when {
+    //     expression {
+    //       openshift.withCluster() {
+    //         openshift.withProject(env.DEV_PROJECT) {
+    //           return !openshift.selector("svc", "${imageName}").exists()
+    //         }
+    //       }
+    //     }
+    //   }
+    //   steps {
+    //     script {
+    //       openshift.withCluster() {
+    //         openshift.withProject(env.DEV_PROJECT) {
+    //           def template = './manifests/backend-svc-dev.yaml'
+    //           openshift.apply(
+    //             openshift.process("-f", template)
+    //           )
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+    // Create Route
+    // stage('Create Route') {
+    //   when {
+    //     expression {
+    //       openshift.withCluster() {
+    //         openshift.withProject(env.DEV_PROJECT) {
+    //           return !openshift.selector("route", "${imageName}").exists()
+    //         }
+    //       }
+    //     }
+    //   }
+    //   steps {
+    //     script {
+    //       openshift.withCluster() {
+    //         openshift.withProject(env.DEV_PROJECT) {
+    //           def template = './manifests/backend-route-dev.yaml'
+    //           openshift.apply(
+    //             openshift.process("-f", template)
+    //           )
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
     // Create Deployment Config
     stage('Create Deployment Config') {
       steps {
