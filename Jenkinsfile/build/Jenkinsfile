@@ -235,9 +235,7 @@ pipeline {
                           echo "Number of CRITICAL CVEs exceed limits"
                           sh "exit 1"
                       }
-                  } else {
-                      echo "Skip scan image"  
-                  }
+                  } 
                 } 
             }
           }
