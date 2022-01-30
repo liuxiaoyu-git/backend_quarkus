@@ -203,6 +203,8 @@ pipeline {
       steps {
         echo "Scan image ${imageName}"
           script {
+            openshift.withCluster() {
+              openshift.withProject(env.CICD_PROJECT) {
                 if(env.STACKROX){
                   if(env.STACKROX.toBoolean()){
                       stackroxToken = sh (
@@ -221,6 +223,8 @@ pipeline {
                 } else{
                   echo "Skip scan image"
                 }  
+              }
+            }
           }
         }
     }
