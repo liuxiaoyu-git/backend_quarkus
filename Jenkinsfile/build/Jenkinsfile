@@ -238,6 +238,7 @@ pipeline {
                 } 
             }
           }
+      }
     }
      stage('Create Network') {
       parallel {
