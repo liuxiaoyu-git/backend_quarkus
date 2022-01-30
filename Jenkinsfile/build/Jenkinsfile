@@ -201,7 +201,16 @@ pipeline {
     // Scan with ACS/Stackrox
      stage('Scan Image') {
       steps {
-        echo "Scan image ${imageName}"
+          echo "Scan image ${imageName}"
+          when {
+            expression {
+              script {
+                if(env.STACKROX){
+                  return true;
+                }
+              }
+            }
+          }
           script {
             openshift.withCluster() {
               openshift.withProject(env.CICD_PROJECT) {
@@ -211,11 +220,11 @@ pipeline {
                           script: 'oc get secret ${STACKROX_SECRET} -o jsonpath="{.data.token}"| base64 -d -',
                           returnStdout: true
                       ).trim()
-                      sh "export ROX_API_TOKEN=${ROX_API_TOKEN};roxctl --insecure-skip-tls-verify -e ${ROX_CENTRAL_ADDRESS} image scan --image=${NEXUS_REGISTRY}/${imageName}:${devTag} --output=json|tee /dev/stdout | jq '.result.summary.CRITICAL'"
-                      // numCriticalCVEs = sh (
-                      //     script: 'export ROX_API_TOKEN=${ROX_API_TOKEN};roxctl --insecure-skip-tls-verify -e ${ROX_CENTRAL_ADDRESS} image scan --image=${NEXUS_REGISTRY}/${imageName}:${devTag} --output=json|tee /dev/stdout | jq ".result.summary.CRITICAL"',
-                      //     returnStdout: true
-                      // ).trim()
+                      sh "export ROX_API_TOKEN=${ROX_API_TOKEN};roxctl --insecure-skip-tls-verify -e ${ROX_CENTRAL_ADDRESS} image scan --image=${NEXUS_REGISTRY}/${imageName}:${devTag} --output=json|tee /dev/stdout > /tmp/cve.txt"
+                      numCriticalCVEs = sh (
+                          script: 'cat /tmp/cve.txt | jq ".result.summary.CRITICAL"',
+                          returnStdout: true
+                      ).trim()
                       echo "CRITICAL CVEs: ${numCriticalCVEs}"
                       //sh "export ROX_API_TOKEN=${stackroxToken};roxctl --insecure-skip-tls-verify -e ${env.ROX_CENTRAL_ADDRESS}:443 image scan --image=${env.NEXUS_REGISTRY}/${imageName}:${devTag} --output=json"
                   } else {
