@@ -210,7 +210,7 @@ pipeline {
             }
           }
       steps {
-          echo "Scan image ${imageName}"
+          echo "Scan image ${imageName}:${devTag}"
           script {
             openshift.withCluster() {
               openshift.withProject(env.CICD_PROJECT) {
@@ -222,11 +222,11 @@ pipeline {
                       ).trim()
                       sh "export ROX_API_TOKEN=${ROX_API_TOKEN};roxctl --insecure-skip-tls-verify -e ${ROX_CENTRAL_ADDRESS} image scan --image=${NEXUS_REGISTRY}/${imageName}:${devTag} --output=json > /tmp/cve.txt"
                       numCriticalCVEs = sh (
-                          script: 'cat /tmp/cve.txt |tee /dev/stdout| jq ".result.summary.CRITICAL"',
+                          script: 'cat /tmp/cve.txt| jq ".result.summary.CRITICAL"',
                           returnStdout: true
                       ).trim()
+                      echo "cat /tmp/cve.txt"
                       echo "CRITICAL CVEs: ${numCriticalCVEs}"
-                      //sh "export ROX_API_TOKEN=${stackroxToken};roxctl --insecure-skip-tls-verify -e ${env.ROX_CENTRAL_ADDRESS}:443 image scan --image=${env.NEXUS_REGISTRY}/${imageName}:${devTag} --output=json"
                   } else {
                       echo "Skip scan image"  
                   }
