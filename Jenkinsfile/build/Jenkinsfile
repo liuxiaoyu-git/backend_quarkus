@@ -210,7 +210,6 @@ pipeline {
                     return false;
                   }
                 }
-              }
             }
           }
       steps {
@@ -239,7 +238,6 @@ pipeline {
                 } 
             }
           }
-        }
     }
      stage('Create Network') {
       parallel {
