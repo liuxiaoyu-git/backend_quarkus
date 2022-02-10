@@ -243,17 +243,17 @@ pipeline {
   
      stage('Create Network') {
       parallel {
-          stage('Create Service') {
-      when {
-        expression {
-          openshift.withCluster() {
-            openshift.withProject(env.DEV_PROJECT) {
-              return !openshift.selector("svc", "${imageName}").exists()
-            }
-          }
-        }
-      }
-      steps {
+           stage('Create Service') {
+             when {
+               expression {
+                 openshift.withCluster() {
+                   openshift.withProject(env.DEV_PROJECT) {
+                      return !openshift.selector("svc", "${imageName}").exists()
+                   }
+                 }
+               }
+             }
+              steps {
         script {
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
@@ -266,6 +266,8 @@ pipeline {
         }
       }
     }
+           }
+     
     stage('Create Route') {
       when {
         expression {
