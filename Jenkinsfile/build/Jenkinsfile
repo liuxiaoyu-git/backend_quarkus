@@ -240,59 +240,109 @@ pipeline {
         }
       }
     }  
-  
-     stage('Create Network') {
+      stage('Create Network') {
       parallel {
-           stage('Create Service') {
-             when {
-               expression {
-                 openshift.withCluster() {
-                   openshift.withProject(env.DEV_PROJECT) {
-                      return !openshift.selector("svc", "${imageName}").exists()
-                   }
-                 }
-               }
-             }
-              steps {
-        script {
-          openshift.withCluster() {
-            openshift.withProject(env.DEV_PROJECT) {
-              def template = './manifests/backend-svc-dev.yaml'
-              openshift.apply(
-                openshift.process("-f", template)
-              )
+        stage('Create Service') {
+          steps {
+            when {
+              expression {
+                openshift.withCluster(){
+                  openshift.withProject(env.DEV_PROJECT){
+                    return !openshift.selector("svc", "${imageName}").exists()
+                  }
+                }
+              }
+            }
+            script {
+              openshift.withCluster() {
+                openshift.withProject(env.DEV_PROJECT) {
+                  def template = './manifests/backend-svc-dev.yaml'
+                  openshift.apply(
+                    openshift.process("-f", template)
+                  )
+                }
+              }
+            }
+          }
+        }
+        stage('Create Route') {
+          steps {
+            when {
+              expression {
+                openshift.withCluster(){
+                  openshift.withProject(env.DEV_PROJECT){
+                    return !openshift.selector("route", "${imageName}").exists()
+                  }
+                }
+              }
+            }
+            script {
+              openshift.withCluster() {
+                openshift.withProject(env.DEV_PROJECT) {
+                  def template = './manifests/backend-route-dev.yaml'
+                  openshift.apply(
+                    openshift.process("-f", template)
+                  )
+                }
+              }
             }
           }
         }
       }
     }
-           }
+  //    stage('Create Network') {
+  //     parallel {
+  //          stage('Create Service') {
+  //            when {
+  //              expression {
+  //                openshift.withCluster() {
+  //                  openshift.withProject(env.DEV_PROJECT) {
+  //                     return !openshift.selector("svc", "${imageName}").exists()
+  //                  }
+  //                }
+  //              }
+  //            }
+  //             steps {
+  //       script {
+  //         openshift.withCluster() {
+  //           openshift.withProject(env.DEV_PROJECT) {
+  //             def template = './manifests/backend-svc-dev.yaml'
+  //             openshift.apply(
+  //               openshift.process("-f", template)
+  //             )
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+       
      
-    stage('Create Route') {
-      when {
-        expression {
-          openshift.withCluster() {
-            openshift.withProject(env.DEV_PROJECT) {
-              return !openshift.selector("route", "${imageName}").exists()
-            }
-          }
-        }
-      }
-      steps {
-        script {
-          openshift.withCluster() {
-            openshift.withProject(env.DEV_PROJECT) {
-              def template = './manifests/backend-route-dev.yaml'
-              openshift.apply(
-                openshift.process("-f", template)
-              )
-            }
-          }
-        }
-      }
-    }
-      }
-    }
+  //   stage('Create Route') {
+  //     when {
+  //       expression {
+  //         openshift.withCluster() {
+  //           openshift.withProject(env.DEV_PROJECT) {
+  //             return !openshift.selector("route", "${imageName}").exists()
+  //           }
+  //         }
+  //       }
+  //     }
+  //     steps {
+  //       script {
+  //         openshift.withCluster() {
+  //           openshift.withProject(env.DEV_PROJECT) {
+  //             def template = './manifests/backend-route-dev.yaml'
+  //             openshift.apply(
+  //               openshift.process("-f", template)
+  //             )
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  //     }
+  //   }
+  // }
     // Create Service
     // stage('Create Service') {
     //   when {
