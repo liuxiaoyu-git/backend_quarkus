@@ -33,25 +33,7 @@ oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-
    yum $DISABLES -y --setopt=tsflags=nodocs install skopeo podman buildah && yum clean all   \n
    ENV PATH=/opt/apache-maven-3.6.3/bin:/opt/nexus-cli:/opt/apache-jmeter-5.4.1/bin:/opt/rox:$PATH \n
    USER 1001' --name=${JENKINS_SLAVE} -n ${PROJECT}
-# uid=1000680000(default) gid=0(root) groups=0(root),1000680000
-# 
-#    yum $DISABLES -y --setopt=tsflags=nodocs install podman && \ \n
-#    yum $DISABLES -y --setopt=tsflags=nodocs install java-11-openjdk-devel && \ \n
-# Quay => FROM openshift/jenkins-slave-base-centos7:v3.11 
-# RUN yum -y --setopt=tsflags=nodocs install skopeo && yum clean all \n
-
-# oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-base:4.9  \n
-#    ENV MAVEN_VERSION=3.6.3 \ \n
-#    PATH=$PATH:/opt/maven/bin \n
-#    RUN curl -L --output /tmp/jdk.tar.gz https://download.java.net/java/GA/jdk11/9/GPL/openjdk-11.0.2_linux-x64_bin.tar.gz && \ \n
-#    tar zxf /tmp/jdk.tar.gz -C /usr/lib/jvm && \ \n
-#    rm /tmp/jdk.tar.gz && \ \n
-#    update-alternatives --install /usr/bin/java java /usr/lib/jvm/jdk-11.0.2/bin/java 20000 --family java-1.11-openjdk.x86_64 && \ \n
-#    update-alternatives --set java /usr/lib/jvm/jdk-11.0.2/bin/java \n
-#    RUN curl -L --output /tmp/apache-maven-bin.zip  https://www-eu.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.zip && \ \n
-#    unzip -q /tmp/apache-maven-bin.zip -d /opt && \ \n
-#    ln -s /opt/apache-maven-${MAVEN_VERSION} /opt/maven && \ \n
-#    rm /tmp/apache-maven-bin.zip && \ \n
-#    mkdir -p $HOME/.m2 \n
-#    RUN chown -R 1001:0 $HOME && chmod -R g+rw $HOME \n
-#    USER 1001' --name=${JENKINS_SLAVE} -n ${PROJECT}
+echo "Wait 15 sec for build to start"
+sleep 15
+oc logs build/${JENKINS_SLAVE}-1 -f -n ${PROJECT}
+oc get build/${JENKINS_SLAVE}-1 -n ${PROJECT}
