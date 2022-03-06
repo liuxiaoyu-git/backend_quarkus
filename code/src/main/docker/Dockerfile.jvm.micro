@@ -1,10 +1,10 @@
 FROM quay.io/voravitl/ubi-micro-openjdk11:latest
-RUN chown 1001 /deployments \
-    && chmod "g+rwX" /deployments \
-    && chown 1001:root /deployments \
-    && chown 1001 /deployments/run-java.sh \
-    && chmod 540 /deployments/run-java.sh \
-    && echo "securerandom.source=file:/dev/urandom" >> /etc/alternatives/jre/conf/security/java.security
+#RUN chown 1001 /deployments \
+#    && chmod "g+rwX" /deployments \
+#    && chown 1001:root /deployments \
+#    && chown 1001 /deployments/run-java.sh \
+#    && chmod 540 /deployments/run-java.sh \
+#    && echo "securerandom.source=file:/dev/urandom" >> /etc/alternatives/jre/conf/security/java.security
 COPY --chown=1001 target/quarkus-app/lib/ /deployments/lib/
 COPY --chown=1001 target/quarkus-app/*.jar /deployments/
 COPY --chown=1001 target/quarkus-app/app/ /deployments/app/

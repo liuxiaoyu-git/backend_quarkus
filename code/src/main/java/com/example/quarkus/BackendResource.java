@@ -29,7 +29,12 @@ import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
+// import org.eclipse.microprofile.rest.client.annotation.RegisterClientHeaders;
+// import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
+
 @Path("/")
+// @RegisterRestClient
+// @RegisterClientHeaders(RequestHeaderFactory.class)
 public class BackendResource {
     @ConfigProperty(name = "app.version", defaultValue = "v1")
     String version;
@@ -75,16 +80,14 @@ public class BackendResource {
             URL url;
             try {
                 logger.info("Request to: " + backend);
-                // logger.info("showResponse: "+showResponse);
-                // logger.info("User-Agent: "+getHeader(headers,"user-agent"));
                 url = new URL(backend);
                 final HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                String b3[] = {"x-b3-traceid","x-b3-spanid","x-b3-parentspanid","x-b3-sampled","x-b3-flags","x-request-id"};
+                String b3[] = {"x-b3-traceid","x-b3-spanid","x-b3-parentspanid","x-b3-sampled","x-request-id"};
                 for(int i=0;i<b3.length;i++){
                     String trace=getHeader(headers, b3[i]);
                     if(trace.length()>0){
                         con.setRequestProperty(b3[i],trace);
-                        logger.debug(b3[i]+": "+trace);
+                        logger.info(b3[i]+": "+trace);
                     }
                 }
                 con.setRequestMethod("GET");
