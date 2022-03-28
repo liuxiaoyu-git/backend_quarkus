@@ -1,25 +1,14 @@
 #!/bin/sh
-NEXUS_VERSION=3.30.1
+#NEXUS_VERSION=3.30.1
+NEXUS_VERSION=3.38.0
 CICD_PROJECT=ci-cd
 NEXUS_PVC_SIZE="300Gi"
 CICD_NEXUS_USER=jenkins
 CICD_NEXUS_USER_SECRET=$(echo $CICD_NEXUS_USER|base64 -)
-function check_pod(){
-    sleep 15
-    READY="NO"
-    POD=$(oc get pods  -n $CICD_PROJECT --no-headers| grep $1 | grep -v deploy | head -n 1 | awk '{print $1}')
-    while [ $READY != "true" ];
-    do 
-        echo "Current Status: ${MESSAGE}"
-        clear;cat wait.txt;sleep 2                 
-        clear;cat $1.txt;sleep 3               
-        READY=$(oc get pod $POD -n $CICD_PROJECT -o jsonpath='{.status.containerStatuses[0].ready}')
-    done 
-}
 function add_nexus3_npmproxy_repo() {
   local _REPO_ID=$1
   local _REPO_URL=$2
-  local _NEXUS_USER=$3
+  local _NEXUS_USER
   local _NEXUS_PWD=$4
   local _NEXUS_URL=$5
 
@@ -174,28 +163,41 @@ EOM
   curl -k  -v  -H "accept: application/json" -H "Content-Type: application/json" -d "$_USER_JSON" -u "$_NEXUS_USER:$_NEXUS_PWD" "${_NEXUS_URL}/service/rest/beta/security/users"
 }
 clear;echo "Setup Nexus..."
-oc new-app sonatype/nexus3:${NEXUS_VERSION} --name=nexus -n ${CICD_PROJECT}
+oc project $CICD_PROJECT
+if [ $? -ne 0 ];
+then
+  oc new-project $CICD_PROJECT
+fi
+oc new-app sonatype/nexus3:$NEXUS_VERSION --name=nexus --labels=app=nexus -n $CICD_PROJECT
 oc create route edge nexus --service=nexus --port=8081
-oc rollout pause deployment nexus -n ${CICD_PROJECT}
-oc set resources deployment nexus --limits=memory=2Gi,cpu=2 --requests=memory=1Gi,cpu=500m -n ${CICD_PROJECT}
-oc set volume deployment/nexus --remove --confirm -n ${CICD_PROJECT}
+oc rollout pause deployment nexus -n $CICD_PROJECT
+oc set resources deployment nexus --limits=memory=2Gi,cpu=2 --requests=memory=1Gi,cpu=500m -n $CICD_PROJECT
+oc set volume deployment/nexus --remove --confirm -n $CICD_PROJECT
 oc set volume deployment/nexus --add --overwrite --name=nexus-pv-1 \
 --mount-path=/nexus-data/ --type persistentVolumeClaim \
---claim-name=nexus-pvc --claim-size=${NEXUS_PVC_SIZE} -n ${CICD_PROJECT}
+--claim-name=nexus-pvc --claim-size=$NEXUS_PVC_SIZE -n $CICD_PROJECT
 oc set probe deployment/nexus --liveness --failure-threshold 3 --initial-delay-seconds 60 -- echo ok -n ${CICD_PROJECT}
 oc set probe deployment/nexus --readiness --failure-threshold 3 --initial-delay-seconds 60 --get-url=http://:8081/ -n ${CICD_PROJECT}
-oc label deployment nexus app.kubernetes.io/part-of=Registry -n ${CICD_PROJECT}
-oc rollout resume deployment nexus -n ${CICD_PROJECT}
-check_pod "nexus"
+oc label deployment nexus app.kubernetes.io/part-of=Registry -n $CICD_PROJECT
+OLD_POD=$(oc get pods --no-headers | grep Running | awk '{print $1}')
+oc rollout resume deployment nexus -n $CICD_PROJECT
+echo "Wait for starting nexus pod... "
+oc wait --for=condition=Ready --timeout=300s pods -l app=nexus -n $CICD_PROJECT
 clear;echo "Create Nexus repositories..."
-NEXUS_POD=$(oc get pods | grep nexus | grep -v deploy | awk '{print $1}')
-oc cp $NEXUS_POD:/nexus-data/etc/nexus.properties nexus.properties
-echo nexus.scripts.allowCreation=true >>  nexus.properties
+NEXUS_POD=$(oc get pods --no-headers | grep Running |grep -v $OLD_POD | awk '{print $1}')
+#oc cp $NEXUS_POD:/nexus-data/etc/nexus.properties ./nexus.properties
+touch nexus.properties
+echo application-port=8081 > nexus.properties
+echo application-port=8081 >> nexus.properties
+echo nexus-args=\${jetty.etc}/jetty.xml,\${jetty.etc}/jetty-http.xml,\${jetty.etc}/jetty-requestlog.xml >> nexus.properties
+echo nexus-context-path=/\${NEXUS_CONTEXT} >> nexus.properties
+echo nexus.scripts.allowCreation=true >> nexus.properties
 oc cp nexus.properties $NEXUS_POD:/nexus-data/etc/nexus.properties
 rm -f nexus.properties
 oc delete pod $NEXUS_POD
-check_pod "nexus"
-NEXUS_POD=$(oc get pods | grep nexus | grep -v deploy | awk '{print $1}')
+echo "Wait for starting nexus pod... "
+oc wait --for=condition=Ready --timeout=300s pods -l app=nexus -n $CICD_PROJECT
+NEXUS_POD=$(oc get pods -l app=nexus --no-headers | grep Running | awk '{print $1}')
 NEXUS_PASSWORD=$(oc exec $NEXUS_POD -- cat /nexus-data/admin.password)
 CICD_NEXUS_PASSWORD=${NEXUS_PASSWORD}-$(date +%s)
 NEXUS_URL=https://$(oc get route nexus --template='{{ .spec.host }}')
@@ -205,17 +207,14 @@ add_nexus3_docker_repo docker 5000 admin $NEXUS_PASSWORD $NEXUS_URL
 add_nexus3_user admin $NEXUS_PASSWORD $NEXUS_URL $CICD_NEXUS_USER $CICD_NEXUS_PASSWORD
 add_nexus3_npmproxy_repo npm https://registry.npmjs.org/ admin $NEXUS_PASSWORD $NEXUS_URL
 add_nexus3_nugetproxy_repo nuget https://api.nuget.org/v3/index.json admin $NEXUS_PASSWORD $NEXUS_URL
-# https://raw.githubusercontent.com/redhat-gpte-devopsautomation/ocp_advanced_development_resources/master/nexus/setup_nexus3.sh
-# ./setup_nexus3.sh admin $NEXUS_PASSWORD \
-# https://$(oc get route nexus --template='{{ .spec.host }}') \
-# ${CICD_NEXUS_USER} \
-# ${CICD_NEXUS_PASSWORD}
 echo "expose port 5000 for container registry"
 oc expose deployment nexus --port=5000 --name=nexus-registry
 oc create route edge nexus-registry --service=nexus-registry --port=5000
 NEXUS_PASSWORD=$(oc exec $NEXUS_POD -- cat /nexus-data/admin.password)
-CICD_NEXUS_PASSWORD_SECRET=$(echo ${CICD_NEXUS_PASSWORD}|base64 -)
-echo "NEXUS URL = $(oc get route nexus -n ${CICD_PROJECT} -o jsonpath='{.spec.host}')"
-echo "NEXUS User admin = ${NEXUS_PASSWORD}"
-echo "NEXUS User jenkins = ${CICD_NEXUS_PASSWORD}"
-echo "Nexus password is stored at bin/nexus_password.txt"
+CICD_NEXUS_PASSWORD_SECRET=$(echo $CICD_NEXUS_PASSWORD|base64 -)
+echo "NEXUS URL = $(oc get route nexus -n $CICD_PROJECT -o jsonpath='{.spec.host}')"
+echo "admin: $NEXUS_PASSWORD" > nexus_password.txt
+echo "$CICD_NEXUS_USER: $CICD_NEXUS_PASSWORD_SECRET" >> nexus_password.txt
+echo "NEXUS User admin: $NEXUS_PASSWORD"
+echo "NEXUS User jenkins: $CICD_NEXUS_PASSWORD"
+echo "Nexus password is stored at nexus_password.txt"
