@@ -20,14 +20,15 @@ oc new-build --strategy=docker -D $'FROM quay.io/openshift/origin-jenkins-agent-
    mv /tmp/nexus-cli /opt/nexus-cli && \ \n
    chmod -R 755 /opt/nexus-cli/nexus-cli && \ \n
    chown -R 1001:0 /opt/nexus-cli && \ \n
-   curl -L -o /tmp/jmeter.tgz https://downloads.apache.org//jmeter/binaries/apache-jmeter-5.4.1.tgz && \ \n
-   tar -C /opt -xf /tmp/jmeter.tgz && \ \n
-   rm -f /tmp/jmeter.tgz && \ \n
-   chmod -R 755 /opt/apache-jmeter-5.4.1 && \ \n
-   chown -R 1001:0 /opt/apache-jmeter-5.4.1 && \ \n
+   #curl -L -o /tmp/jmeter.tgz https://downloads.apache.org//jmeter/binaries/apache-jmeter-5.4.1.tgz && \ \n
+   #tar -C /opt -xf /tmp/jmeter.tgz && \ \n
+   #rm -f /tmp/jmeter.tgz && \ \n
+   #chmod -R 755 /opt/apache-jmeter-5.4.1 && \ \n
+   #chown -R 1001:0 /opt/apache-jmeter-5.4.1 && \ \n
    DISABLES="--disablerepo=rhel-server-extras --disablerepo=rhel-server --disablerepo=rhel-fast-datapath --disablerepo=rhel-server-optional --disablerepo=rhel-server-ose --disablerepo=rhel-server-rhscl" && \ \n
    yum $DISABLES -y --setopt=tsflags=nodocs install skopeo && yum clean all   \n
-   ENV PATH=/opt/apache-maven-3.6.3/bin:/opt/nexus-cli:/opt/apache-jmeter-5.4.1/bin:$PATH \n
+   #ENV PATH=/opt/apache-maven-3.6.3/bin:/opt/nexus-cli:/opt/apache-jmeter-5.4.1/bin:$PATH \n
+   ENV PATH=/opt/apache-maven-3.6.3/bin:/opt/nexus-cli:$PATH \n
    USER 1001' --name=${JENKINS_SLAVE} -n ${PROJECT}
 # uid=1000680000(default) gid=0(root) groups=0(root),1000680000
 # 
