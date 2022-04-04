@@ -1,7 +1,7 @@
 #!/bin/sh
 CONTAINER_NAME=backend-uber
 TAG=$1
-mvn clean package -DskipTests=true -Dquarkus.package.uber-jar=true 
+mvn clean package -DskipTests=true -Dquarkus.package.type=uber-jar
 echo "*" > .dockerignore
 echo "!target/*-runner" >>.dockerignore
 echo "!target/*-runner.jar" >> .dockerignore
