@@ -1,6 +1,6 @@
 #!/bin/sh
-CONTAINER_NAME=backend-distroless
-TAG=$1
+CONTAINER_NAME=backend-native
+TAG=distroless
 # Use native container build
 CONTAINER_RUNTIME=podman
 podman --version 1>/dev/null 2>&1
