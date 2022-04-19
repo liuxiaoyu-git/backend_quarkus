@@ -10,7 +10,8 @@ then
   MAVEN_CLI="mvn clean package -Dquarkus.native.container-build=true -DskipTests=true  -Pnative"
 else
   #MAVEN_CLI="mvn clean package -Pnative -Dquarkus.native.container-build=true -Dquarkus.native.remote-container-build=true -Dquarkus.native.container-runtime=podman -Dquarkus.native.native-image-xmx=5g "
-  MAVEN_CLI="mvn clean package -Dnative -Dquarkus.native.container-build=true -Dquarkus.native.container-runtime=podman -DskipTests=true"
+  MAVEN_CLI="mvn clean package -Pnative -Dquarkus.native.container-build=true -Dquarkus.native.remote-container-build=true -Dquarkus.native.container-runtime=podman"
+  #MAVEN_CLI="mvn clean package -Dnative -Dquarkus.native.container-build=true -Dquarkus.native.container-runtime=podman -DskipTests=true"
 fi
 START_BUILD_APP=$(date +%s)
 END_BUILD_APP=$(date +%s)

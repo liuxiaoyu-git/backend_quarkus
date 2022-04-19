@@ -1,32 +1,46 @@
-#FROM quay.io/openshift/origin-jenkins-agent-base:4.9
-FROM openshift/jenkins-slave-base-centos7
-ENV MAVEN_VERSION=3.6.3 \
-    PATH=$PATH:/opt/maven/bin
+FROM registry.redhat.io/openshift4/ose-jenkins-agent-base:v4.10.0-202204040514.p0.g67e03dd.assembly.stream
+# ENV __doozer=update BUILD_RELEASE=202204040514.p0.g67e03dd.assembly.stream BUILD_VERSION=v4.10.0 OS_GIT_MAJOR=4 OS_GIT_MINOR=10 OS_GIT_PATCH=0 OS_GIT_TREE_STATE=clean OS_GIT_VERSION=4.10.0-202204040514.p0.g67e03dd.assembly.stream SOURCE_GIT_TREE_STATE=clean 
+# ENV __doozer=merge OS_GIT_COMMIT=67e03dd OS_GIT_VERSION=4.10.0-202204040514.p0.g67e03dd.assembly.stream-67e03dd SOURCE_DATE_EPOCH=1649048135 SOURCE_GIT_COMMIT=67e03dd19759f1a99725d81ea9bc707bf8c1888e SOURCE_GIT_TAG=67e03dd SOURCE_GIT_URL=https://github.com/openshift/jenkins 
 
-# RUN curl https://copr.fedorainfracloud.org/coprs/alsadi/dumb-init/repo/epel-7/alsadi-dumb-init-epel-7.repo -o /etc/yum.repos.d/alsadi-dumb-init-epel-7.repo && \
-#     curl https://raw.githubusercontent.com/cloudrouter/centos-repo/master/CentOS-Base.repo -o /etc/yum.repos.d/CentOS-Base.repo && \
-#     curl http://mirror.centos.org/centos-7/7/os/x86_64/RPM-GPG-KEY-CentOS-7 -o /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-# install skopeo
-# RUN DISABLES="--disablerepo=rhel-server-extras --disablerepo=rhel-server --disablerepo=rhel-fast-datapath --disablerepo=rhel-server-optional --disablerepo=rhel-server-ose --disablerepo=rhel-server-rhscl" && \
-#    yum $DISABLES -y --setopt=tsflags=nodocs install skopeo && yum clean all
-RUN yum install skopeo && yum clean all
-#RUN yum module install -y container-tools
- 
-# install java
-RUN curl -L --output /tmp/jdk.tar.gz https://download.java.net/java/GA/jdk11/9/GPL/openjdk-11.0.2_linux-x64_bin.tar.gz && \
-    tar zxf /tmp/jdk.tar.gz -C /usr/lib/jvm && \
-    rm /tmp/jdk.tar.gz && \
-    update-alternatives --install /usr/bin/java java /usr/lib/jvm/jdk-11.0.2/bin/java 20000 --family java-1.11-openjdk.x86_64 && \
-    update-alternatives --set java /usr/lib/jvm/jdk-11.0.2/bin/java
-     
+
+# Labels consumed by Red Hat build service
+
+ENV MAVEN_VERSION=3.6 \
+    LANG=en_US.UTF-8 \
+    LC_ALL=en_US.UTF-8 \
+    MAVEN_OPTS="-Duser.home=$HOME"
+# TODO: Remove MAVEN_OPTS env once cri-o pushes the $HOME variable in /etc/passwd
+
 # Install Maven
-RUN curl -L --output /tmp/apache-maven-bin.zip  https://www-eu.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.zip && \
-    unzip -q /tmp/apache-maven-bin.zip -d /opt && \
-    ln -s /opt/apache-maven-${MAVEN_VERSION} /opt/maven && \
-    rm /tmp/apache-maven-bin.zip && \
+RUN INSTALL_PKGS="maven java-1.8.0-openjdk-devel java-11-openjdk-devel" && \
+    yum module enable -y maven:${MAVEN_VERSION} && \
+    yum install -y $INSTALL_PKGS && \
+    rpm -V maven java-1.8.0-openjdk-devel && \
+    yum clean all -y && \
     mkdir -p $HOME/.m2
- 
-RUN chown -R 1001:0 $HOME && chmod -R g+rw $HOME
- 
-# COPY run-jnlp-client /usr/local/bin/
+
+ADD contrib/bin/configure-agent /usr/local/bin/configure-agent
+ADD ./contrib/settings.xml $HOME/.m2/
+
+RUN chown -R 1001:0 $HOME && \
+    chmod -R g+rw $HOME
+
 USER 1001
+
+LABEL \
+        com.redhat.component="ose-jenkins-agent-maven-container" \
+        name="openshift/ose-jenkins-agent-maven" \
+        architecture="x86_64" \
+        io.k8s.display-name="Jenkins Agent Maven" \
+        io.k8s.description="The jenkins agent maven image has the maven tools on top of the jenkins agent base image." \
+        io.openshift.tags="openshift,jenkins,agent,maven" \
+        maintainer="openshift-dev-services+jenkins@redhat.com" \
+        License="GPLv2+" \
+        vendor="Red Hat" \
+        io.openshift.maintainer.product="OpenShift Container Platform" \
+        io.openshift.maintainer.component="Jenkins" \
+        release="202204040514.p0.g67e03dd.assembly.stream" \
+        io.openshift.build.commit.id="67e03dd19759f1a99725d81ea9bc707bf8c1888e" \
+        io.openshift.build.source-location="https://github.com/openshift/jenkins" \
+        io.openshift.build.commit.url="https://github.com/openshift/jenkins/commit/67e03dd19759f1a99725d81ea9bc707bf8c1888e" \
+        version="v4.10.0"
