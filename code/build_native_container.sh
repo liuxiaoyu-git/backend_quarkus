@@ -7,13 +7,14 @@ podman --version 1>/dev/null 2>&1
 if [ $? -ne 0 ];
 then
   CONTAINER_RUNTIME=docker
-  MAVEN_CLI="mvn clean package -Dquarkus.native.container-build=true -DskipTests=true  -Pnative"
+  MAVEN_CLI="clean package -Dquarkus.native.container-build=true -DskipTests=true  -Pnative"
 else
-  #MAVEN_CLI="mvn clean package -Pnative -Dquarkus.native.container-build=true -Dquarkus.native.remote-container-build=true -Dquarkus.native.container-runtime=podman -Dquarkus.native.native-image-xmx=5g "
-  MAVEN_CLI="mvn clean package -Pnative -Dquarkus.native.container-build=true -Dquarkus.native.remote-container-build=true -Dquarkus.native.container-runtime=podman"
-  #MAVEN_CLI="mvn clean package -Dnative -Dquarkus.native.container-build=true -Dquarkus.native.container-runtime=podman -DskipTests=true"
+  #MAVEN_CLI="clean package -Pnative -Dquarkus.native.container-build=true -Dquarkus.native.remote-container-build=true -Dquarkus.native.container-runtime=podman -Dquarkus.native.native-image-xmx=5g "
+  MAVEN_CLI="clean package -Pnative -Dquarkus.native.container-build=true -Dquarkus.native.remote-container-build=true -Dquarkus.native.container-runtime=podman"
+  #MAVEN_CLI="clean package -Dnative -Dquarkus.native.container-build=true -Dquarkus.native.container-runtime=podman -DskipTests=true"
 fi
 START_BUILD_APP=$(date +%s)
+mvn $MAVEN_CLI
 END_BUILD_APP=$(date +%s)
 START_BUILD_CONTAINER=$(date +%s)
 $CONTAINER_RUNTIME build -f src/main/docker/Dockerfile.native \
