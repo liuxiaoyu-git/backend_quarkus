@@ -3,7 +3,7 @@ kind: BuildConfig
 metadata:
   labels:
     build: backend-build-pipeline
-  name: backend-build-pipeline
+  name: backend-build-stackrox-pipeline
 spec:
   failedBuildsHistoryLimit: 5
   nodeSelector: {}
