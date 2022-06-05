@@ -12,7 +12,7 @@ spec:
   serviceAccountName: jenkins
   containers:
   - name: jnlp
-    image: quay.io/openshift/jenkins-agent-base:latest
+    image: quay.io/openshift/origin-jenkins-agent-base:latest
     command:
     args: ['\${computer.jnlpmac}', '\${computer.name}']
     workingDir: /tmp
