@@ -60,7 +60,6 @@ spec:
             checkout scm
             dir('code') {
             script {
-                sh "skopeo --version"
                 sh "java --version"
                 sh "mvn -v"
                 version = sh (
