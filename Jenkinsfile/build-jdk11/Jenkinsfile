@@ -85,6 +85,7 @@ spec:
                 echo "Nexus User: ${nexusUser}"
             }
             }
+        }
       }
     }
     // Build the JAR
@@ -98,6 +99,7 @@ spec:
                 sh "${mvnCmd} -Dquarkus.package.type=fast-jar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
             }
             }
+        }
       }
     }
     // Test
@@ -112,6 +114,7 @@ spec:
                 sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} test"
                 step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
                 }
+            }
           }
         }
         // Using Maven call SonarQube for Code Analysis
@@ -125,6 +128,7 @@ spec:
                 }
                 }
             }
+          }
         }
       }
     }
