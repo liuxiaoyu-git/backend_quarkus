@@ -27,7 +27,7 @@ spec:
         memory: 128Mi
         cpu: 100m
   - name: maven
-    image: registry.access.redhat.com/ubi8/openjdk-11:latest
+    image: registry.access.redhat.com/ubi8/openjdk-11:1.13-1.1653918221
     command:
     - cat
     tty: true
@@ -59,8 +59,9 @@ spec:
         checkout scm
         dir('code') {
           script {
-            // pom = readMavenPom file: 'pom.xml'
-            // version = pom.version
+            sh "skopeo --version"
+            sh "java --version"
+            sh "mvn -v"
             version = sh (
               script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
               returnStdout: true
@@ -74,8 +75,6 @@ spec:
               script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
               returnStdout: true
             ).trim()
-            // def nexusCreds = 'nexus_host = "'+env.NEXUS_SVC+'"\nnexus_repository = "'+nexusContainerRepo+'"\n'+'nexus_username = "'+nexusUser+'"\n'+'nexus_password = "'+nexusPassword+'"\n'
-            // writeFile file: ".credentials", text: nexusCreds
             echo "Image Name: ${imageName}"
             echo "version: ${version}"
             echo "devTag: ${devTag}"
