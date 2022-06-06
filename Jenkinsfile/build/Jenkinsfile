@@ -49,6 +49,7 @@ spec:
     devTag = "0.0-0"
     nexusUser = ""
     nexusPassword =""
+    nexus_url=""
     nexusContainerRepo = "docker"
   }
   
@@ -97,6 +98,11 @@ spec:
                         script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
                         returnStdout: true
                     ).trim()
+                    nexus_url = sh (
+                        script: 'oc get route nexus-registry -n ci-cd -o jsonpath="{.spec.host}"',
+                        returnStdout: true
+                    ).trim()
+                    echo "nexus_url: ${nexus_url}"
                     echo "Nexus User: ${nexusUser}"
                 }
               }
@@ -161,7 +167,7 @@ spec:
        } 
       steps {
         container("jnlp") {
-          echo "Create build config ${imageName}:latest"
+        echo "Create build config ${imageName}:latest"
         script {
           echo "Use internal image registry"
           if(env.USE_INTERNAL_REGISTRY.toBoolean()){
@@ -177,11 +183,6 @@ spec:
             }
           }else{
             echo "Use external image registry"
-            nexus_url = sh (
-              script: 'oc get route nexus-registry -n ci-cd -o jsonpath="{.spec.host}"',
-              returnStdout: true
-            ).trim()
-            println "nexus_url: ${nexus_url}"
             openshift.withCluster() {
               openshift.withProject(env.CICD_PROJECT) {
                 openshift.newBuild(
@@ -213,7 +214,6 @@ spec:
     // Build Container Image
     stage('Build Container Image') {
       steps {
-        container("maven") {
           echo "Build Container Image ${imageName}"
           dir('code') {
             script {
@@ -224,14 +224,13 @@ spec:
                     "--from-dir=.",
                     "--wait"
                   )
-                if(env.USE_INTERNAL_REGISTRY.toBoolean()){
-                  openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
-                } else {
-                  sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds ${nexusUser}:${nexusPassword} --dest-creds ${nexusUser}:${nexusPassword} docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:latest docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:${devTag}"  
-                }
+                // if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+                //   openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
+                // } else {
+                //   sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds ${nexusUser}:${nexusPassword} --dest-creds ${nexusUser}:${nexusPassword} docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:latest docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:${devTag}"  
+                // }
               }
             }
-          }
           }
         }
       }
@@ -289,14 +288,14 @@ spec:
       steps {
         echo "Create deployment config: env.DEV_PROJECT"
         script {
-          if(env.USE_INTERNAL_REGISTRY.toBoolean()){
-            nexus_url = "image-registry.openshift-image-registry.svc:5000/ci-cd"
-          } else {
-            nexus_url = sh (
-              script: 'oc get route nexus-registry -n ci-cd -o jsonpath="{.spec.host}"',
-              returnStdout: true
-            ).trim()
-          }
+          // if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+          //   nexus_url = "image-registry.openshift-image-registry.svc:5000/ci-cd"
+          // } else {
+          //   nexus_url = sh (
+          //     script: 'oc get route nexus-registry -n ci-cd -o jsonpath="{.spec.host}"',
+          //     returnStdout: true
+          //   ).trim()
+          // }
           println "Set image repository to ${nexus_url}"
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
