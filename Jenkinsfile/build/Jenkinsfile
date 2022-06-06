@@ -74,9 +74,10 @@ spec:
         }
       }
       steps {
-        dir('code') {
+        container("jnlp") {
           script {
             echo "Project: ${env.DEV_PROJECT}"
+            sh "ls -l ./manifests/*.yaml"
             openshift.withCluster() {
               openshift.withProject(env.DEV_PROJECT) {
                 def template = './manifests/backend-svc-dev.yaml'
@@ -86,7 +87,7 @@ spec:
               }
             }
           }
-        }
+        }       
       }
     }
     stage('Prepare Env'){
