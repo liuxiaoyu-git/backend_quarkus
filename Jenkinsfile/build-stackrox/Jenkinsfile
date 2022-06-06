@@ -242,22 +242,10 @@ spec:
     }
     // Scan with stackrox
      stage('Scan Image') {
-      // when {
-      //   expression {
-      //     script {
-      //        if(env.STACKROX){
-      //          if(env.STACKROX.toBoolean())
-      //             return true;
-      //           else
-      //               return false;
-                  
-      //         }
-      //     }
-      //   }
-      // }
       steps {
-        echo "Scan image ${imageName}:${devTag}"
-        stackrox (
+        container("jnlp") {
+          echo "Scan image ${imageName}:${devTag}"
+          stackrox (
                     apiToken: "${ROX_API_TOKEN}",
                     caCertPEM: '',
                     enableTLSVerification: false,
@@ -265,8 +253,8 @@ spec:
                     failOnPolicyEvalFailure: true,
                     portalAddress: "${env.ROX_CENTRAL_ADDRESS}",
                     imageNames: "${NEXUS_REGISTRY}/${imageName}:${devTag}"
-        )
-
+          )
+        }
       }
     }  
      // Create Service
