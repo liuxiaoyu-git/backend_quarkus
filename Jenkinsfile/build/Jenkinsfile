@@ -2,21 +2,6 @@
 def repository
 def nexus_url
 pipeline {
-  // agent {
-  //   kubernetes {
-  //     label "maven36-with-tools"
-  //     cloud "openshift"
-  //     inheritFrom "maven"
-  //     containerTemplate {
-  //       name "jnlp"
-  //       image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
-  //       resourceRequestMemory "600Mi"
-  //       resourceLimitMemory "2Gi"
-  //       resourceRequestCpu "1"
-  //       resourceLimitCpu "2"
-  //     }
-  //   }
-  // }
  agent {
         kubernetes {
         cloud 'openshift'
@@ -73,40 +58,16 @@ spec:
       steps {
         container("maven") {
             checkout scm
-            // dir('code') {
-            //     script {
-            //         version = sh (
-            //             script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
-            //             returnStdout: true
-            //         ).trim()
-            //             devTag = "${version}-" + currentBuild.number
-            //             nexusUser = sh (
-            //             script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.username}"| base64 -d -',
-            //             returnStdout: true
-            //         ).trim()
-            //         nexusPassword = sh (
-            //             script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
-            //             returnStdout: true
-            //         ).trim()
-            //         echo "Image Name: ${imageName}"
-            //         echo "version: ${version}"
-            //         echo "devTag: ${devTag}"
-            //         echo "Backend URL: ${env.BACKEND_URL}"
-            //         echo "CICD Project: ${env.CICD_PROJECT}"
-            //         echo "Development Project: ${env.DEV_PROJECT}"
-            //         echo "Nexus User: ${nexusUser}"
-            //     }
-            // }
         }
       }
     }
-    stage('Prepare Env') {
+    stage('Prepare Env'){
       parallel {
-         stage('App Version') {
+        stage('App Version') {
           steps {
             container("maven") {
-                dir('code') {
-                  script {
+              dir('code') {
+                script {
                     version = sh (
                         script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
                         returnStdout: true
@@ -119,15 +80,16 @@ spec:
                     echo "CICD Project: ${env.CICD_PROJECT}"
                     echo "Development Project: ${env.DEV_PROJECT}"
                 }
+              }
             }
           }
         }
-        stage('Secrets') {
+        stage('Nexus'){
           steps {
             container("jnlp") {
-                dir('code') {
-                  script {
-                     nexusUser = sh (
+              dir('code') {
+                script {
+                    nexusUser = sh (
                         script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.username}"| base64 -d -',
                         returnStdout: true
                     ).trim()
@@ -137,6 +99,7 @@ spec:
                     ).trim()
                     echo "Nexus User: ${nexusUser}"
                 }
+              }
             }
           }
         }
