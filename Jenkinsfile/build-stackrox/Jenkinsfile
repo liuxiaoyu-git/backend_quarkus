@@ -36,7 +36,9 @@ spec:
         memory: 2Gi
         cpu: 1
   - name: stackrox
-    image: quay.io/stackrox-io/roxctl:latest
+    image: quay.io/stackrox-io/roxctl
+    command:
+    - version
     tty: true
     resources:
       requests:
