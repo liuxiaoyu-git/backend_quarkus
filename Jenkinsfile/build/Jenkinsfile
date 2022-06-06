@@ -86,7 +86,7 @@ spec:
             }
           }
         }
-        stage('Nexus'){
+        stage('Get Config'){
           steps {
             container("jnlp") {
               dir('code') {
