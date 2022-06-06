@@ -150,7 +150,8 @@ spec:
     }
     // Create Build Config
     stage('Create Build Config') {
-      when {
+      container("jnlp") {
+        when {
         expression {
           openshift.withCluster() {
             openshift.withProject(env.CICD_PROJECT) {
@@ -204,6 +205,8 @@ spec:
           }         
         }
       }
+      }
+      
     }
     // Build Container Image
     stage('Build Container Image') {
