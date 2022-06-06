@@ -52,7 +52,6 @@ spec:
     nexus_url=""
     nexusContainerRepo = "docker"
     ROX_API_TOKEN=""
-    ROX_CENTRAL_ADDRESS=""
   }
   
   stages {
@@ -264,7 +263,7 @@ spec:
                     enableTLSVerification: false,
                     failOnCriticalPluginError: true,
                     failOnPolicyEvalFailure: true,
-                    portalAddress: "${ROX_CENTRAL_ADDRESS}",
+                    portalAddress: "${env.ROX_CENTRAL_ADDRESS}",
                     imageNames: "${NEXUS_REGISTRY}/${imageName}:${devTag}"
         )
 
