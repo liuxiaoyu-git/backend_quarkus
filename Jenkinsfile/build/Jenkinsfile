@@ -247,13 +247,15 @@ spec:
         }
       }
       steps {
-        script {
-          openshift.withCluster() {
-            openshift.withProject(env.DEV_PROJECT) {
-              def template = './manifests/backend-svc-dev.yaml'
-              openshift.apply(
-                openshift.process("-f", template)
-              )
+        container("jnlp") {
+          script {
+            openshift.withCluster() {
+              openshift.withProject(env.DEV_PROJECT) {
+                def template = './manifests/backend-svc-dev.yaml'
+                openshift.apply(
+                  openshift.process("-f", template)
+                )
+              }
             }
           }
         }
@@ -271,13 +273,15 @@ spec:
         }
       }
       steps {
-        script {
-          openshift.withCluster() {
-            openshift.withProject(env.DEV_PROJECT) {
-              def template = './manifests/backend-route-dev.yaml'
-              openshift.apply(
-                openshift.process("-f", template)
-              )
+        container("jnlp") {
+          script {
+            openshift.withCluster() {
+              openshift.withProject(env.DEV_PROJECT) {
+                def template = './manifests/backend-route-dev.yaml'
+                openshift.apply(
+                  openshift.process("-f", template)
+                )
+              }
             }
           }
         }
@@ -287,7 +291,8 @@ spec:
     stage('Create Deployment Config') {
       steps {
         echo "Create deployment config: env.DEV_PROJECT"
-        script {
+        container("jnlp") {
+                  script {
           // if(env.USE_INTERNAL_REGISTRY.toBoolean()){
           //   nexus_url = "image-registry.openshift-image-registry.svc:5000/ci-cd"
           // } else {
@@ -314,6 +319,8 @@ spec:
             }
           }
         }
+        }
+
       }
     }
   }
