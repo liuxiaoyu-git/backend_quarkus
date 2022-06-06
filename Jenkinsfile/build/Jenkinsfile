@@ -202,16 +202,17 @@ spec:
     // Build Container Image
     stage('Build Container Image') {
       steps {
-        echo "Build Container Image ${imageName}"
-        dir('code') {
-          script {
-            openshift.withCluster() {
-              openshift.withProject(env.CICD_PROJECT) {
-                openshift.startBuild(
-                  "${imageName}",
-                  "--from-dir=.",
-                  "--wait"
-                )
+        container("maven") {
+          echo "Build Container Image ${imageName}"
+          dir('code') {
+            script {
+              openshift.withCluster() {
+                openshift.withProject(env.CICD_PROJECT) {
+                  openshift.startBuild(
+                    "${imageName}",
+                    "--from-dir=.",
+                    "--wait"
+                  )
                 if(env.USE_INTERNAL_REGISTRY.toBoolean()){
                   openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
                 } else {
@@ -219,6 +220,7 @@ spec:
                 }
               }
             }
+          }
           }
         }
       }
