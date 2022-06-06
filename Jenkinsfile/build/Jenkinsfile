@@ -1,21 +1,57 @@
-def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
+// def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
 def repository
 def nexus_url
 pipeline {
-  agent {
-    kubernetes {
-      label "maven36-with-tools"
-      cloud "openshift"
-      inheritFrom "maven"
-      containerTemplate {
-        name "jnlp"
-        image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
-        resourceRequestMemory "600Mi"
-        resourceLimitMemory "2Gi"
-        resourceRequestCpu "1"
-        resourceLimitCpu "2"
-      }
-    }
+  // agent {
+  //   kubernetes {
+  //     label "maven36-with-tools"
+  //     cloud "openshift"
+  //     inheritFrom "maven"
+  //     containerTemplate {
+  //       name "jnlp"
+  //       image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
+  //       resourceRequestMemory "600Mi"
+  //       resourceLimitMemory "2Gi"
+  //       resourceRequestCpu "1"
+  //       resourceLimitCpu "2"
+  //     }
+  //   }
+  // }
+ agent {
+        kubernetes {
+        cloud 'openshift'
+        yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  serviceAccountName: jenkins
+  containers:
+  - name: jnlp
+    image: quay.io/openshift/origin-jenkins-agent-base:latest
+    command:
+    args: ['\${computer.jnlpmac}', '\${computer.name}']
+    workingDir: /tmp
+    tty: false
+  - name: skopeo
+    image: quay.io/skopeo/stable:latest
+    command:
+    - cat
+    tty: true
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+  - name: maven
+    image: registry.access.redhat.com/ubi8/openjdk-11:latest
+    command:
+    - cat
+    tty: true
+    resources:
+      requests:
+        memory: 2Gi
+        cpu: 1
+"""
+        }
   }
   options {
     // set a timeout of 30 minutes for this pipeline
@@ -23,7 +59,6 @@ pipeline {
   }
   environment {
     mvnCmd = "mvn -s ./nexus_settings.xml "
-    //mvnCmd = "mvn "
     version = ""
     imageName = "backend"
     devTag = "0.0-0"
@@ -35,47 +70,45 @@ pipeline {
     // Checkout Source Code.
     stage('Checkout Source') {
       steps {
-        checkout scm
-        dir('code') {
-          script {
-            // pom = readMavenPom file: 'pom.xml'
-            // version = pom.version
-            version = sh (
-              script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
-              returnStdout: true
-            ).trim()
-            devTag = "${version}-" + currentBuild.number
-            nexusUser = sh (
-              script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.username}"| base64 -d -',
-              returnStdout: true
-            ).trim()
-            nexusPassword = sh (
-              script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
-              returnStdout: true
-            ).trim()
-            // def nexusCreds = 'nexus_host = "'+env.NEXUS_SVC+'"\nnexus_repository = "'+nexusContainerRepo+'"\n'+'nexus_username = "'+nexusUser+'"\n'+'nexus_password = "'+nexusPassword+'"\n'
-            // writeFile file: ".credentials", text: nexusCreds
-            echo "Image Name: ${imageName}"
-            echo "version: ${version}"
-            echo "devTag: ${devTag}"
-            echo "Backend URL: ${env.BACKEND_URL}"
-            echo "CICD Project: ${env.CICD_PROJECT}"
-            echo "Development Project: ${env.DEV_PROJECT}"
-            echo "Nexus User: ${nexusUser}"
-          }
+        container("maven") {
+            checkout scm
+            dir('code') {
+                script {
+                    version = sh (
+                        script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
+                        returnStdout: true
+                    ).trim()
+                        devTag = "${version}-" + currentBuild.number
+                        nexusUser = sh (
+                        script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.username}"| base64 -d -',
+                        returnStdout: true
+                    ).trim()
+                    nexusPassword = sh (
+                        script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
+                        returnStdout: true
+                    ).trim()
+                    echo "Image Name: ${imageName}"
+                    echo "version: ${version}"
+                    echo "devTag: ${devTag}"
+                    echo "Backend URL: ${env.BACKEND_URL}"
+                    echo "CICD Project: ${env.CICD_PROJECT}"
+                    echo "Development Project: ${env.DEV_PROJECT}"
+                    echo "Nexus User: ${nexusUser}"
+                }
+            }
         }
       }
     }
     // Build the JAR
     stage('Build Binary') {
       steps {
-
-        dir('code') {
-
-          echo "Building binary for ${imageName}"
-          script {
-            sh "${mvnCmd} -Dquarkus.package.type=fast-jar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
-          }
+        container("maven") {
+            dir('code') {
+                echo "Building binary for ${imageName}"
+                script {
+                    sh "${mvnCmd} -Dquarkus.package.type=fast-jar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
+                }
+            }
         }
       }
     }
@@ -85,37 +118,30 @@ pipeline {
         // Unit Test
         stage('Unit Tests') {
           steps {
-            dir('code') {
-              echo "Running Unit Tests"
-              sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} test"
-              step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
+            container("maven") {
+                dir('code') {
+                    echo "Running Unit Tests"
+                    sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} test"
+                    step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
+                }
             }
           }
         }
         // Using Maven call SonarQube for Code Analysis
         stage('Code Analysis') {
           steps {
-            dir('code') {
-              script {
-                echo "Running Code Analysis"
-                sh "${mvnCmd} sonar:sonar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -Dsonar.host.url=${env.SONARQUBE_SVC} -Dsonar.projectName=${imageName}-${devTag} -Dsonar.projectVersion=${devTag}"
-              }
+            container("maven") {
+                dir('code') {
+                script {
+                    echo "Running Code Analysis"
+                    sh "${mvnCmd} sonar:sonar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -Dsonar.host.url=${env.SONARQUBE_SVC} -Dsonar.projectName=${imageName}-${devTag} -Dsonar.projectVersion=${devTag}"
+                }
+                }
             }
           }
         }
       }
     }
-    // Publish the uberjar file to Nexus
-    // stage('Publish to Nexus') {
-    //   steps {
-    //     dir('code') {
-    //       echo "Publish to Nexus"
-          //sh "${mvnCmd} deploy -Dquarkus.package.uber-jar=true -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true -DaltDeploymentRepository=nexus::default::${env.NEXUS_SVC}/repository/maven-releases"
-    //       sh "${mvnCmd} deploy -Dquarkus.package.uber-jar=true -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true"
-
-    //     }
-    //   }
-    // }
     // Create Build Config
     stage('Create Build Config') {
       when {
@@ -169,8 +195,7 @@ pipeline {
               bc.spec.strategy.dockerStrategy.dockerfilePath = "src/main/docker/Dockerfile.jvm"
               openshift.apply(bc)
             }
-          }
-            
+          }         
         }
       }
     }
@@ -197,9 +222,7 @@ pipeline {
           }
         }
       }
-    }
-    
-    
+    }   
     // Create Service
     stage('Create Service') {
       when {
@@ -264,8 +287,7 @@ pipeline {
           println "Set image repository to ${nexus_url}"
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
-              def template = './manifests/backend-dc-dev.yaml'
-             
+              def template = './manifests/backend-dc-dev.yaml'  
                 openshift.apply(
                     openshift.process(
                       "-f", template,
