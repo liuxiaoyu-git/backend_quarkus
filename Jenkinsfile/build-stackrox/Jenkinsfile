@@ -37,8 +37,6 @@ spec:
         cpu: 1
   - name: stackrox
     image: quay.io/stackrox-io/roxctl:latest
-    command:
-    - cat
     tty: true
     resources:
       requests:
