@@ -74,7 +74,6 @@ spec:
         }
       }
       steps {
-        container("jnlp") {
           script {
             echo "Project: ${env.DEV_PROJECT}"
             sh "ls -l ./manifests/*.yaml"
@@ -86,8 +85,7 @@ spec:
                 )
               }
             }
-          }
-        }       
+          }      
       }
     }
     stage('Prepare Env'){
