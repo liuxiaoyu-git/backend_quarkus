@@ -150,18 +150,18 @@ spec:
     }
     // Create Build Config
     stage('Create Build Config') {
-      container("jnlp") {
         when {
-        expression {
-          openshift.withCluster() {
-            openshift.withProject(env.CICD_PROJECT) {
-              return !openshift.selector("bc", "${imageName}").exists()
+          expression {
+            openshift.withCluster() {
+              openshift.withProject(env.CICD_PROJECT) {
+                return !openshift.selector("bc", "${imageName}").exists()
+              }
             }
           }
-        }
-      }
+       } 
       steps {
-        echo "Create build config ${imageName}:latest"
+        container("jnlp") {
+          echo "Create build config ${imageName}:latest"
         script {
           echo "Use internal image registry"
           if(env.USE_INTERNAL_REGISTRY.toBoolean()){
@@ -204,8 +204,10 @@ spec:
             }
           }         
         }
+        }
+        
       }
-      }
+
       
     }
     // Build Container Image
