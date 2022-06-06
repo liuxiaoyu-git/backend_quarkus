@@ -38,7 +38,7 @@ spec:
   - name: stackrox
     image: quay.io/stackrox-io/roxctl
     command:
-    - version
+    - roxctl
     tty: true
     resources:
       requests:
