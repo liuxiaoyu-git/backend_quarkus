@@ -283,32 +283,32 @@ spec:
     stage('Create Deployment Config') {
       steps {
         echo "Create deployment config: env.DEV_PROJECT"
-                  script {
-          // if(env.USE_INTERNAL_REGISTRY.toBoolean()){
-          //   nexus_url = "image-registry.openshift-image-registry.svc:5000/ci-cd"
-          // } else {
-          //   nexus_url = sh (
-          //     script: 'oc get route nexus-registry -n ci-cd -o jsonpath="{.spec.host}"',
-          //     returnStdout: true
-          //   ).trim()
-          // }
+          script {
+            // if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+            //   nexus_url = "image-registry.openshift-image-registry.svc:5000/ci-cd"
+            // } else {
+            //   nexus_url = sh (
+            //     script: 'oc get route nexus-registry -n ci-cd -o jsonpath="{.spec.host}"',
+            //     returnStdout: true
+            //   ).trim()
+            // }
 
-          openshift.withCluster() {
-            openshift.withProject(env.DEV_PROJECT) {
-              def template = './manifests/backend-dc-dev.yaml'  
-                openshift.apply(
-                    openshift.process(
-                      "-f", template,
-                      "-p", "REPOSITORY=${nexus_url}",
-                      "-p", "IMAGE_NAME=${imageName}",
-                      "-p", "IMAGE_TAG=${devTag}",
-                      "-p", "BACKEND_URL=${env.BACKEND_URL}",
-                      "-p", "APP_VERSION=${version}"
-                    )
-                  )  
-              //openshift.selector("dc", "${imageName}").rollout().pause();
+            openshift.withCluster() {
+              openshift.withProject(env.DEV_PROJECT) {
+                def template = './manifests/backend-dc-dev.yaml'  
+                  openshift.apply(
+                      openshift.process(
+                        "-f", template,
+                        "-p", "REPOSITORY=${nexus_url}",
+                        "-p", "IMAGE_NAME=${imageName}",
+                        "-p", "IMAGE_TAG=${devTag}",
+                        "-p", "BACKEND_URL=${env.BACKEND_URL}",
+                        "-p", "APP_VERSION=${version}"
+                      )
+                    )  
+                //openshift.selector("dc", "${imageName}").rollout().pause();
+              }
             }
-          }
         }
       }
     }
