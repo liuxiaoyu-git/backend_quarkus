@@ -60,20 +60,18 @@ spec:
             checkout scm
             dir('code') {
             script {
-                sh "java --version"
-                sh "mvn -v"
                 version = sh (
-                script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
-                returnStdout: true
+                    script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
+                    returnStdout: true
                 ).trim()
-                devTag = "${version}-" + currentBuild.number
-                nexusUser = sh (
-                script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.username}"| base64 -d -',
-                returnStdout: true
+                    devTag = "${version}-" + currentBuild.number
+                    nexusUser = sh (
+                    script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.username}"| base64 -d -',
+                    returnStdout: true
                 ).trim()
                 nexusPassword = sh (
-                script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
-                returnStdout: true
+                    script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
+                    returnStdout: true
                 ).trim()
                 echo "Image Name: ${imageName}"
                 echo "version: ${version}"
@@ -92,11 +90,10 @@ spec:
       steps {
         container("maven") {
             dir('code') {
-
-            echo "Building binary for ${imageName}"
-            script {
-                sh "${mvnCmd} -Dquarkus.package.type=fast-jar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
-            }
+                echo "Building binary for ${imageName}"
+                script {
+                    sh "${mvnCmd} -Dquarkus.package.type=fast-jar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
+                }
             }
         }
       }
@@ -109,9 +106,9 @@ spec:
           steps {
             container("maven") {
                 dir('code') {
-                echo "Running Unit Tests"
-                sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} test"
-                step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
+                    echo "Running Unit Tests"
+                    sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} test"
+                    step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
                 }
             }
           }
@@ -184,8 +181,7 @@ spec:
               bc.spec.strategy.dockerStrategy.dockerfilePath = "src/main/docker/Dockerfile.jvm"
               openshift.apply(bc)
             }
-          }
-            
+          }         
         }
       }
     }
@@ -212,9 +208,7 @@ spec:
           }
         }
       }
-    }
-    
-    
+    }   
     // Create Service
     stage('Create Service') {
       when {
@@ -279,8 +273,7 @@ spec:
           println "Set image repository to ${nexus_url}"
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
-              def template = './manifests/backend-dc-dev.yaml'
-             
+              def template = './manifests/backend-dc-dev.yaml'  
                 openshift.apply(
                     openshift.process(
                       "-f", template,
