@@ -66,20 +66,68 @@ spec:
     nexusPassword =""
     nexusContainerRepo = "docker"
   }
+  
   stages {
     // Checkout Source Code.
     stage('Checkout Source') {
       steps {
         container("maven") {
             checkout scm
-            dir('code') {
-                script {
+            // dir('code') {
+            //     script {
+            //         version = sh (
+            //             script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
+            //             returnStdout: true
+            //         ).trim()
+            //             devTag = "${version}-" + currentBuild.number
+            //             nexusUser = sh (
+            //             script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.username}"| base64 -d -',
+            //             returnStdout: true
+            //         ).trim()
+            //         nexusPassword = sh (
+            //             script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
+            //             returnStdout: true
+            //         ).trim()
+            //         echo "Image Name: ${imageName}"
+            //         echo "version: ${version}"
+            //         echo "devTag: ${devTag}"
+            //         echo "Backend URL: ${env.BACKEND_URL}"
+            //         echo "CICD Project: ${env.CICD_PROJECT}"
+            //         echo "Development Project: ${env.DEV_PROJECT}"
+            //         echo "Nexus User: ${nexusUser}"
+            //     }
+            // }
+        }
+      }
+    }
+    stage('Prepare Env') {
+      parallel {
+         stage('App Version') {
+          steps {
+            container("maven") {
+                dir('code') {
+                  script {
                     version = sh (
                         script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
                         returnStdout: true
                     ).trim()
-                        devTag = "${version}-" + currentBuild.number
-                        nexusUser = sh (
+                    devTag = "${version}-" + currentBuild.number
+                    echo "Image Name: ${imageName}"
+                    echo "version: ${version}"
+                    echo "devTag: ${devTag}"
+                    echo "Backend URL: ${env.BACKEND_URL}"
+                    echo "CICD Project: ${env.CICD_PROJECT}"
+                    echo "Development Project: ${env.DEV_PROJECT}"
+                }
+            }
+          }
+        }
+        stage('Secrets') {
+          steps {
+            container("jnlp") {
+                dir('code') {
+                  script {
+                     nexusUser = sh (
                         script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.username}"| base64 -d -',
                         returnStdout: true
                     ).trim()
@@ -87,15 +135,10 @@ spec:
                         script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
                         returnStdout: true
                     ).trim()
-                    echo "Image Name: ${imageName}"
-                    echo "version: ${version}"
-                    echo "devTag: ${devTag}"
-                    echo "Backend URL: ${env.BACKEND_URL}"
-                    echo "CICD Project: ${env.CICD_PROJECT}"
-                    echo "Development Project: ${env.DEV_PROJECT}"
                     echo "Nexus User: ${nexusUser}"
                 }
             }
+          }
         }
       }
     }
@@ -106,7 +149,7 @@ spec:
             dir('code') {
                 echo "Building binary for ${imageName}"
                 script {
-                    sh "${mvnCmd} -Dquarkus.package.type=fast-jar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
+                    sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
                 }
             }
         }
