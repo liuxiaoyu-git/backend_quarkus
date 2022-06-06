@@ -220,10 +220,14 @@ spec:
                     "--from-dir=.",
                     "--wait"
                   )
+                  
                 // if(env.USE_INTERNAL_REGISTRY.toBoolean()){
                 //   openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
                 // } else {
-                //   sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds ${nexusUser}:${nexusPassword} --dest-creds ${nexusUser}:${nexusPassword} docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:latest docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:${devTag}"  
+                  container('skopeo'){
+                    sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds ${nexusUser}:${nexusPassword} --dest-creds ${nexusUser}:${nexusPassword} docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:latest docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:${devTag}"  
+                  }
+                  
                 // }
               }
             }
