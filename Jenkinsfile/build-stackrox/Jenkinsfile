@@ -105,7 +105,7 @@ spec:
                         returnStdout: true
                     ).trim()
                     ROX_API_TOKEN = sh (
-                        script: 'oc get secret ${STACKROX_SECRET} -o jsonpath="{.data.token}"| base64 -d -',
+                        script: 'oc get secret ${STACKROX_SECRET} -n ci-cd -o jsonpath="{.data.token}"| base64 -d -',
                         returnStdout: true
                     ).trim()
                     echo "nexus_url: ${nexus_url}"
