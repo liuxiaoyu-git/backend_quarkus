@@ -35,15 +35,6 @@ spec:
       requests:
         memory: 2Gi
         cpu: 1
-  - name: stackrox
-    image: quay.io/stackrox-io/roxctl
-    command:
-    - roxctl
-    tty: true
-    resources:
-      requests:
-        memory: 500Mi
-        cpu: 300m
 """
         }
   }
