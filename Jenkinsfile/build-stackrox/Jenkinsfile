@@ -244,7 +244,9 @@ spec:
      stage('Scan Image') {
       steps {
         container("jnlp") {
-          echo "Scan image ${imageName}:${devTag}"
+          echo "Scan image: ${NEXUS_REGISTRY}/${imageName}:${devTag}}"
+          echo "Central: ${env.ROX_CENTRAL_ADDRESS}"
+          echo "Token: ${ROX_API_TOKEN}"
           stackrox (
                     apiToken: "${ROX_API_TOKEN}",
                     caCertPEM: '',
