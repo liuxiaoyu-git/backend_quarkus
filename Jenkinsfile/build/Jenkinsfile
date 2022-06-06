@@ -62,32 +62,7 @@ spec:
         }
       }
     }
-        // Create Service
-    stage('Create Service') {
-      when {
-        expression {
-          openshift.withCluster() {
-            openshift.withProject(env.DEV_PROJECT) {
-              return !openshift.selector("svc", "${imageName}").exists()
-            }
-          }
-        }
-      }
-      steps {
-          script {
-            echo "Project: ${env.DEV_PROJECT}"
-            sh "ls -l ./manifests/*.yaml"
-            openshift.withCluster() {
-              openshift.withProject(env.DEV_PROJECT) {
-                def template = './manifests/backend-svc-dev.yaml'
-                openshift.apply(
-                  openshift.process("-f", template)
-                )
-              }
-            }
-          }      
-      }
-    }
+    // Prepare Environment Variables
     stage('Prepare Env'){
       parallel {
         stage('App Version') {
@@ -260,7 +235,31 @@ spec:
           }
         }
       }
-    }   
+    }
+     // Create Service
+    stage('Create Service') {
+      when {
+        expression {
+          openshift.withCluster() {
+            openshift.withProject(env.DEV_PROJECT) {
+              return !openshift.selector("svc", "${imageName}").exists()
+            }
+          }
+        }
+      }
+      steps {
+          script {
+            openshift.withCluster() {
+              openshift.withProject(env.DEV_PROJECT) {
+                def template = './manifests/backend-svc-dev.yaml'
+                openshift.apply(
+                  openshift.process("-f", template)
+                )
+              }
+            }
+          }      
+      }
+    }
     // Create Route
     stage('Create Route') {
       when {
@@ -273,7 +272,6 @@ spec:
         }
       }
       steps {
-        container("jnlp") {
           script {
             openshift.withCluster() {
               openshift.withProject(env.DEV_PROJECT) {
@@ -284,14 +282,12 @@ spec:
               }
             }
           }
-        }
       }
     }
     // Create Deployment Config
     stage('Create Deployment Config') {
       steps {
         echo "Create deployment config: env.DEV_PROJECT"
-        container("jnlp") {
                   script {
           // if(env.USE_INTERNAL_REGISTRY.toBoolean()){
           //   nexus_url = "image-registry.openshift-image-registry.svc:5000/ci-cd"
@@ -301,7 +297,7 @@ spec:
           //     returnStdout: true
           //   ).trim()
           // }
-          println "Set image repository to ${nexus_url}"
+
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
               def template = './manifests/backend-dc-dev.yaml'  
@@ -319,8 +315,6 @@ spec:
             }
           }
         }
-        }
-
       }
     }
   }
