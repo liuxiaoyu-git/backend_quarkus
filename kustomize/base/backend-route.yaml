@@ -1,0 +1,13 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: backend
+  namespace: demo
+spec:
+  port:
+    targetPort: http
+  to:
+    kind: Service
+    name: frontend
+    weight: 100
+  wildcardPolicy: None

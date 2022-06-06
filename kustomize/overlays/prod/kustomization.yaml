@@ -1,0 +1,11 @@
+commonLabels:
+  environment: prod
+#namePrefix: prod-
+commonAnnotations:
+  description: This is prod environment
+bases:
+- ../../base
+patchesStrategicMerge:
+- backend.yaml
+- backend-service.yaml
+- backend-route.yaml
