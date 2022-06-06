@@ -167,7 +167,6 @@ spec:
           }
        } 
       steps {
-        container("jnlp") {
         echo "Create build config ${imageName}:latest"
         script {
           echo "Use internal image registry"
@@ -206,11 +205,7 @@ spec:
             }
           }         
         }
-        }
-        
       }
-
-      
     }
     // Build Container Image
     stage('Build Container Image') {
