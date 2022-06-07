@@ -342,3 +342,45 @@ spec:
     }
   }
 }
+
+stage('Scan Image') {
+      when {
+        expression {
+          script {
+             if(env.STACKROX){
+               if(env.STACKROX.toBoolean())
+                  return true;
+                else
+                    return false;
+                  
+              }
+          }
+        }
+      }
+    //   steps {
+    //     echo "Scan image ${imageName}:${devTag}"
+    //     script {
+    //       openshift.withCluster() {
+    //           openshift.withProject(env.CICD_PROJECT) {
+    //                   ROX_API_TOKEN = sh (
+    //                       script: 'oc get secret ${STACKROX_SECRET} -o jsonpath="{.data.token}"| base64 -d -',
+    //                       returnStdout: true
+    //                   ).trim()
+    //                   sh "export ROX_API_TOKEN=${ROX_API_TOKEN};roxctl --insecure-skip-tls-verify -e ${ROX_CENTRAL_ADDRESS} image scan --image=${NEXUS_REGISTRY}/${imageName}:${devTag} --output=json > /tmp/cve.txt"
+    //                   numCriticalCVEs = sh (
+    //                       script: 'cat /tmp/cve.txt| jq ".result.summary.CRITICAL"',
+    //                       returnStdout: true
+    //                   ).trim()
+    //                   echo "cat /tmp/cve.txt"
+    //                   echo "CRITICAL CVEs: ${numCriticalCVEs}"
+    //                   echo "Max CRITICAL CVEs: ${env.MAX_CRITICAL_CVES}"
+    //                   if(numCriticalCVEs.toInteger() > env.MAX_CRITICAL_CVES.toInteger()){
+    //                       currentBuild.result = 'ABORTED'
+    //                       echo "Number of CRITICAL CVEs exceed limits"
+    //                       sh "exit 1"
+    //                   }
+    //           }
+    //       }
+    //     }
+    //   }
+    // }  
