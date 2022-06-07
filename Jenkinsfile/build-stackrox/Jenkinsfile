@@ -126,7 +126,7 @@ spec:
         }
       }
     }
-    Build the JAR
+    // Build the JAR
     stage('Build Binary') {
       steps {
         container("maven") {
@@ -139,7 +139,7 @@ spec:
         }
       }
     }
-    Test
+    // Test
     stage('Test') {
       parallel {
         // Unit Test
@@ -221,7 +221,7 @@ spec:
         }
       }
     }
-    Build Container Image
+    // Build Container Image
     stage('Build Container Image') {
       steps {
           echo "Build Container Image ${imageName}"

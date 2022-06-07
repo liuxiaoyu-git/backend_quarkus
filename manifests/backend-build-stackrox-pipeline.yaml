@@ -2,7 +2,7 @@ apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   labels:
-    build: backend-build-pipeline
+    build: backend-build-stackrox-pipeline
   name: backend-build-stackrox-pipeline
 spec:
   failedBuildsHistoryLimit: 5
