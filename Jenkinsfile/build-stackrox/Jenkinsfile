@@ -352,20 +352,20 @@ spec:
   }
 }
 
-stage('Scan Image') {
-      when {
-        expression {
-          script {
-             if(env.STACKROX){
-               if(env.STACKROX.toBoolean())
-                  return true;
-                else
-                    return false;
+// stage('Scan Image') {
+//       when {
+//         expression {
+//           script {
+//              if(env.STACKROX){
+//                if(env.STACKROX.toBoolean())
+//                   return true;
+//                 else
+//                     return false;
                   
-              }
-          }
-        }
-      }
+//               }
+//           }
+//         }
+//       }
     //   steps {
     //     echo "Scan image ${imageName}:${devTag}"
     //     script {
