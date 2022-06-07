@@ -35,15 +35,6 @@ spec:
       requests:
         memory: 2Gi
         cpu: 1
-  - name: tools
-    image: quay.io/voravitl/tools:jenkins
-    command:
-    - cat
-    tty: true
-    resources:
-      requests:
-        memory: 128Mi
-        cpu: 100m
 """
         }
   }
@@ -265,7 +256,7 @@ spec:
                     enableTLSVerification: false,
                     failOnCriticalPluginError: true,
                     failOnPolicyEvalFailure: true,
-                    portalAddress: '${env.ROX_CENTRAL_ADDRESS}',
+                    portalAddress: "${env.ROX_CENTRAL_ADDRESS}",
                     imageNames: "${NEXUS_REGISTRY}/${imageName}:${devTag}"
           )
        }
