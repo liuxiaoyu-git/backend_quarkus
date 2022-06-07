@@ -315,11 +315,8 @@ spec:
           echo "Process teamplate to deployment"
             script {
               sh "oc process -f manifests/backend-dc-dev.yaml > dev.yaml"
-            }
-            
+            }  
         }
-      }
-      steps {
         container("tools") {
           echo "Check Deployment"
             script {
