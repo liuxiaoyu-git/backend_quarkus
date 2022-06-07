@@ -259,11 +259,11 @@ spec:
                     apiToken: "${ROX_API_TOKEN}",
                     caCertPEM: '',
                     enableTLSVerification: false,
-                    failOnCriticalPluginError: true,
+                    failOnCriticalPluginError: false,
                     failOnPolicyEvalFailure: true,
                     portalAddress: "${env.ROX_CENTRAL_ADDRESS}",
                     imageNames: "${NEXUS_REGISTRY}/${imageName}:${devTag}"
-          )
+              )
           }
         }
           
