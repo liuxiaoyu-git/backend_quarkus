@@ -253,9 +253,9 @@ spec:
      stage('Scan Image') {
       steps {    
         // container("tools") {
-          echo "Scan image: ${NEXUS_REGISTRY}/${imageName}:${devTag}}"
-          echo "Central: ${env.ROX_CENTRAL_ADDRESS}"
-          echo "Token: ${ROX_API_TOKEN}"
+          // echo "Scan image: ${NEXUS_REGISTRY}/${imageName}:${devTag}}"
+          // echo "Central: ${env.ROX_CENTRAL_ADDRESS}"
+          // echo "Token: ${ROX_API_TOKEN}"
         //   sh "export ROX_API_TOKEN=${ROX_API_TOKEN};roxctl --insecure-skip-tls-verify -e ${ROX_CENTRAL_ADDRESS} image check --image=${NEXUS_REGISTRY}/${imageName}:${devTag} --output=table"
         // }
           
