@@ -1,21 +1,51 @@
-def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
+// def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
 def repository
 def nexus_url
 pipeline {
-  agent {
-    kubernetes {
-      label "maven36-with-tools"
-      cloud "openshift"
-      inheritFrom "maven"
-      containerTemplate {
-        name "jnlp"
-        image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
-        resourceRequestMemory "600Mi"
-        resourceLimitMemory "2Gi"
-        resourceRequestCpu "1"
-        resourceLimitCpu "2"
-      }
-    }
+ agent {
+        kubernetes {
+        cloud 'openshift'
+        yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  serviceAccountName: jenkins
+  containers:
+  - name: jnlp
+    image: quay.io/openshift/origin-jenkins-agent-base:latest
+    command:
+    args: ['\${computer.jnlpmac}', '\${computer.name}']
+    workingDir: /tmp
+    tty: false
+  - name: skopeo
+    image: quay.io/skopeo/stable:latest
+    command:
+    - cat
+    tty: true
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+  - name: maven
+    image: registry.access.redhat.com/ubi8/openjdk-11:latest
+    command:
+    - cat
+    tty: true
+    resources:
+      requests:
+        memory: 2Gi
+        cpu: 1
+  - name: tools
+    image: quay.io/voravitl/tools:jenkins
+    command:
+    - cat
+    tty: true
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+"""
+        }
   }
   options {
     // set a timeout of 30 minutes for this pipeline
@@ -23,49 +53,75 @@ pipeline {
   }
   environment {
     mvnCmd = "mvn -s ./nexus_settings.xml "
-    //mvnCmd = "mvn "
     version = ""
     imageName = "backend"
     devTag = "0.0-0"
     nexusUser = ""
-    nexusPassword = ""
-    ROX_API_TOKEN = ""
-    numCriticalCVEs = ""
+    nexusPassword =""
+    nexus_url=""
     nexusContainerRepo = "docker"
+    ROX_API_TOKEN=""
   }
+  
   stages {
     // Checkout Source Code.
     stage('Checkout Source') {
       steps {
-        checkout scm
-        dir('code') {
-          script {
-            version = sh (
-              script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
-              returnStdout: true
-            ).trim()
-            devTag = "${version}-" + currentBuild.number
-            nexusUser = sh (
-              script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.username}"| base64 -d -',
-              returnStdout: true
-            ).trim()
-            nexusPassword = sh (
-              script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
-              returnStdout: true
-            ).trim()
-            ROX_API_TOKEN = sh (
-                script: 'oc get secret ${STACKROX_SECRET} -o jsonpath="{.data.token}"| base64 -d -',
-                returnStdout: true
-            ).trim()
-            // def nexusCreds = 'nexus_host = "'+env.NEXUS_SVC+'"\nnexus_repository = "'+nexusContainerRepo+'"\n'+'nexus_username = "'+nexusUser+'"\n'+'nexus_password = "'+nexusPassword+'"\n'
-            // writeFile file: ".credentials", text: nexusCreds
-            echo "Image Name: ${imageName}"
-            echo "version: ${version}"
-            echo "devTag: ${devTag}"
-            echo "Backend URL: ${env.BACKEND_URL}"
-            echo "CICD Project: ${env.CICD_PROJECT}"
-            echo "Development Project: ${env.DEV_PROJECT}"
-            echo "Nexus User: ${nexusUser}"
+        container("maven") {
+            checkout scm
+        }
+      }
+    }
+    // Prepare Environment Variables
+    stage('Prepare Env'){
+      parallel {
+        stage('App Version') {
+          steps {
+            container("maven") {
+              dir('code') {
+                script {
+                    version = sh (
+                        script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
+                        returnStdout: true
+                    ).trim()
+                    devTag = "${version}-" + currentBuild.number
+                    echo "Image Name: ${imageName}"
+                    echo "version: ${version}"
+                    echo "devTag: ${devTag}"
+                    echo "Backend URL: ${env.BACKEND_URL}"
+                    echo "CICD Project: ${env.CICD_PROJECT}"
+                    echo "Development Project: ${env.DEV_PROJECT}"
+                }
+              }
+            }
+          }
+        }
+        stage('Get Config'){
+          steps {
+            container("jnlp") {
+              dir('code') {
+                script {
+                    nexusUser = sh (
+                        script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.username}"| base64 -d -',
+                        returnStdout: true
+                    ).trim()
+                    nexusPassword = sh (
+                        script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
+                        returnStdout: true
+                    ).trim()
+                    nexus_url = sh (
+                        script: 'oc get route nexus-registry -n ci-cd -o jsonpath="{.spec.host}"',
+                        returnStdout: true
+                    ).trim()
+                    ROX_API_TOKEN = sh (
+                        script: 'oc get secret ${STACKROX_SECRET} -n ci-cd -o jsonpath="{.data.token}"| base64 -d -',
+                        returnStdout: true
+                    ).trim()
+                    echo "nexus_url: ${nexus_url}"
+                    echo "Nexus User: ${nexusUser}"
+                }
+              }
+            }
           }
         }
       }
@@ -73,13 +129,13 @@ pipeline {
     // Build the JAR
     stage('Build Binary') {
       steps {
-
-        dir('code') {
-
-          echo "Building binary for ${imageName}"
-          script {
-            sh "${mvnCmd} -Dquarkus.package.type=fast-jar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
-          }
+        container("maven") {
+            dir('code') {
+                echo "Building binary for ${imageName}"
+                script {
+                    sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
+                }
+            }
         }
       }
     }
@@ -89,48 +145,41 @@ pipeline {
         // Unit Test
         stage('Unit Tests') {
           steps {
-            dir('code') {
-              echo "Running Unit Tests"
-              sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} test"
-              step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
+            container("maven") {
+                dir('code') {
+                    echo "Running Unit Tests"
+                    sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} test"
+                    step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
+                }
             }
           }
         }
         // Using Maven call SonarQube for Code Analysis
         stage('Code Analysis') {
           steps {
-            dir('code') {
-              script {
-                echo "Running Code Analysis"
-                sh "${mvnCmd} sonar:sonar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -Dsonar.host.url=${env.SONARQUBE_SVC} -Dsonar.projectName=${imageName}-${devTag} -Dsonar.projectVersion=${devTag}"
-              }
+            container("maven") {
+                dir('code') {
+                script {
+                    echo "Running Code Analysis"
+                    sh "${mvnCmd} sonar:sonar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -Dsonar.host.url=${env.SONARQUBE_SVC} -Dsonar.projectName=${imageName}-${devTag} -Dsonar.projectVersion=${devTag}"
+                }
+                }
             }
           }
         }
       }
     }
-    // Publish the uberjar file to Nexus
-    // stage('Publish to Nexus') {
-    //   steps {
-    //     dir('code') {
-    //       echo "Publish to Nexus"
-          //sh "${mvnCmd} deploy -Dquarkus.package.uber-jar=true -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true -DaltDeploymentRepository=nexus::default::${env.NEXUS_SVC}/repository/maven-releases"
-    //       sh "${mvnCmd} deploy -Dquarkus.package.uber-jar=true -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true"
-
-    //     }
-    //   }
-    // }
     // Create Build Config
     stage('Create Build Config') {
-      when {
-        expression {
-          openshift.withCluster() {
-            openshift.withProject(env.CICD_PROJECT) {
-              return !openshift.selector("bc", "${imageName}").exists()
+        when {
+          expression {
+            openshift.withCluster() {
+              openshift.withProject(env.CICD_PROJECT) {
+                return !openshift.selector("bc", "${imageName}").exists()
+              }
             }
           }
-        }
-      }
+       } 
       steps {
         echo "Create build config ${imageName}:latest"
         script {
@@ -148,11 +197,6 @@ pipeline {
             }
           }else{
             echo "Use external image registry"
-            nexus_url = sh (
-              script: 'oc get route nexus-registry -n ci-cd -o jsonpath="{.spec.host}"',
-              returnStdout: true
-            ).trim()
-            println "nexus_url: ${nexus_url}"
             openshift.withCluster() {
               openshift.withProject(env.CICD_PROJECT) {
                 openshift.newBuild(
@@ -173,65 +217,61 @@ pipeline {
               bc.spec.strategy.dockerStrategy.dockerfilePath = "src/main/docker/Dockerfile.jvm"
               openshift.apply(bc)
             }
-          }
-            
+          }         
         }
       }
     }
     // Build Container Image
     stage('Build Container Image') {
       steps {
-        echo "Build Container Image ${imageName}:${devTag}"
-        dir('code') {
-          script {
-            openshift.withCluster() {
-              openshift.withProject(env.CICD_PROJECT) {
-                openshift.startBuild(
-                  "${imageName}",
-                  "--from-dir=.",
-                  "--wait"
-                )
-                if(env.USE_INTERNAL_REGISTRY.toBoolean()){
-                  openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
-                } else {
-                  sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds ${nexusUser}:${nexusPassword} --dest-creds ${nexusUser}:${nexusPassword} docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:latest docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:${devTag}"  
-                }
+          echo "Build Container Image ${imageName}"
+          dir('code') {
+            script {
+              openshift.withCluster() {
+                openshift.withProject(env.CICD_PROJECT) {
+                  openshift.startBuild(
+                    "${imageName}",
+                    "--from-dir=.",
+                    "--wait"
+                  )
+                  
+                // if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+                //   openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
+                // } else {
+                  container('skopeo'){
+                    sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds ${nexusUser}:${nexusPassword} --dest-creds ${nexusUser}:${nexusPassword} docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:latest docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:${devTag}"  
+                  }
+                  
+                // }
               }
             }
           }
         }
       }
     }
-        // Scan with ACS/Stackrox
-    stage('Scan Image') {
-      when {
-        expression {
-          script {
-             if(env.STACKROX){
-               if(env.STACKROX.toBoolean())
-                  return true;
-                else
-                    return false;
-                  
-              }
-          }
+    // Scan with stackrox
+     stage('Scan Image') {
+      steps {    
+        container("tools") {
+          echo "Scan image: ${NEXUS_REGISTRY}/${imageName}:${devTag}}"
+          echo "Central: ${env.ROX_CENTRAL_ADDRESS}"
+          echo "Token: ${ROX_API_TOKEN}"
+          sh "export ROX_API_TOKEN=${ROX_API_TOKEN};roxctl --insecure-skip-tls-verify -e ${ROX_CENTRAL_ADDRESS} image check --image=${NEXUS_REGISTRY}/${imageName}:${devTag} --output=table"
         }
-      }
-      steps {
-        echo "Scan image ${imageName}:${devTag}"
-        stackrox (
-                    apiToken: "${ROX_API_TOKEN}",
-                    caCertPEM: '',
-                    enableTLSVerification: false,
-                    failOnCriticalPluginError: true,
-                    failOnPolicyEvalFailure: true,
-                    portalAddress: "${ROX_CENTRAL_ADDRESS}",
-                    imageNames: "${NEXUS_REGISTRY}/${imageName}:${devTag}"
-        )
-
+          
+          // stackrox (
+          //           apiToken: "${ROX_API_TOKEN}",
+          //           caCertPEM: '',
+          //           enableTLSVerification: false,
+          //           failOnCriticalPluginError: true,
+          //           failOnPolicyEvalFailure: true,
+          //           portalAddress: "${env.ROX_CENTRAL_ADDRESS}",
+          //           imageNames: "${NEXUS_REGISTRY}/backend:1.0.0-2"
+          //           // imageNames: "${NEXUS_REGISTRY}/${imageName}:${devTag}"
+          // )
       }
     }  
-   // Create Service
+     // Create Service
     stage('Create Service') {
       when {
         expression {
@@ -243,16 +283,16 @@ pipeline {
         }
       }
       steps {
-        script {
-          openshift.withCluster() {
-            openshift.withProject(env.DEV_PROJECT) {
-              def template = './manifests/backend-svc-dev.yaml'
-              openshift.apply(
-                openshift.process("-f", template)
-              )
+          script {
+            openshift.withCluster() {
+              openshift.withProject(env.DEV_PROJECT) {
+                def template = './manifests/backend-svc-dev.yaml'
+                openshift.apply(
+                  openshift.process("-f", template)
+                )
+              }
             }
-          }
-        }
+          }      
       }
     }
     // Create Route
@@ -267,106 +307,92 @@ pipeline {
         }
       }
       steps {
-        script {
-          openshift.withCluster() {
-            openshift.withProject(env.DEV_PROJECT) {
-              def template = './manifests/backend-route-dev.yaml'
-              openshift.apply(
-                openshift.process("-f", template)
-              )
+          script {
+            openshift.withCluster() {
+              openshift.withProject(env.DEV_PROJECT) {
+                def template = './manifests/backend-route-dev.yaml'
+                openshift.apply(
+                  openshift.process("-f", template)
+                )
+              }
             }
           }
-        }
       }
     }
-
-  //    stage('Create Network') {
-  //     parallel {
-  //          stage('Create Service') {
-  //            when {
-  //              expression {
-  //                openshift.withCluster() {
-  //                  openshift.withProject(env.DEV_PROJECT) {
-  //                     return !openshift.selector("svc", "${imageName}").exists()
-  //                  }
-  //                }
-  //              }
-  //            }
-  //             steps {
-  //       script {
-  //         openshift.withCluster() {
-  //           openshift.withProject(env.DEV_PROJECT) {
-  //             def template = './manifests/backend-svc-dev.yaml'
-  //             openshift.apply(
-  //               openshift.process("-f", template)
-  //             )
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }
-       
-     
-  //   stage('Create Route') {
-  //     when {
-  //       expression {
-  //         openshift.withCluster() {
-  //           openshift.withProject(env.DEV_PROJECT) {
-  //             return !openshift.selector("route", "${imageName}").exists()
-  //           }
-  //         }
-  //       }
-  //     }
-  //     steps {
-  //       script {
-  //         openshift.withCluster() {
-  //           openshift.withProject(env.DEV_PROJECT) {
-  //             def template = './manifests/backend-route-dev.yaml'
-  //             openshift.apply(
-  //               openshift.process("-f", template)
-  //             )
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }
-  //     }
-  //   }
-  // }
-
     // Create Deployment Config
     stage('Create Deployment Config') {
       steps {
         echo "Create deployment config: env.DEV_PROJECT"
-        script {
-          if(env.USE_INTERNAL_REGISTRY.toBoolean()){
-            nexus_url = "image-registry.openshift-image-registry.svc:5000/ci-cd"
-          } else {
-            nexus_url = sh (
-              script: 'oc get route nexus-registry -n ci-cd -o jsonpath="{.spec.host}"',
-              returnStdout: true
-            ).trim()
-          }
-          println "Set image repository to ${nexus_url}"
-          openshift.withCluster() {
-            openshift.withProject(env.DEV_PROJECT) {
-              def template = './manifests/backend-dc-dev.yaml'
-             
-                openshift.apply(
-                    openshift.process(
-                      "-f", template,
-                      "-p", "REPOSITORY=${nexus_url}",
-                      "-p", "IMAGE_NAME=${imageName}",
-                      "-p", "IMAGE_TAG=${devTag}",
-                      "-p", "BACKEND_URL=${env.BACKEND_URL}",
-                      "-p", "APP_VERSION=${version}"
-                    )
-                  )  
-              //openshift.selector("dc", "${imageName}").rollout().pause();
+          script {
+            // if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+            //   nexus_url = "image-registry.openshift-image-registry.svc:5000/ci-cd"
+            // } else {
+            //   nexus_url = sh (
+            //     script: 'oc get route nexus-registry -n ci-cd -o jsonpath="{.spec.host}"',
+            //     returnStdout: true
+            //   ).trim()
+            // }
+
+            openshift.withCluster() {
+              openshift.withProject(env.DEV_PROJECT) {
+                def template = './manifests/backend-dc-dev.yaml'  
+                  openshift.apply(
+                      openshift.process(
+                        "-f", template,
+                        "-p", "REPOSITORY=${nexus_url}",
+                        "-p", "IMAGE_NAME=${imageName}",
+                        "-p", "IMAGE_TAG=${devTag}",
+                        "-p", "BACKEND_URL=${env.BACKEND_URL}",
+                        "-p", "APP_VERSION=${version}"
+                      )
+                    )  
+                //openshift.selector("dc", "${imageName}").rollout().pause();
+              }
             }
-          }
         }
       }
     }
   }
 }
+
+// stage('Scan Image') {
+//       when {
+//         expression {
+//           script {
+//              if(env.STACKROX){
+//                if(env.STACKROX.toBoolean())
+//                   return true;
+//                 else
+//                     return false;
+                  
+//               }
+//           }
+//         }
+//       }
+    //   steps {
+    //     echo "Scan image ${imageName}:${devTag}"
+    //     script {
+    //       openshift.withCluster() {
+    //           openshift.withProject(env.CICD_PROJECT) {
+    //                   ROX_API_TOKEN = sh (
+    //                       script: 'oc get secret ${STACKROX_SECRET} -o jsonpath="{.data.token}"| base64 -d -',
+    //                       returnStdout: true
+    //                   ).trim()
+    //                   sh "export ROX_API_TOKEN=${ROX_API_TOKEN};roxctl --insecure-skip-tls-verify -e ${ROX_CENTRAL_ADDRESS} image scan --image=${NEXUS_REGISTRY}/${imageName}:${devTag} --output=json > /tmp/cve.txt"
+    //                   numCriticalCVEs = sh (
+    //                       script: 'cat /tmp/cve.txt| jq ".result.summary.CRITICAL"',
+    //                       returnStdout: true
+    //                   ).trim()
+    //                   echo "cat /tmp/cve.txt"
+    //                   echo "CRITICAL CVEs: ${numCriticalCVEs}"
+    //                   echo "Max CRITICAL CVEs: ${env.MAX_CRITICAL_CVES}"
+    //                   if(numCriticalCVEs.toInteger() > env.MAX_CRITICAL_CVES.toInteger()){
+    //                       currentBuild.result = 'ABORTED'
+    //                       echo "Number of CRITICAL CVEs exceed limits"
+    //                       sh "exit 1"
+    //                   }
+    //           }
+    //       }
+    //     }
+    //   }
+    // }  
