@@ -320,7 +320,7 @@ spec:
     // Scan Deployment
     stage('Scan Deployment'){
       steps {
-        container("jnpl") {
+        container("jnlp") {
           echo "Process teamplate to deployment"
             script {
               sh "oc process -f manifests/backend-dc-dev.yaml > dev.yaml"
