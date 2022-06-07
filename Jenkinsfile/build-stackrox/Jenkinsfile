@@ -251,22 +251,24 @@ spec:
     // }
     // Scan with stackrox
      stage('Scan Image') {
-      steps {
-        container("jnlp") {
+      steps {    
+        container("tools") {
           echo "Scan image: ${NEXUS_REGISTRY}/${imageName}:${devTag}}"
           echo "Central: ${env.ROX_CENTRAL_ADDRESS}"
           echo "Token: ${ROX_API_TOKEN}"
-          stackrox (
-                    apiToken: "${ROX_API_TOKEN}",
-                    caCertPEM: '',
-                    enableTLSVerification: false,
-                    failOnCriticalPluginError: true,
-                    failOnPolicyEvalFailure: true,
-                    portalAddress: "${env.ROX_CENTRAL_ADDRESS}",
-                    imageNames: "${NEXUS_REGISTRY}/backend:1.0.0-2"
-                    // imageNames: "${NEXUS_REGISTRY}/${imageName}:${devTag}"
-          )
+          sh "export ROX_API_TOKEN=${ROX_API_TOKEN};roxctl --insecure-skip-tls-verify -e ${ROX_CENTRAL_ADDRESS} image scan --image=${NEXUS_REGISTRY}/backend:1.0.0-2 --output=json"
         }
+          
+          // stackrox (
+          //           apiToken: "${ROX_API_TOKEN}",
+          //           caCertPEM: '',
+          //           enableTLSVerification: false,
+          //           failOnCriticalPluginError: true,
+          //           failOnPolicyEvalFailure: true,
+          //           portalAddress: "${env.ROX_CENTRAL_ADDRESS}",
+          //           imageNames: "${NEXUS_REGISTRY}/backend:1.0.0-2"
+          //           // imageNames: "${NEXUS_REGISTRY}/${imageName}:${devTag}"
+          // )
       }
     }  
      // Create Service
