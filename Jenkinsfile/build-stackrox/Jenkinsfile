@@ -127,128 +127,128 @@ spec:
       }
     }
     // Build the JAR
-    stage('Build Binary') {
-      steps {
-        container("maven") {
-            dir('code') {
-                echo "Building binary for ${imageName}"
-                script {
-                    sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
-                }
-            }
-        }
-      }
-    }
+    // stage('Build Binary') {
+    //   steps {
+    //     container("maven") {
+    //         dir('code') {
+    //             echo "Building binary for ${imageName}"
+    //             script {
+    //                 sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -DskipTests=true clean package"
+    //             }
+    //         }
+    //     }
+    //   }
+    // }
     // Test
-    stage('Test') {
-      parallel {
-        // Unit Test
-        stage('Unit Tests') {
-          steps {
-            container("maven") {
-                dir('code') {
-                    echo "Running Unit Tests"
-                    sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} test"
-                    step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
-                }
-            }
-          }
-        }
-        // Using Maven call SonarQube for Code Analysis
-        stage('Code Analysis') {
-          steps {
-            container("maven") {
-                dir('code') {
-                script {
-                    echo "Running Code Analysis"
-                    sh "${mvnCmd} sonar:sonar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -Dsonar.host.url=${env.SONARQUBE_SVC} -Dsonar.projectName=${imageName}-${devTag} -Dsonar.projectVersion=${devTag}"
-                }
-                }
-            }
-          }
-        }
-      }
-    }
+    // stage('Test') {
+    //   parallel {
+    //     // Unit Test
+    //     stage('Unit Tests') {
+    //       steps {
+    //         container("maven") {
+    //             dir('code') {
+    //                 echo "Running Unit Tests"
+    //                 sh "${mvnCmd} -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} test"
+    //                 step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
+    //             }
+    //         }
+    //       }
+    //     }
+    //     // Using Maven call SonarQube for Code Analysis
+    //     stage('Code Analysis') {
+    //       steps {
+    //         container("maven") {
+    //             dir('code') {
+    //             script {
+    //                 echo "Running Code Analysis"
+    //                 sh "${mvnCmd} sonar:sonar -Dinternal.repo.username=${nexusUser} -Dinternal.repo.password=${nexusPassword} -Dsonar.host.url=${env.SONARQUBE_SVC} -Dsonar.projectName=${imageName}-${devTag} -Dsonar.projectVersion=${devTag}"
+    //             }
+    //             }
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
     // Create Build Config
-    stage('Create Build Config') {
-        when {
-          expression {
-            openshift.withCluster() {
-              openshift.withProject(env.CICD_PROJECT) {
-                return !openshift.selector("bc", "${imageName}").exists()
-              }
-            }
-          }
-       } 
-      steps {
-        echo "Create build config ${imageName}:latest"
-        script {
-          echo "Use internal image registry"
-          if(env.USE_INTERNAL_REGISTRY.toBoolean()){
-            openshift.withCluster() {
-              openshift.withProject(env.CICD_PROJECT) {
-                openshift.newBuild(
-                  "--name=${imageName}",
-                  "--to=${imageName}:latest",
-                  "--strategy=docker",
-                  "--binary=true"
-                )
-              }
-            }
-          }else{
-            echo "Use external image registry"
-            openshift.withCluster() {
-              openshift.withProject(env.CICD_PROJECT) {
-                openshift.newBuild(
-                  "--name=${imageName}",
-                  // "--to=${env.NEXUS_REGISTRY}/${imageName}:latest",
-                  "--to=${nexus_url}/${imageName}:latest",
-                  "--to-docker=true",
-                  "--push-secret=nexus-registry",
-                  "--strategy=docker",
-                  "--binary=true"
-                )
-              }
-            }
-          }
-          openshift.withCluster() {
-            openshift.withProject(env.CICD_PROJECT) {
-              def bc = openshift.selector("bc/${imageName}").object()
-              bc.spec.strategy.dockerStrategy.dockerfilePath = "src/main/docker/Dockerfile.jvm"
-              openshift.apply(bc)
-            }
-          }         
-        }
-      }
-    }
+    // stage('Create Build Config') {
+    //     when {
+    //       expression {
+    //         openshift.withCluster() {
+    //           openshift.withProject(env.CICD_PROJECT) {
+    //             return !openshift.selector("bc", "${imageName}").exists()
+    //           }
+    //         }
+    //       }
+    //    } 
+    //   steps {
+    //     echo "Create build config ${imageName}:latest"
+    //     script {
+    //       echo "Use internal image registry"
+    //       if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+    //         openshift.withCluster() {
+    //           openshift.withProject(env.CICD_PROJECT) {
+    //             openshift.newBuild(
+    //               "--name=${imageName}",
+    //               "--to=${imageName}:latest",
+    //               "--strategy=docker",
+    //               "--binary=true"
+    //             )
+    //           }
+    //         }
+    //       }else{
+    //         echo "Use external image registry"
+    //         openshift.withCluster() {
+    //           openshift.withProject(env.CICD_PROJECT) {
+    //             openshift.newBuild(
+    //               "--name=${imageName}",
+    //               // "--to=${env.NEXUS_REGISTRY}/${imageName}:latest",
+    //               "--to=${nexus_url}/${imageName}:latest",
+    //               "--to-docker=true",
+    //               "--push-secret=nexus-registry",
+    //               "--strategy=docker",
+    //               "--binary=true"
+    //             )
+    //           }
+    //         }
+    //       }
+    //       openshift.withCluster() {
+    //         openshift.withProject(env.CICD_PROJECT) {
+    //           def bc = openshift.selector("bc/${imageName}").object()
+    //           bc.spec.strategy.dockerStrategy.dockerfilePath = "src/main/docker/Dockerfile.jvm"
+    //           openshift.apply(bc)
+    //         }
+    //       }         
+    //     }
+    //   }
+    // }
     // Build Container Image
-    stage('Build Container Image') {
-      steps {
-          echo "Build Container Image ${imageName}"
-          dir('code') {
-            script {
-              openshift.withCluster() {
-                openshift.withProject(env.CICD_PROJECT) {
-                  openshift.startBuild(
-                    "${imageName}",
-                    "--from-dir=.",
-                    "--wait"
-                  )
+    // stage('Build Container Image') {
+    //   steps {
+    //       echo "Build Container Image ${imageName}"
+    //       dir('code') {
+    //         script {
+    //           openshift.withCluster() {
+    //             openshift.withProject(env.CICD_PROJECT) {
+    //               openshift.startBuild(
+    //                 "${imageName}",
+    //                 "--from-dir=.",
+    //                 "--wait"
+    //               )
                   
-                // if(env.USE_INTERNAL_REGISTRY.toBoolean()){
-                //   openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
-                // } else {
-                  container('skopeo'){
-                    sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds ${nexusUser}:${nexusPassword} --dest-creds ${nexusUser}:${nexusPassword} docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:latest docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:${devTag}"  
-                  }
+    //             // if(env.USE_INTERNAL_REGISTRY.toBoolean()){
+    //             //   openshift.tag("${imageName}:latest", "${imageName}:${devTag}")
+    //             // } else {
+    //               container('skopeo'){
+    //                 sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds ${nexusUser}:${nexusPassword} --dest-creds ${nexusUser}:${nexusPassword} docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:latest docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:${devTag}"  
+    //               }
                   
-                // }
-              }
-            }
-          }
-        }
-      }
-    }
+    //             // }
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
     // Scan with stackrox
      stage('Scan Image') {
       steps {
@@ -263,7 +263,8 @@ spec:
                     failOnCriticalPluginError: true,
                     failOnPolicyEvalFailure: true,
                     portalAddress: "${env.ROX_CENTRAL_ADDRESS}",
-                    imageNames: "${NEXUS_REGISTRY}/${imageName}:${devTag}"
+                    imageNames: "${NEXUS_REGISTRY}/backend:1.0.0-2"
+                    // imageNames: "${NEXUS_REGISTRY}/${imageName}:${devTag}"
           )
         }
       }
