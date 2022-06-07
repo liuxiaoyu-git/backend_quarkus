@@ -268,7 +268,7 @@ spec:
                     portalAddress: '${env.ROX_CENTRAL_ADDRESS}',
                     imageNames: "${NEXUS_REGISTRY}/${imageName}:${devTag}"
           )
-      // }
+       }
     }  
      // Create Service
     stage('Create Service') {
