@@ -14,20 +14,56 @@ node {
   tag = releaseDate + "-" + env.BUILD_NUMBER
 }
 pipeline {
-  agent {
-    kubernetes {
-      label "maven36-with-tools"
-      cloud "openshift"
-      inheritFrom "maven"
-      containerTemplate {
-        name "jnlp"
-        image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
-        resourceRequestMemory "600Mi"
-        resourceLimitMemory "2Gi"
-        resourceRequestCpu "1"
-        resourceLimitCpu "2"
-      }
-    }
+  // agent {
+  //   kubernetes {
+  //     label "maven36-with-tools"
+  //     cloud "openshift"
+  //     inheritFrom "maven"
+  //     containerTemplate {
+  //       name "jnlp"
+  //       image "image-registry.openshift-image-registry.svc:5000/ci-cd/${JENKINS_SLAVE_IMAGE}:latest"
+  //       resourceRequestMemory "600Mi"
+  //       resourceLimitMemory "2Gi"
+  //       resourceRequestCpu "1"
+  //       resourceLimitCpu "2"
+  //     }
+  //   }
+  // }
+ agent {
+        kubernetes {
+        cloud 'openshift'
+        yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  serviceAccountName: jenkins
+  containers:
+  - name: jnlp
+    image: quay.io/openshift/origin-jenkins-agent-base:latest
+    command:
+    args: ['\${computer.jnlpmac}', '\${computer.name}']
+    workingDir: /tmp
+    tty: false
+  - name: skopeo
+    image: quay.io/skopeo/stable:latest
+    command:
+    - cat
+    tty: true
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+  - name: tools
+    image: quay.io/voravitl/tools:jenkins
+    command:
+    - cat
+    tty: true
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+"""
+        }
   }
   options {
     // set a timeout of 20 minutes for this pipeline
@@ -42,18 +78,21 @@ pipeline {
   stages {
     stage('Initial Configuration') {
       steps {
-        script {
-          nexusUser = sh (
-              script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.username}"| base64 -d -',
-              returnStdout: true
-            ).trim()
-          nexusPassword = sh (
-              script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
-              returnStdout: true
-            ).trim()
-          def nexusCreds = 'nexus_host = "'+env.NEXUS_SVC+'"\nnexus_repository = "'+nexusContainerRepo+'"\n'+'nexus_username = "'+nexusUser+'"\n'+'nexus_password = "'+nexusPassword+'"\n'
-          writeFile file: ".credentials", text: nexusCreds
+        container("jnlp") {
+            script {
+              nexusUser = sh (
+                  script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.username}"| base64 -d -',
+                  returnStdout: true
+                ).trim()
+              nexusPassword = sh (
+                  script: 'oc get secret ${NEXUS_SECRET} -o jsonpath="{.data.password}"| base64 -d -',
+                  returnStdout: true
+                ).trim()
+              def nexusCreds = 'nexus_host = "'+env.NEXUS_SVC+'"\nnexus_repository = "'+nexusContainerRepo+'"\n'+'nexus_username = "'+nexusUser+'"\n'+'nexus_password = "'+nexusPassword+'"\n'
+              writeFile file: ".credentials", text: nexusCreds
+            }
         }
+        
       }
     }
     stage('Choose Staging Version') {
@@ -92,23 +131,25 @@ pipeline {
               )
             }
           } else {
-            println "Nexus Registry"
-            tags = sh (
-              script: 'nexus-cli image tags --name backend | grep -E "^([0-9]+).([0-9]+).([0-9]+)-([0-9]+)$"',
-              returnStdout: true
-            )
-            timeout(5) {
-              selectTag = input(
-                ok: "Deploy Staging",
-                message: "Enter release version to promote to Staging",
-                parameters: [
-                  choice(
-                    choices: tags,
-                    description: '',
-                    name: 'Release Version'
-                  )
-                ]
+            container("tools") {
+              println "Nexus Registry"
+              tags = sh (
+                script: 'nexus-cli image tags --name backend | grep -E "^([0-9]+).([0-9]+).([0-9]+)-([0-9]+)$"',
+                returnStdout: true
               )
+              timeout(5) {
+                selectTag = input(
+                  ok: "Deploy Staging",
+                  message: "Enter release version to promote to Staging",
+                  parameters: [
+                    choice(
+                      choices: tags,
+                      description: '',
+                      name: 'Release Version'
+                    )
+                  ]
+                )
+              }
             }
           }
           println "selectTag = ${selectTag}"
@@ -133,8 +174,11 @@ pipeline {
               }
             }
           } else {
-            println "Releasing image  ${imageName}:${selectTag} to ${env.NEXUS_REGISTRY_SVC}"
-            sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds ${nexusUser}:${nexusPassword}  --dest-creds ${nexusUser}:${nexusPassword} docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:${selectTag} docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:${releaseTag}"  
+            container("skopeo") {
+              println "Releasing image  ${imageName}:${selectTag} to ${env.NEXUS_REGISTRY_SVC}"
+              sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds ${nexusUser}:${nexusPassword}  --dest-creds ${nexusUser}:${nexusPassword} docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:${selectTag} docker://${env.NEXUS_REGISTRY_SVC}/${imageName}:${releaseTag}"  
+            }
+            
           }
           
         }
@@ -215,32 +259,32 @@ pipeline {
         }
       }
     }
-        // Load Test with JMeter
-    stage('Load Test') {
-      steps {
-        script {
-          openshift.withCluster() {
-            openshift.withProject(env.STAGE_PROJECT) {
-               def dc = openshift.selector("dc", "${imageName}").object()
-               def dc_version = dc.status.latestVersion
-               def rc = openshift.selector("rc", "${imageName}-${dc_version}").object()
-               println "Waiting for ${imageName} to be ready"
-               while (rc.spec.replicas != rc.status.readyReplicas) {
-                  sleep 5
-                  rc = openshift.selector("rc", "${imageName}-${dc_version}").object()
-               }
-               def jmeter =  sh (
-                                  script: 'jmeter.sh -n -t load-test/load-test.jmx -JHOST=$(oc get route backend -n stage -o jsonpath="{.spec.host}") -JTHREAD=10 -JLOOP=5 -JURI=/version',
-                                  returnStdout: true
-                             ).trim()
-               println "Result: ${jmeter}"
-              //  sh "jmeter.sh -n -t load-test/load-test.jmx -JHOST=http://$(oc get route backend -n stage -o jsonpath='{.spec.host}') -JTHREAD=50 -JLOOP=5 -JURI=/version"
-               sh "cat summary.log"
+    // Load Test with JMeter
+    // stage('Load Test') {
+    //   steps {
+    //     script {
+    //       openshift.withCluster() {
+    //         openshift.withProject(env.STAGE_PROJECT) {
+    //            def dc = openshift.selector("dc", "${imageName}").object()
+    //            def dc_version = dc.status.latestVersion
+    //            def rc = openshift.selector("rc", "${imageName}-${dc_version}").object()
+    //            println "Waiting for ${imageName} to be ready"
+    //            while (rc.spec.replicas != rc.status.readyReplicas) {
+    //               sleep 5
+    //               rc = openshift.selector("rc", "${imageName}-${dc_version}").object()
+    //            }
+    //            def jmeter =  sh (
+    //                               script: 'jmeter.sh -n -t load-test/load-test.jmx -JHOST=$(oc get route backend -n stage -o jsonpath="{.spec.host}") -JTHREAD=10 -JLOOP=5 -JURI=/version',
+    //                               returnStdout: true
+    //                          ).trim()
+    //            println "Result: ${jmeter}"
+    //           //  sh "jmeter.sh -n -t load-test/load-test.jmx -JHOST=http://$(oc get route backend -n stage -o jsonpath='{.spec.host}') -JTHREAD=50 -JLOOP=5 -JURI=/version"
+    //            sh "cat summary.log"
                
-            }
-          }
-        }
-      }
-    }
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
   }
 }
