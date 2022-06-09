@@ -90,7 +90,6 @@ spec:
                 ).trim()
               def nexusCreds = 'nexus_host = "'+env.NEXUS_SVC+'"\nnexus_repository = "'+nexusContainerRepo+'"\n'+'nexus_username = "'+nexusUser+'"\n'+'nexus_password = "'+nexusPassword+'"\n'
               writeFile file: ".credentials", text: nexusCreds
-              sh "cat .credentials"
             }
         }
         
