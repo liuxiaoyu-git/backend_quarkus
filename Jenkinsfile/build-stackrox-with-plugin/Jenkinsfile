@@ -35,15 +35,6 @@ spec:
       requests:
         memory: 2Gi
         cpu: 1
-  - name: tools
-    image: quay.io/voravitl/tools:jenkins
-    command:
-    - cat
-    tty: true
-    resources:
-      requests:
-        memory: 128Mi
-        cpu: 100m
 """
         }
   }
@@ -252,7 +243,6 @@ spec:
     // Scan image with stackrox
      stage('Scan Image') {
       steps {    
-        container("jnlp"){
           script {
               echo "Scan image: ${NEXUS_REGISTRY}/${imageName}:${devTag}}"
               stackrox (
@@ -266,9 +256,7 @@ spec:
               )
           }
         }
-          
-        }
-    }  
+     }  
      // Create Service
     stage('Create Service') {
       when {
@@ -318,23 +306,23 @@ spec:
       }
     }
     // Scan Deployment
-    stage('Scan Deployment'){
-      steps {
-        container("jnlp") {
-          echo "Process teamplate to deployment"
-            script {
-              sh "oc process -f manifests/backend-dc-dev.yaml > dev.yaml"
-            }  
-        }
-        container("tools") {
-          echo "Check Deployment"
-            script {
-              sh "export ROX_API_TOKEN=${ROX_API_TOKEN};roxctl --insecure-skip-tls-verify -e ${ROX_CENTRAL_ADDRESS} deployment check --file=dev.yaml --output=table"
-            }
+    // stage('Scan Deployment'){
+    //   steps {
+    //     container("jnlp") {
+    //       echo "Process teamplate to deployment"
+    //         script {
+    //           sh "oc process -f manifests/backend-dc-dev.yaml > dev.yaml"
+    //         }  
+    //     }
+    //     container("tools") {
+    //       echo "Check Deployment"
+    //         script {
+    //           sh "export ROX_API_TOKEN=${ROX_API_TOKEN};roxctl --insecure-skip-tls-verify -e ${ROX_CENTRAL_ADDRESS} deployment check --file=dev.yaml --output=table"
+    //         }
             
-        }
-      }
-    }
+    //     }
+    //   }
+    // }
     // Create Deployment Config
     stage('Create Deployment Config') {
       steps {
