@@ -247,18 +247,7 @@ spec:
               echo "Scan image: ${NEXUS_REGISTRY}/${imageName}:${devTag}}"
               stackrox (
                     apiToken: "${ROX_API_TOKEN}",
-                      caCertPEM: '-----BEGIN CERTIFICATE-----
-                                  MIIB0zCCAXqgAwIBAgIUaUDpp1pYhk42O3CrccWxkkIkxZcwCgYIKoZIzj0EAwIw
-                                  SDEnMCUGA1UEAxMeU3RhY2tSb3ggQ2VydGlmaWNhdGUgQXV0aG9yaXR5MR0wGwYD
-                                  VQQFExQxODI4MzQyMzk2MTk3NDkxNDgzNjAeFw0yMjA2MTAwNDAzMDBaFw0yNzA2
-                                  MDkwNDAzMDBaMEgxJzAlBgNVBAMTHlN0YWNrUm94IENlcnRpZmljYXRlIEF1dGhv
-                                  cml0eTEdMBsGA1UEBRMUMTgyODM0MjM5NjE5NzQ5MTQ4MzYwWTATBgcqhkjOPQIB
-                                  BggqhkjOPQMBBwNCAASIE3l5nq6cmoUVyBC01FXIphG7GdPc6mEylzjB15Db/9mk
-                                  PjE5u9XOZoJ+1TfVboycdIjocNT3uLaMKXuL3xeVo0IwQDAOBgNVHQ8BAf8EBAMC
-                                  AQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU3yv+KRKbY0/Dd8OHi3LJrZbz
-                                  d98wCgYIKoZIzj0EAwIDRwAwRAIgTP0/UC6oABYvvummRG8O7qfS2NOIIfCqV6ov
-                                  8N9l3ucCIH2ai3hnjnL0RiZFi9Nh8Fx55lyTygjELECYZLoA/igo
-                                  -----END CERTIFICATE-----',
+                    caCertPEM: '',
                     enableTLSVerification: true,
                     failOnCriticalPluginError: true,
                     failOnPolicyEvalFailure: true,
