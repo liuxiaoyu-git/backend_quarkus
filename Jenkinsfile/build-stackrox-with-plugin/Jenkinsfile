@@ -248,8 +248,8 @@ spec:
               stackrox (
                     apiToken: "${ROX_API_TOKEN}",
                     caCertPEM: '',
-                    enableTLSVerification: true,
-                    failOnCriticalPluginError: true,
+                    enableTLSVerification: false,
+                    failOnCriticalPluginError: false,
                     failOnPolicyEvalFailure: true,
                     portalAddress: "${env.ROX_CENTRAL_ADDRESS}",
                     imageNames: "${NEXUS_REGISTRY}/${imageName}:${devTag}"
