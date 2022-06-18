@@ -310,7 +310,6 @@ spec:
                         "-p", "APP_VERSION=${version}"
                       )
                     )  
-                //openshift.selector("dc", "${imageName}").rollout().pause();
               }
             }
         }
