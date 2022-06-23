@@ -1,7 +1,7 @@
 #!/bin/sh
 echo "Build Backend App"
 APP_NAME=backend
-mvn clean package -DskipTests=true -Dquarkus.package.uber-jar=true
+mvn clean package -DskipTests=true -Dquarkus.package.type=uber-jar
 oc new-build --binary --name=${APP_NAME} -l app=${APP_NAME}
 oc patch bc/${APP_NAME} -p "{\"spec\":{\"strategy\":{\"dockerStrategy\":{\"dockerfilePath\":\"src/main/docker/Dockerfile.jvm_uberjar\"}}}}"
 oc start-build ${APP_NAME} --from-dir=. --follow
