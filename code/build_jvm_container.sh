@@ -5,14 +5,20 @@ then
    echo "Usage: build_jvm_container.sh <TAG>"
    exit 1
 fi
+if [ $# -gt 1 ];
+then
+   DOCKERFILE=$2
+else
+   DOCKERFILE=jvm
+fi
 TAG=$1
 echo "Build with tag $TAG"
 mvn clean package -DskipTests=true
-CONTAINER_RUNTIME=podman
+CONTAINER_RUNTIME=podma
 podman --version 1>/dev/null 2>&1
 if [ $? -ne 0 ];
 then
    CONTAINER_RUNTIME=docker 
 fi
-$CONTAINER_RUNTIME build -f src/main/docker/Dockerfile.jvm \
+$CONTAINER_RUNTIME build -f src/main/docker/Dockerfile.$DOCKERFILE \
 -t ${CONTAINER_NAME}:${TAG} .
