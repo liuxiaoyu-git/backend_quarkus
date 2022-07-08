@@ -14,7 +14,7 @@ fi
 TAG=$1
 echo "Build with tag $TAG"
 mvn clean package -DskipTests=true
-CONTAINER_RUNTIME=podma
+CONTAINER_RUNTIME=podman
 podman --version 1>/dev/null 2>&1
 if [ $? -ne 0 ];
 then
