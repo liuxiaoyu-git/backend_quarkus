@@ -22,3 +22,9 @@ then
 fi
 $CONTAINER_RUNTIME build --platform linux/amd64 -f src/main/docker/Dockerfile.$DOCKERFILE \
 -t ${CONTAINER_NAME}:${TAG} .
+jq --help > /dev/null
+if [ $? -eq 0 ];
+then
+   ARCH=$($CONTAINER_RUNTIME inspect ${CONTAINER_NAME}:${TAG} | jq '.[0].Architecture' | sed 's/\"//g')
+   printf "${CONTAINER_NAME}:${TAG} architecture is $ARCH"
+fi
