@@ -14,7 +14,7 @@ else
   ##MAVEN_CLI="clean package -Dnative -Dquarkus.native.container-build=true -Dquarkus.native.container-runtime=podman -DskipTests=true"
 fi
 START_BUILD_APP=$(date +%s)
-#mvn $MAVEN_CLI
+mvn $MAVEN_CLI
 END_BUILD_APP=$(date +%s)
 START_BUILD_CONTAINER=$(date +%s)
 $CONTAINER_RUNTIME build -f src/main/docker/Dockerfile.native \
