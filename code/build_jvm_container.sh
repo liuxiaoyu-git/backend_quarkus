@@ -20,5 +20,5 @@ if [ $? -ne 0 ];
 then
    CONTAINER_RUNTIME=docker 
 fi
-$CONTAINER_RUNTIME build -f src/main/docker/Dockerfile.$DOCKERFILE \
+$CONTAINER_RUNTIME build --platform linux/amd64 -f src/main/docker/Dockerfile.$DOCKERFILE \
 -t ${CONTAINER_NAME}:${TAG} .
