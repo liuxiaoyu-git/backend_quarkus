@@ -283,10 +283,10 @@ spec:
           }
       }
     }
-    // Create Deployment Config
-    stage('Create Deployment Config') {
+    // Create Deployment
+    stage('Create Deployment') {
       steps {
-        echo "Create deployment config: env.DEV_PROJECT"
+        echo "Create deployment: env.DEV_PROJECT"
           script {
             // if(env.USE_INTERNAL_REGISTRY.toBoolean()){
             //   nexus_url = "image-registry.openshift-image-registry.svc:5000/ci-cd"
@@ -299,7 +299,7 @@ spec:
 
             openshift.withCluster() {
               openshift.withProject(env.DEV_PROJECT) {
-                def template = './manifests/backend-dc-dev.yaml'  
+                def template = './manifests/backend-deployment-dev.yaml'  
                   openshift.apply(
                       openshift.process(
                         "-f", template,
