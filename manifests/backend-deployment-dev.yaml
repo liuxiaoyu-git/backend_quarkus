@@ -1,0 +1,115 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: backend-build-config-template
+objects:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: backend
+    annotations:
+      app.openshift.io/vcs-ref: master
+      app.openshift.io/vcs-uri: 'https://gitlab.com/ocp-demo/backend_quarkus'
+    labels:
+      app: backend
+      version: ${APP_VERSION}
+      tag: ${IMAGE_TAG}
+      name: backend
+      app.kubernetes.io/component: backend
+      app.kubernetes.io/instance: backend
+      app.kubernetes.io/name: java
+      app.kubernetes.io/part-of: App-X
+      app.openshift.io/runtime: quarkus
+      app.openshift.io/runtime-version: '11'
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: backend
+    strategy:
+      activeDeadlineSeconds: 21600
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: backend
+          version: ${APP_VERSION}
+          tag: ${IMAGE_TAG}
+          deployment: backend
+      spec:
+        containers:
+        - image: ${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}
+          imagePullPolicy: Always
+          name: backend
+          ports:
+          - containerPort: 8080
+          resources:
+            requests:
+              cpu: "0.05"
+              memory: 90Mi
+            limits:
+              cpu: "0.1"
+              memory: 150Mi
+          env:
+            - name: app.backend
+              value: ${BACKEND_URL}
+            - name: app.version
+              value: ${APP_VERSION}
+            - name: app.message
+              value: ${MESSAGE}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+parameters:
+- displayName: Application version
+  description: Version of application
+  name: APP_VERSION
+  required: true
+  value: ${APP_VERSION}
+- displayName: Image Tag
+  description: Image Tag
+  name: IMAGE_TAG
+  required: true
+  value: ${IMAGE_TAG}
+- displayName: BACKEND_URL
+  description: Backend target URL
+  name: BACKEND_URL
+  required: true
+  value: ${BACKEND_URL}
+- displayName: MESSAGE
+  description: Meesage return from app
+  name: MESSAGE
+  required: false
+  value: "Hello, World"
+- displayName: Repository
+  description: Container Image Repository
+  name: REPOSITORY
+  required: true
+  value: ${REPOSITORY}
+- displayName: Image Name
+  description: Image
+  name: IMAGE_NAME
+  required: true
+  value: ${IMAGE_NAME}
+  # triggers:
+  # - type: ConfigChange
+  # - imageChangeParams:
+  #     automatic: true
+  #     containerNames:
+  #     - backend
+  #     from:
+  #       kind: ImageStreamTag
+  #       name: backend:latest
+  #       namespace: ci-cd
+  #   type: ImageChange
