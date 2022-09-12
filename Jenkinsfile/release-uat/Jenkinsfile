@@ -167,7 +167,7 @@ spec:
       }
     }
     // Create Deployment Config
-    stage('Create Deployment Config') {
+    stage('Create Deployment') {
       steps {
         script {
           println "Deploy to: env.UAT_PROJECT"
