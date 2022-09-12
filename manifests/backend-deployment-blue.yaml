@@ -1,41 +1,40 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: backend-deployment-config-template
+  name: backend-deployment-template
 objects:
-- apiVersion: apps.openshift.io/v1
-  kind: DeploymentConfig
+- apiVersion: apps/v1
+  kind: Deployment
   metadata:
     name: backend-blue
     annotations:
       app.openshift.io/vcs-ref: master
-      app.openshift.io/vcs-uri: 'https://gitlab.com/ocp-demo/backend_quarkus.git'
+      app.openshift.io/vcs-uri: 'https://gitlab.com/ocp-demo/backend_quarkus'
     labels:
       app: backend-blue
       version: ${APP_VERSION}
       tag: ${IMAGE_TAG}
       name: backend-blue
-      app.kubernetes.io/component: backend-blue
-      app.kubernetes.io/instance: backend-blue
+      app.kubernetes.io/component: backend
+      app.kubernetes.io/instance: backend
       app.kubernetes.io/name: java
-      app.kubernetes.io/part-of: group-blue
-      app.openshift.io/runtime: java
+      app.kubernetes.io/part-of: App-X
+      app.openshift.io/runtime: quarkus
       app.openshift.io/runtime-version: '11'
   spec:
     replicas: 1
-    revisionHistoryLimit: 5
     selector:
-      deploymentconfig: backend-blue
+      matchLabels:
+        app: backend-blue
     strategy:
       activeDeadlineSeconds: 21600
-      resources: {}
       rollingParams:
         intervalSeconds: 1
         maxSurge: 25%
         maxUnavailable: 25%
         timeoutSeconds: 600
         updatePeriodSeconds: 1
-      type: Rolling
+      type: RollingUpdate
     template:
       metadata:
         creationTimestamp: null
@@ -43,10 +42,10 @@ objects:
           app: backend-blue
           version: ${APP_VERSION}
           tag: ${IMAGE_TAG}
-          deploymentconfig: backend-blue
+          deployment: backend
       spec:
         containers:
-        - image:  ${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}
+        - image: ${REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}
           imagePullPolicy: Always
           name: backend
           ports:
@@ -72,7 +71,6 @@ objects:
         schedulerName: default-scheduler
         securityContext: {}
         terminationGracePeriodSeconds: 30
-    triggers: []
 parameters:
 - displayName: Application version
   description: Version of application
@@ -93,7 +91,7 @@ parameters:
   description: Meesage return from app
   name: MESSAGE
   required: false
-  value: "This is blue version"
+  value: "Hello, World"
 - displayName: Repository
   description: Container Image Repository
   name: REPOSITORY
@@ -104,3 +102,14 @@ parameters:
   name: IMAGE_NAME
   required: true
   value: ${IMAGE_NAME}
+  # triggers:
+  # - type: ConfigChange
+  # - imageChangeParams:
+  #     automatic: true
+  #     containerNames:
+  #     - backend
+  #     from:
+  #       kind: ImageStreamTag
+  #       name: backend:latest
+  #       namespace: ci-cd
+  #   type: ImageChange

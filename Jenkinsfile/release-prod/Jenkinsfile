@@ -1,4 +1,3 @@
-def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
 def selectTag
 def tag
 def tags
@@ -138,7 +137,7 @@ spec:
                 expression {
                     openshift.withCluster() {
                         openshift.withProject(env.PROD_PROJECT) {
-                            return !openshift.selector("dc", "${imageName}-blue").exists()
+                            return !openshift.selector("deployment", "${imageName}-blue").exists()
                         }
                     }
                 }
@@ -148,7 +147,7 @@ spec:
                     println "Repository: $repository"
                     openshift.withCluster() {
                         openshift.withProject(env.PROD_PROJECT) {
-                            def template = './manifests/backend-dc-blue.yaml'
+                            def template = './manifests/backend-deployment-blue.yaml'
                             openshift.apply(
                                 openshift.process("-f", template,
                                     "-p", "REPOSITORY=${repository}",
@@ -168,7 +167,7 @@ spec:
                 expression {
                     openshift.withCluster() {
                         openshift.withProject(env.PROD_PROJECT) {
-                            return !openshift.selector("dc", "${imageName}-green").exists()
+                            return !openshift.selector("deployment", "${imageName}-green").exists()
                         }
                     }
                 }
@@ -178,7 +177,7 @@ spec:
                     println "Repository: $repository"
                     openshift.withCluster() {
                         openshift.withProject(env.PROD_PROJECT) {
-                            def template = './manifests/backend-dc-green.yaml'
+                            def template = './manifests/backend-deployment-green.yaml'
                             openshift.apply(
                                 openshift.process("-f", template,
                                     "-p", "REPOSITORY=${repository}",
@@ -278,9 +277,9 @@ spec:
                             }
                             echo "Active Application = ${activeApp}"
                             echo "Destination Application = ${destApp}"
-                            numOfpods = openshift.selector("dc", "${activeApp}").object().spec.replicas
+                            numOfpods = openshift.selector("depoyment", "${activeApp}").object().spec.replicas
                             echo "${activeApp} run with ${numOfpods} pods"
-                            def dc = openshift.selector("dc/${destApp}").object()
+                            def dc = openshift.selector("deployment/${destApp}").object()
                             dc.spec.template.spec.containers[0].image = "${repository}/${imageName}:${selectTag}"
                             dc.spec.replicas = numOfpods
                             dc.metadata.labels["tag"] = tag
@@ -291,15 +290,15 @@ spec:
                             // Set config map here
                             // -- code for setting config map here -- 
                             // Wait for app to deploy
-                            openshift.selector("dc", "${destApp}").rollout().latest();
-                            def dc_prod = openshift.selector("dc", "${destApp}").object()
+                            openshift.selector("deployment", "${destApp}").rollout().latest();
+                            def dc_prod = openshift.selector("deployment", "${destApp}").object()
                             def dc_version = dc_prod.status.latestVersion
-                            def rc_prod = openshift.selector("rc", "${destApp}-${dc_version}").object()
+                            def replicaset_prod = openshift.selector("replicaset", "${destApp}-${dc_version}").object()
                             echo "Waiting for ${destApp} to be ready"
 
-                            while (rc_prod.spec.replicas != rc_prod.status.readyReplicas) {
+                            while (replicaset_prod.spec.replicas != replicaset_prod.status.readyReplicas) {
                                 sleep 5
-                                rc_prod = openshift.selector("rc", "${destApp}-${dc_version}").object()
+                                replicaset_prod = openshift.selector("replicaset", "${destApp}-${dc_version}").object()
                             }
                         }
                     }
