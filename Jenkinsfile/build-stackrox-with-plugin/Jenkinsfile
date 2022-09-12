@@ -323,7 +323,7 @@ spec:
         container("jnlp") {
           echo "Process teamplate to deployment"
             script {
-              sh "oc process -f manifests/backend-dc-dev.yaml > dev.yaml"
+              sh "oc process -f manifests/backend-deployment-dev.yaml > dev.yaml"
             }  
         }
         container("tools") {
@@ -351,7 +351,7 @@ spec:
 
             openshift.withCluster() {
               openshift.withProject(env.DEV_PROJECT) {
-                def template = './manifests/backend-dc-dev.yaml'  
+                def template = './manifests/backend-deployment-dev.yaml'  
                   openshift.apply(
                       openshift.process(
                         "-f", template,

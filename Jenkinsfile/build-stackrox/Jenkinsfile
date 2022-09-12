@@ -324,7 +324,7 @@ spec:
 
             openshift.withCluster() {
               openshift.withProject(env.DEV_PROJECT) {
-                def template = './manifests/backend-dc-dev.yaml'  
+                def template = './manifests/backend-deployment-dev.yaml'  
                   openshift.apply(
                       openshift.process(
                         "-f", template,
