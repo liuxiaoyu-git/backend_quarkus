@@ -1,5 +1,4 @@
 import java.text.SimpleDateFormat
-def JENKINS_SLAVE_IMAGE = "maven36-with-tools"
 def selectTag
 def releaseTag
 def tag
@@ -184,7 +183,7 @@ spec:
           println "Set image repository to ${repository}"
           openshift.withCluster() {
             openshift.withProject(env.UAT_PROJECT) {
-              def template = './manifests/backend-dc-uat.yaml'
+              def template = './manifests/backend-deployment-uat.yaml'
                 openshift.apply(
                     openshift.process(
                       "-f", template,
