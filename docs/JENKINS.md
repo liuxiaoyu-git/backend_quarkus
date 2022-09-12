@@ -108,28 +108,46 @@ cd bin
 #Create projects for dev,stage,uat and production
 ./setup_projects.sh
 
-#Create project ci-cd, jenkins, nexus and sonarqube
-./setup_ci_cd_tools.sh
+#Create jenkins, nexus and sonarqube
+./setup_nexus.sh
+./setup_jenkins.sh
+./setup_sonar.sh
 
-#Create Jenkins slave with Maven 3.6 and Skopeo
-./setup_maven36_slave.sh
 
 ```
 Sample of shell script output
+
+Nexus
+
 ```bash
-###########################################################################################
-Jenkins URL = jenkins-ci-cd.apps.cluster-79e2.79e2.example.opentlc.com
-NEXUS URL = nexus-ci-cd.apps.cluster-79e2.79e2.example.opentlc.com
-NEXUS Password = e9b68dd7-e9dc-4cfe-a554-848bf23a7776
+NEXUS URL = nexus-ci-cd.apps.XXX.com
+NEXUS Password = bc4***c0
 Nexus password is stored at bin/nexus_password.txt
-Record this password and change it via web console
-Start build pipeline and deploy to dev project by run start_build_pipeline.sh
-###########################################################################################
+Jenkins will use user/password store in secret nexus-credential to access nexus
 ```
 
-### Setup Nexus
-Login to nexus with user admin. Initial password is stored in bin/nexus_password.txt. You can disable annonymous access. Pipeline use secret with [nexus_settings.xml](..code/../../code/nexus_settings.xml) when build and push image 
+Jenkins
 
+```bash
+Jenkins URL = jenkins-ci-cd.apps.XXX.opentlc.com
+Jenkins will use user/password store in secret nexus-credential to access nexus
+```
+
+SonarQube
+
+```bash
+Setup SonarQube completed
+https://sonarqube-ci-cd.apps.XXX.com
+```
+
+Developer Console
+
+![](imagesdir/ci-cd-dev-console.png)
+
+### Setup Nexus
+Login to nexus with user admin. Initial password is stored in bin/nexus_password.txt. Pipeline use secret with [nexus_settings.xml](../code/nexus_settings.xml) when build and push image 
+
+![](imagesdir/nexus-console.png)
 
 ### Create Pipeline
 
@@ -140,7 +158,11 @@ oc apply -f manifests/backend-build-pipeline.yaml -n ci-cd
 oc apply -f manifests/backend-release-pipeline.yaml -n ci-cd
 oc apply -f manifests/backend-release-uat-pipeline.yaml -n ci-cd
 oc apply -f manifests/backend-release-prod-pipeline.yaml -n ci-cd
-#or run following scripts in bin directory
+```
+
+or run following scripts in bin directory
+
+```
 ./create_pipelines.sh
 ```
 
@@ -172,7 +194,7 @@ Build Pipeline details:
 
 Start pipeline via CLI with oc command, OpenShift Admin Console or Jenkins Web Console. For **oc command** 
 ```bash
-oc start-build backend-build-pipeline.yaml -n ci-cd
+oc start-build backend-build-pipeline -n ci-cd
 #Build start with build number
 
 oc logs build/backend-build-pipeline-<build number> -n ci-cd
