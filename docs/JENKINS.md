@@ -187,8 +187,9 @@ Build Pipeline details:
 * Parallel run Unit Test and scan code by SonarQube.
 <!-- * Archive Uber JAR to Nexus. -->
 * Create Build Config, Service and Route objects if not exists.
-* Build container and store container image in OpenShift's internal registry inside ci-cd project
-* Create Deployment Config. This will automatically deploy to dev project.
+* Build container and store container image in Nexus or OpenShift's internal registry inside ci-cd project
+* Create Deployment. This will automatically deploy to dev project.
+
 
 #### Run Build Pipeline
 
@@ -196,9 +197,6 @@ Start pipeline via CLI with oc command, OpenShift Admin Console or Jenkins Web C
 ```bash
 oc start-build backend-build-pipeline -n ci-cd
 #Build start with build number
-
-oc logs build/backend-build-pipeline-<build number> -n ci-cd
-#Open URL show in log for open Jenkins
 ```
 
 Shell script for start build pipeline ([start_build_pipeline](../bin/start_build_pipeline.sh))
@@ -210,6 +208,13 @@ bin/start_build_pipeline.sh
 Build backend-build-pipeline-2 started
 Wait 5 sec for backend-build-pipeline-2 to be started
 info: logs available at /https://jenkins-ci-cd.apps.cluster-79e2.79e2.example.opentlc.com/blue/organizations/jenkins/ci-cd%2Fci-cd-backend-build-pipeline/detail/ci-cd-backend-build-pipeline/1/
+```
+
+Check Jenkins slave pod
+
+```bash
+NAME                                                     READY   STATUS      RESTARTS      AGE
+ci-cd-ci-cd-backend-build-pipeline-3-zkbg7-l8r5h-wsngg   3/3     Running     0             75s
 ```
 
 Sample build pipeline result.
