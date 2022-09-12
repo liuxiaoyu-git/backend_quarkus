@@ -1,21 +1,19 @@
-####
-# This Dockerfile is used in order to build a distroless container that runs the Quarkus application in native (no JVM) mode
-#
-# Before building the container image run:
-#
-# ./mvnw package -Pnative
-#
-# Then, build the image with:
-#
-# docker build -f src/main/docker/Dockerfile.native-micro -t quarkus/grpc-plain-text .
-#
-# Then run the container using:
-#
-# docker run -i --rm -p 8080:8080 quarkus/grpc-plain-text
-#
-###
+## Stage 1 : build with maven builder image with native capabilities
+FROM quay.io/quarkus/ubi-quarkus-native-image:22.2-java11 AS build
+USER root
+COPY --chown=quarkus:quarkus mvnw /code/mvnw
+COPY --chown=quarkus:quarkus .mvn /code/.mvn
+COPY --chown=quarkus:quarkus pom.xml /code/
+USER quarkus
+WORKDIR /code
+RUN ./mvnw -B org.apache.maven.plugins:maven-dependency-plugin:3.1.2:go-offline
+COPY src /code/src
+RUN ./mvnw package -Pnative -Dquarkus.native.native-image-xmx=7g -DskipTests=true
+
+## Stage 2 : create the docker final image
 FROM quay.io/quarkus/quarkus-micro-image:1.0
-COPY target/*-runner /application
+#COPY target/*-runner /application
+COPY --from=build /code/target/*-runner /application
 
 EXPOSE 8080
 USER 1001
