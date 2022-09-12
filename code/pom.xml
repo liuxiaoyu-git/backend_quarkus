@@ -16,7 +16,7 @@
     <quarkus.platform.artifact-id>quarkus-universe-bom</quarkus.platform.artifact-id>
     <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
     <!-- <quarkus.platform.version>2.10.2.Final</quarkus.platform.version>  -->
-    <quarkus.platform.version>2.11.2.Final</quarkus.platform.version>
+    <quarkus.platform.version>2.11.3.Final</quarkus.platform.version>
     <!-- <surefire-plugin.version>3.0.0-M5</surefire-plugin.version> -->
     <surefire-plugin.version>3.0.0-M7</surefire-plugin.version>
   </properties>
@@ -66,12 +66,12 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-rest-client</artifactId>
     </dependency>
-      <!-- CVE-2022-24823  -->
+      <!-- CVE-2022-24823  
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-codec-http</artifactId>
       <version>4.1.78.Final</version>
-  </dependency>
+  </dependency> -->
     <!-- <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
