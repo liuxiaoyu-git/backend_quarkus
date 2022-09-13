@@ -291,15 +291,15 @@ spec:
                             // -- code for setting config map here -- 
                             // Wait for app to deploy
                             // openshift.selector("deployment", "${destApp}").rollout().latest();
-                            def dc_prod = openshift.selector("deployment", "${destApp}").object()
-                            def dc_version = dc_prod.status.latestVersion
-                            def replicaset_prod = openshift.selector("replicaset", "${destApp}-${dc_version}").object()
-                            echo "Waiting for ${destApp} to be ready"
+                            // def dc_prod = openshift.selector("deployment", "${destApp}").object()
+                            // def dc_version = dc_prod.status.latestVersion
+                            // def replicaset_prod = openshift.selector("replicaset", "${destApp}-${dc_version}").object()
+                            // echo "Waiting for ${destApp} to be ready"
 
-                            while (replicaset_prod.spec.replicas != replicaset_prod.status.readyReplicas) {
-                                sleep 5
-                                replicaset_prod = openshift.selector("replicaset", "${destApp}-${dc_version}").object()
-                            }
+                            // while (replicaset_prod.spec.replicas != replicaset_prod.status.readyReplicas) {
+                            //     sleep 5
+                            //     replicaset_prod = openshift.selector("replicaset", "${destApp}-${dc_version}").object()
+                            // }
                         }
                     }
                 }
