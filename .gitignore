@@ -1,3 +1,8 @@
+nexus_password.txt
+nexus.properties
+*.org
+*.bak
+*.old
 .vscode/
 .java-version
 # Created by https://www.toptal.com/developers/gitignore/api/java
