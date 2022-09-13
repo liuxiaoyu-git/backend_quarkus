@@ -277,7 +277,7 @@ spec:
                             }
                             echo "Active Application = ${activeApp}"
                             echo "Destination Application = ${destApp}"
-                            numOfpods = openshift.selector("depoyment", "${activeApp}").object().spec.replicas
+                            numOfpods = openshift.selector("deployment", "${activeApp}").object().spec.replicas
                             echo "${activeApp} run with ${numOfpods} pods"
                             def dc = openshift.selector("deployment/${destApp}").object()
                             dc.spec.template.spec.containers[0].image = "${repository}/${imageName}:${selectTag}"
