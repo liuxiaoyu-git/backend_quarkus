@@ -279,7 +279,7 @@ Release staging Pipeline details:
 
 Start pipeline via CLI with oc command, OpenShift Admin Console or Jenkins Web Console. For **oc command** 
 ```bash
-oc start-build backend-release-pipeline.yaml -n ci-cd
+oc start-build backend-release-pipeline -n ci-cd
 #Build start with build number
 
 oc logs build/backend-release-pipeline-<build number> -n ci-cd
@@ -322,7 +322,7 @@ Release UAT Pipeline details:
 
 Start pipeline via CLI with oc command, OpenShift Admin Console or Jenkins Web Console. For **oc command** 
 ```bash
-oc start-build backend-release-uat-pipeline.yaml -n ci-cd
+oc start-build backend-release-uat-pipeline -n ci-cd
 #Build start with build number
 
 oc logs build/backend-release-uat-pipeline-<build number> -n ci-cd
@@ -367,7 +367,7 @@ Release staging Pipeline details:
 
 Start pipeline via CLI with oc command, OpenShift Admin Console or Jenkins Web Console. For **oc command** 
 ```bash
-oc start-build backend-release-prod-pipeline.yaml -n ci-cd
+oc start-build backend-release-prod-pipeline -n ci-cd
 #Build start with build number
 
 oc logs build/backend-release-prod-pipeline-<build number> -n ci-cd
