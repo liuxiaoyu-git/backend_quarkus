@@ -9,7 +9,7 @@ then
   CONTAINER_RUNTIME=docker
   MAVEN_CLI="clean package -Dquarkus.native.container-build=true -DskipTests=true  -Pnative"
 else
-  MAVEN_CLI="clean package -Pnative -Dquarkus.native.container-build=true -Dquarkus.native.remote-container-build=true -Dquarkus.native.container-runtime=podman -Dquarkus.native.native-image-xmx=5g "
+  MAVEN_CLI="clean package -Pnative -Dquarkus.native.remote-container-build=true -Dquarkus.native.native-image-xmx=5g "
   #MAVEN_CLI="clean package -Pnative -Dquarkus.native.container-build=true -Dquarkus.native.remote-container-build=true -Dquarkus.native.container-runtime=podman"
   ##MAVEN_CLI="clean package -Dnative -Dquarkus.native.container-build=true -Dquarkus.native.container-runtime=podman -DskipTests=true"
 fi
@@ -28,3 +28,5 @@ BUILD_APP=$(expr ${END_BUILD_APP} - ${START_BUILD_APP})
 BUILD_CONTAINER=$(expr ${END_BUILD_CONTAINER} - ${START_BUILD_CONTAINER})
 echo "Elasped time to build app:${BUILD_APP} sec"
 echo "Elasped time to build container:${BUILD_CONTAINER} sec"
+# -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel:22.1-java11
+# quarkus build --native -Dquarkus.native.container-build=true -Dquarkus.native.remote-container-build=true -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel:22.2-java11 -Dquarkus.native.native-image-xmx=6g
