@@ -290,7 +290,7 @@ spec:
                             // Set config map here
                             // -- code for setting config map here -- 
                             // Wait for app to deploy
-                            openshift.selector("deployment", "${destApp}").rollout().latest();
+                            // openshift.selector("deployment", "${destApp}").rollout().latest();
                             def dc_prod = openshift.selector("deployment", "${destApp}").object()
                             def dc_version = dc_prod.status.latestVersion
                             def replicaset_prod = openshift.selector("replicaset", "${destApp}-${dc_version}").object()
@@ -332,7 +332,7 @@ spec:
                     openshift.withCluster() {
                         openshift.withProject(env.PROD_PROJECT) {
                             echo "scale down ${activeApp}"
-                            def dc = openshift.selector("dc/${activeApp}").object()
+                            def dc = openshift.selector("deployment/${activeApp}").object()
                             dc.spec.replicas = 0
                             openshift.apply(dc)
                         }
