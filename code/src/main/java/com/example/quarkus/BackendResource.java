@@ -1,19 +1,21 @@
 package com.example.quarkus;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 
-import java.net.URL;
+
+
+import java.net.URI;
+
 import java.net.InetAddress;
+
 import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
 
 import javax.ws.rs.GET;
-//import javax.ws.rs.HeaderParam;
+
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -21,6 +23,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.jboss.logging.Logger;
+
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.metrics.MetricUnits;
 import org.eclipse.microprofile.metrics.annotation.ConcurrentGauge;
@@ -29,12 +32,12 @@ import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
-// import org.eclipse.microprofile.rest.client.annotation.RegisterClientHeaders;
-// import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
+import org.eclipse.microprofile.rest.client.RestClientBuilder;
+
 
 @Path("/")
-// @RegisterRestClient
-// @RegisterClientHeaders(RequestHeaderFactory.class)
+
+
 public class BackendResource {
     @ConfigProperty(name = "app.version", defaultValue = "v1")
     String version;
@@ -53,6 +56,12 @@ public class BackendResource {
 
     @ConfigProperty(name = "app.showResponse", defaultValue = "true")
     String showResponse;
+
+    // @Inject
+    // @RestClient
+    // BackendClient backendClient;
+
+
 
     private static final Logger logger = Logger.getLogger(BackendResource.class);
 
@@ -74,48 +83,58 @@ public class BackendResource {
         name = "concurrentBackend",
         description = "Concurrent connection"
         )
-    public Response callBackend(@Context HttpHeaders headers) throws IOException {
-    //public Response callBackend(@HeaderParam("user-agent") String userAgent) throws IOException {
+    public Response callBackend(@Context HttpHeaders headers)  {
         if (ApplicationConfig.IS_ALIVE.get() && ApplicationConfig.IS_READY.get()) { 
-            URL url;
-            try {
+            // URL url;
+            // try {
                 logger.info("Request to: " + backend);
-                url = new URL(backend);
-                final HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                String b3[] = {"x-b3-traceid","x-b3-spanid","x-b3-parentspanid","x-b3-sampled","x-request-id"};
-                for(int i=0;i<b3.length;i++){
-                    String trace=getHeader(headers, b3[i]);
-                    if(trace.length()>0){
-                        con.setRequestProperty(b3[i],trace);
-                        logger.info(b3[i]+": "+trace);
-                    }
-                }
-                con.setRequestMethod("GET");
-                final int returnCode = con.getResponseCode();
+                BackendClient backendClient =  RestClientBuilder.newBuilder()
+                                                                .baseUri(URI.create(backend))
+                                                                .connectTimeout(5, TimeUnit.SECONDS)
+                                                                .readTimeout(5, TimeUnit.SECONDS)
+                                                                .build(BackendClient.class);
+                Response response = backendClient.sendMessage();
+                final int returnCode=response.getStatus();
+
+                // url = new URL(backend);
+                // final HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                // String b3[] = {"x-request-id","x-b3-traceid","x-b3-spanid","x-b3-parentspanid","x-b3-sampled"};
+                // for(int i=0;i<b3.length;i++){
+                //     String trace=getHeader(headers, b3[i]);
+                //     if(trace.length()>0){
+                //         con.setRequestProperty(b3[i],trace);
+                //         logger.info(b3[i]+": "+trace);
+                //     }
+                // }
+                // con.setRequestMethod("GET");
+                // final int returnCode = con.getResponseCode();
                 logger.info("Return Code: " + returnCode);
                 if (Boolean.parseBoolean(showResponse)) {
-                        String inputLine;
-                        BufferedReader in = new BufferedReader(new InputStreamReader(
-                            con.getInputStream()));
-                        StringBuffer response = new StringBuffer();
-                        while ((inputLine = in .readLine()) != null) {
-                            response.append(inputLine);
-                        } in .close();
-                        logger.info("Response Body: " + response.toString());
-                        if (response.toString().length() > 0) message = response.toString();
+                        message = response.readEntity(String.class);
+                        logger.info("Response Body: " + message );
+                      
+                        // String inputLine;
+                        // BufferedReader in = new BufferedReader(new InputStreamReader(
+                        //     con.getInputStream()));
+                        // StringBuffer response = new StringBuffer();
+                        // while ((inputLine = in .readLine()) != null) {
+                        //     response.append(inputLine);
+                        // } in .close();
+                        // logger.info("Response Body: " + response.toString());
+                        // if (response.toString().length() > 0) message = response.toString();
                     }
 
                     return Response.status(returnCode).encoding("text/plain")
                         .entity(generateMessage(message, Integer.toString(returnCode)))
                         .expires(Date.from(Instant.now().plus(Duration.ofMillis(0))))
                         .build();
-                }
-                catch (final IOException e) {
-                    return Response.status(503).encoding("text/plain")
-                        .entity(generateMessage(e.getMessage(), "503"))
-                        .expires(Date.from(Instant.now().plus(Duration.ofMillis(0))))
-                        .build();
-                }
+                // }
+                // catch (final IOException e) {
+                //     return Response.status(503).encoding("text/plain")
+                //         .entity(generateMessage(e.getMessage(), "503"))
+                //         .expires(Date.from(Instant.now().plus(Duration.ofMillis(0))))
+                //         .build();
+                // }
             } else {
                 if (!ApplicationConfig.IS_ALIVE.get()) {
                     logger.info("Applicartion liveness is set to false, return " + errorCodeNotLive);
@@ -237,11 +256,11 @@ public class BackendResource {
             }
             return hostname;
         }
-        private String getHeader(HttpHeaders headers,String header){
-            if(headers.getRequestHeaders().containsKey(header))
-                return headers.getRequestHeader(header).get(0);
-            else
-                return "";
-        }
+        // private String getHeader(HttpHeaders headers,String header){
+        //     if(headers.getRequestHeaders().containsKey(header))
+        //         return headers.getRequestHeader(header).get(0);
+        //     else
+        //         return "";
+        // }
         
     }
