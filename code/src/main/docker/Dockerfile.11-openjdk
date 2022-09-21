@@ -1,7 +1,4 @@
-#FROM openjdk:14.0.2-jdk
-#FROM mcr.microsoft.com/openjdk/jdk:11-mariner
-FROM openjdk:latest
-#FROM mcr.microsoft.com/openjdk/jdk:11-ubuntu
+FROM openjdk:11-jdk
 # # Configure the JAVA_OPTIONS, you can add -XshowSettings:vm to also display the heap size.
 ENV JAVA_OPTIONS="-Djava.util.logging.manager=org.jboss.logmanager.LogManager"
 # We make four distinct layers so if there are application changes the library layers can be re-used
