@@ -1,3 +1,5 @@
+code/trivy-scan-result.txt
+scan-result*
 nexus_password.txt
 nexus.properties
 *.org
