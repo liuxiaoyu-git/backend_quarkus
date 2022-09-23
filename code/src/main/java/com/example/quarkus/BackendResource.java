@@ -1,21 +1,13 @@
 package com.example.quarkus;
 
-
-
-
 import java.net.URI;
-
 import java.net.InetAddress;
-
 import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-
-
 import javax.ws.rs.GET;
-
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -23,7 +15,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.jboss.logging.Logger;
-
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.metrics.MetricUnits;
 import org.eclipse.microprofile.metrics.annotation.ConcurrentGauge;
@@ -34,11 +25,9 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.rest.client.RestClientBuilder;
 
-
 @Path("/")
-
-
 public class BackendResource {
+    
     @ConfigProperty(name = "app.version", defaultValue = "v1")
     String version;
 
@@ -56,12 +45,6 @@ public class BackendResource {
 
     @ConfigProperty(name = "app.showResponse", defaultValue = "true")
     String showResponse;
-
-    // @Inject
-    // @RestClient
-    // BackendClient backendClient;
-
-
 
     private static final Logger logger = Logger.getLogger(BackendResource.class);
 

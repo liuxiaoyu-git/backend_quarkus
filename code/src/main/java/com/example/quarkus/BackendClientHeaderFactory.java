@@ -29,5 +29,4 @@ public class BackendClientHeaderFactory implements ClientHeadersFactory {
        }     
        return result;
     }
-    
 }

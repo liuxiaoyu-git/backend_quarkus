@@ -41,13 +41,16 @@
     </dependency>
     <!-- <dependency>
       <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-opentelemetry</artifactId>
+  </dependency>
+  <dependency>
+      <groupId>io.quarkus</groupId>
       <artifactId>quarkus-opentelemetry-exporter-otlp</artifactId>
-    </dependency> -->
-    <!--  b3, b3multi, jaeger and ottrace propagators  -->
-    <!-- <dependency>
+  </dependency>
+  <dependency>
       <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-extension-trace-propagators</artifactId>
-    </dependency> -->
+  </dependency> -->
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-junit5</artifactId>
