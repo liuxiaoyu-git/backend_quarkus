@@ -206,8 +206,7 @@ spec:
                   "--to-docker=true",
                   "--push-secret=nexus-registry",
                   "--strategy=docker",
-                  "--binary=true",
-                  "--docker-image=${env.NEXUS_REGISTRY}/backend-native:v1"
+                  "--binary=true"
                 )
               }
             }
