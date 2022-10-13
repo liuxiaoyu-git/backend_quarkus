@@ -1,6 +1,8 @@
-FROM registry.access.redhat.com/ubi9/openjdk-11-runtime
+#FROM registry.access.redhat.com/ubi9/openjdk-11-runtime
+FROM registry.access.redhat.com/openjdk/openjdk-11-rhel7:1.12-1
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en'
- # We make four distinct layers so if there are application changes the library layers can be re-used
+
+# We make four distinct layers so if there are application changes the library layers can be re-used
 
 COPY --chown=185 target/quarkus-app/lib/ /deployments/lib/
 COPY --chown=185 target/quarkus-app/*.jar /deployments/
