@@ -15,7 +15,7 @@ spec:
     contextDir: Jenkinsfile/build-stackrox
     git:
       ref: master
-      uri: https://gitlab.com/ocp-demo/backend_quarkus.git
+      uri: https://github.com/GIT_ACCOUNT/backend_quarkus.git
     # sourceSecret:
     #   name: gogs-secret
     type: Git
