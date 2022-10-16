@@ -1,5 +1,5 @@
-FROM registry.access.redhat.com/ubi9/openjdk-11-runtime:1.12-1
-#FROM registry.access.redhat.com/ubi9/openjdk-11-runtime:1.14-3
+FROM registry.access.redhat.com/openjdk/openjdk-11-runtime:1.12-1
+#FROM registry.access.redhat.com/openjdk/openjdk-11-runtime:1.14-3
 #FROM registry.access.redhat.com/openjdk/openjdk-11-rhel7:latest
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en'
 
