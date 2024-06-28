@@ -34,7 +34,7 @@ spec:
     resources:
       requests:
         memory: 2Gi
-        cpu: 1
+        cpu: 500m
   - name: tools
     image: quay.io/voravitl/tools:jenkins
     command:
