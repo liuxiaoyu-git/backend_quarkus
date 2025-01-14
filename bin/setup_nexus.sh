@@ -1,13 +1,13 @@
 START_BUILD=$(date +%s)
 SONARQUBE_VERSION=7.9.2
-NEXUS_VERSION=3.38.1
+NEXUS_VERSION=3.68.1
 #NEXUS_VERSION=3.41.1
 CICD_PROJECT=ci-cd
 DEV_PROJECT=dev
 PROD_PROJECT=prod
 STAGE_PROJECT=stage
 UAT_PROJECT=uat
-NEXUS_PVC_SIZE="300Gi"
+NEXUS_PVC_SIZE="100Gi"
 JENKINS_PVC_SIZE="10Gi"
 SONAR_PVC_SIZE="10Gi"
 CICD_NEXUS_USER=jenkins
@@ -177,7 +177,7 @@ clear;echo "Setup Nexus..."
 oc new-app sonatype/nexus3:${NEXUS_VERSION} --name=nexus -n ${CICD_PROJECT}
 oc create route edge nexus --service=nexus --port=8081
 oc rollout pause deployment nexus -n ${CICD_PROJECT}
-oc set resources deployment nexus --limits=memory=2Gi,cpu=2 --requests=memory=1Gi,cpu=500m -n ${CICD_PROJECT}
+oc set resources deployment nexus --limits=memory=4Gi,cpu=2 --requests=memory=1Gi,cpu=500m -n ${CICD_PROJECT}
 oc set volume deployment/nexus --remove --confirm -n ${CICD_PROJECT}
 oc set volume deployment/nexus --add --overwrite --name=nexus-pv-1 \
 --mount-path=/nexus-data/ --type persistentVolumeClaim \
